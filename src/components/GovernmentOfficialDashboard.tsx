@@ -55,16 +55,30 @@ export type GovCleanModule =
   | 'settings';
 
 interface GovernmentOfficialDashboardProps {
+  activeModule?: GovCleanModule;
+  onSelectModule?: (mod: GovCleanModule) => void;
   onSelectCase?: (caseId: string) => void;
   onOpenReport?: () => void;
 }
 
 export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardProps> = ({
+  activeModule: controlledModule,
+  onSelectModule,
   onSelectCase,
   onOpenReport,
 }) => {
   const { language } = useLanguage();
-  const [activeModule, setActiveModule] = useState<GovCleanModule>('dashboard');
+  const [internalModule, setInternalModule] = useState<GovCleanModule>('dashboard');
+  const activeModule = controlledModule || internalModule;
+
+  const setActiveModule = (mod: GovCleanModule) => {
+    if (onSelectModule) {
+      onSelectModule(mod);
+    } else {
+      setInternalModule(mod);
+    }
+  };
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filter states for detailed modules
@@ -81,7 +95,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
   // 8 Clean Modules Navigation
   const navItems: { id: GovCleanModule; label: string; icon: React.FC<any>; badge?: string }[] = [
     { id: 'dashboard', label: language === 'mr' ? 'डॅशबोर्ड' : language === 'hi' ? 'डैशबोर्ड' : 'Dashboard', icon: Building2 },
-    { id: 'disease', label: language === 'mr' ? 'रोग पाळत व निरीक्षण' : language === 'hi' ? 'रोग निगरानी' : 'Disease Monitoring', icon: Activity, badge: 'Active' },
+    { id: 'disease', label: language === 'mr' ? 'रोग पाळत व नियंत्रण' : language === 'hi' ? 'रोग निगरानी' : 'Disease Monitoring', icon: Activity, badge: 'Active' },
     { id: 'vaccination', label: language === 'mr' ? 'लसीकरण' : language === 'hi' ? 'टीकाकरण' : 'Vaccination', icon: Syringe },
     { id: 'emergency', label: language === 'mr' ? 'आणीबाणी १९६२' : language === 'hi' ? 'आपातकालीन सेवा' : 'Emergency Response', icon: AlertTriangle, badge: '3' },
     { id: 'resources', label: language === 'mr' ? 'संसाधने' : language === 'hi' ? 'संसाधन' : 'Resources', icon: Truck },
@@ -118,7 +132,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
         </div>
       )}
 
-      {/* Streamlined Government Navigation Bar (8 Clean Modules Only) */}
+      {/* Streamlined Government Navigation Bar (8 Clean Modules - Visible on mobile/tablet or as top quick-dock) */}
       <div
         style={{
           background: '#FFFFFF',
@@ -194,10 +208,12 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '20px',
+              gap: '24px',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ maxWidth: '680px' }}>
+            <div style={{ maxWidth: '680px', zIndex: 1 }}>
               <div
                 style={{
                   display: 'inline-flex',
@@ -233,35 +249,64 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               </p>
             </div>
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: '#FFFFFF',
-                padding: '12px 18px',
-                borderRadius: '18px',
-                border: '1px solid rgba(82, 183, 136, 0.2)',
-                boxShadow: '0 2px 10px rgba(45, 106, 79, 0.04)',
-              }}
-            >
+            {/* Clean Illustration & Jurisdiction Badge Matching Farmer Portal Style */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', zIndex: 1 }}>
               <div
                 style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  background: 'rgba(45, 106, 79, 0.1)',
+                  width: '84px',
+                  height: '84px',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, rgba(82, 183, 136, 0.15) 0%, rgba(45, 106, 79, 0.22) 100%)',
+                  border: '1.5px solid rgba(82, 183, 136, 0.35)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#2D6A4F',
+                  boxShadow: '0 8px 24px rgba(45, 106, 79, 0.08)',
                 }}
               >
-                <MapPin size={20} />
+                <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M24 4L8 10V22C8 32.5 14.8 42.2 24 44C33.2 42.2 40 32.5 40 22V10L24 4Z" fill="#2D6A4F" fillOpacity="0.12" stroke="#2D6A4F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M24 16V30" stroke="#2D6A4F" strokeWidth="2.8" strokeLinecap="round"/>
+                  <path d="M17 23H31" stroke="#2D6A4F" strokeWidth="2.8" strokeLinecap="round"/>
+                  <circle cx="34" cy="14" r="3" fill="#52B788"/>
+                </svg>
               </div>
-              <div>
-                <div style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600 }}>Jurisdiction Node</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#1B4332' }}>Pune Division (14 Blocks)</div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  background: '#FFFFFF',
+                  padding: '14px 20px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  boxShadow: '0 4px 16px rgba(45, 106, 79, 0.05)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '14px',
+                    background: 'rgba(45, 106, 79, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#2D6A4F',
+                  }}
+                >
+                  <MapPin size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jurisdiction Node</div>
+                  <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#1B4332' }}>Pune Division (14 Blocks)</div>
+                  <div style={{ fontSize: '0.72rem', color: '#2ECC71', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2ECC71', display: 'inline-block' }} />
+                    <span>Real-Time Surveillance Active</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

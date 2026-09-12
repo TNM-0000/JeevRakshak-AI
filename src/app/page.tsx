@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole } from '@/types/database';
 import { Header } from '@/components/Header';
-import { Navigation, ActiveTab } from '@/components/Navigation';
+import { Navigation, ActiveTab, GovCleanModule } from '@/components/Navigation';
 import { FarmerDashboard } from '@/components/FarmerDashboard';
 import { VeterinarianDashboard } from '@/components/VeterinarianDashboard';
 import { HerdHub } from '@/components/HerdHub';
@@ -24,6 +24,7 @@ export default function Home() {
   const { t } = useLanguage();
   const [currentRole, setCurrentRole] = useState<UserRole>('farmer');
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [govModule, setGovModule] = useState<GovCleanModule>('dashboard');
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
   const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
   const [herdSetupDone, setHerdSetupDone] = useState<boolean>(false);
@@ -139,6 +140,8 @@ export default function Home() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         currentRole={currentRole}
+        govModule={govModule}
+        onSelectGovModule={setGovModule}
       />
 
       {/* Main App Content View */}
@@ -168,6 +171,8 @@ export default function Home() {
           {/* ======================================================== */}
           {currentRole === 'government' && (activeTab === 'surveillance' || activeTab === 'home') && (
             <GovernmentOfficialDashboard
+              activeModule={govModule}
+              onSelectModule={setGovModule}
               onSelectCase={() => setActiveTab('cases')}
               onOpenReport={() => setActiveTab('report')}
             />
