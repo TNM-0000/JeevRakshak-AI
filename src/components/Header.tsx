@@ -4,17 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, ChevronDown, User, LogOut, Phone } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut, Phone, Plus } from 'lucide-react';
 import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
 
 interface HeaderProps {
   currentRole: UserRole;
   onRoleChange?: (role: UserRole) => void;
   onOpenNotifications: () => void;
+  onRegisterAnimal?: () => void;
   onSignOut?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onSignOut }) => {
+export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onRegisterAnimal, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [showIVRSimulator, setShowIVRSimulator] = useState(false);
@@ -119,6 +120,30 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
             <span>1800-120-JEEV</span>
           </button>
 
+
+          {/* Top Register Animal Button */}
+          {currentRole === 'farmer' && onRegisterAnimal && (
+            <button
+              type="button"
+              onClick={onRegisterAnimal}
+              className="btn-primary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                height: '34px',
+                whiteSpace: 'nowrap',
+              }}
+              title="Register New Livestock Animal"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              <span>{language === 'mr' ? 'पशू नोंदणी' : language === 'hi' ? 'पशु पंजीकरण' : 'Register Animal'}</span>
+            </button>
+          )}
 
           {/* Notification Bell */}
           <button

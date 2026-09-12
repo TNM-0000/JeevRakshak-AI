@@ -98,6 +98,7 @@ export interface Herd {
 export interface Animal {
   id: string;
   herd_id: string;
+  owner_profile_id?: string;
   tag_number: string;
   name?: string;
   species: string; // e.g., Cattle, Buffalo, Goat, Sheep
