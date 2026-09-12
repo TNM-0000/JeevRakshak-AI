@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { HealthReportWithDetails, AnimalWithDetails } from '@/types/database';
+import { formatDailyCaseNumber } from '@/lib/caseUtils';
 import {
   Activity,
   AlertTriangle,
@@ -25,7 +26,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
   onOpenSurveillance,
   onOpenReport,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
   const [animals, setAnimals] = useState<AnimalWithDetails[]>([]);
   const [jurisdictionName, setJurisdictionName] = useState<string>('Shirur Block');
@@ -174,7 +175,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
             className="btn-secondary"
             style={{ padding: '6px 12px', fontSize: '0.78rem' }}
           >
-            Review Queue
+            {language === 'mr' ? 'केसेस यादी' : language === 'hi' ? 'केस कतार' : 'Cases Queue'}
           </button>
         </div>
       </div>
@@ -212,7 +213,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                   <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Case #{String(report.id).replace('rep-', '').substring(0, 8).toUpperCase()}
+                    {formatDailyCaseNumber(report, criticalCases, language)}
                   </div>
                   <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#dc2626', background: '#fef2f2', padding: '2px 6px', borderRadius: '4px' }}>
                     {report.mortality_count > 0 ? 'MORTALITY' : 'CRITICAL'}

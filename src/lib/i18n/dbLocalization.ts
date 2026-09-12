@@ -42,6 +42,11 @@ export const SPECIES_TRANSLATIONS: Record<string, Record<AppLanguage, string>> =
   Poultry: { en: 'Poultry (Chicken / Duck)', hi: 'मुर्गी / कुक्कुट (Poultry)', mr: 'कुक्कुट / कोंबडी (Poultry)' },
   Yak: { en: 'Yak / Mithun', hi: 'याक / मिथुन (Yak)', mr: 'याक / मिथुन (Yak)' },
   Donkey: { en: 'Donkey', hi: 'गधा (Donkey)', mr: 'गाढव (Donkey)' },
+  Rabbit: { en: 'Rabbit / Cuniculture', hi: 'खरगोश (Rabbit)', mr: 'ससा (Rabbit)' },
+  Duck: { en: 'Duck / Waterfowl', hi: 'बत्तख (Duck)', mr: 'बदक (Duck)' },
+  Quail: { en: 'Quail / Bater', hi: 'बटेर (Quail)', mr: 'लाव्हा / बटेर (Quail)' },
+  Mule: { en: 'Mule / Hinny', hi: 'खच्चर (Mule)', mr: 'खच्चर (Mule)' },
+  Fishery: { en: 'Fishery / Aquaculture', hi: 'मत्स्य पालन (Fishery)', mr: 'मत्स्य पालन (Fishery)' },
 };
 
 export function localizeSpecies(species: string | null | undefined, lang: AppLanguage = 'en'): string {

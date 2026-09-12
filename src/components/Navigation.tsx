@@ -24,9 +24,10 @@ import {
   UserCheck,
   Settings as SettingsIcon,
   Phone,
+  Pill,
 } from 'lucide-react';
 
-export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'surveillance' | 'alerts';
+export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'prescriptions' | 'surveillance' | 'alerts';
 
 export type GovCleanModule =
   | 'dashboard'
@@ -156,6 +157,11 @@ export const Navigation: React.FC<NavigationProps> = ({
         icon: Layers,
       },
       {
+        id: 'prescriptions' as ActiveTab,
+        label: language === 'mr' ? 'डॉक्टर प्रिस्क्रिप्शन' : language === 'hi' ? 'डॉक्टर प्रिस्क्रिप्शन' : 'Doctor Prescriptions',
+        icon: Pill,
+      },
+      {
         id: 'cases' as ActiveTab,
         label: language === 'mr' ? 'माझे आरोग्य अहवाल' : language === 'hi' ? 'मेरी स्वास्थ्य रिपोर्ट' : 'My Health Reports',
         icon: ClipboardList,
@@ -277,16 +283,17 @@ export const Navigation: React.FC<NavigationProps> = ({
           })}
         </nav>
 
-        {/* Role-Specific Primary Quick Action CTA */}
-        <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+        {/* Role-Specific Primary Quick Action CTA (Sticky at left bottom corner) */}
+        <div style={{ marginTop: 'auto', paddingTop: '16px', position: 'sticky', bottom: 0, background: '#ffffff', zIndex: 10 }}>
           {currentRole === 'farmer' && (
             <button
               onClick={() => onSelectTab('report')}
               className="btn-saffron"
               style={{ width: '100%', padding: '12px' }}
+              title="Report / Add Sick Livestock Animal"
             >
               <Plus size={18} strokeWidth={2.6} />
-              <span>{t.dashboard.quickReport}</span>
+              <span>{language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}</span>
             </button>
           )}
 

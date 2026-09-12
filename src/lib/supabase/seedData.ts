@@ -19,6 +19,7 @@ import {
   OutbreakEvent,
   AppNotification,
 } from '@/types/database';
+import { DiseaseAlert } from '@/types/notificationSystem';
 
 export const initialLocations: AdministrativeLocation[] = [
   { id: 'loc-pune', name: 'Pune (पुणे)', name_en: 'Pune', name_hi: 'पुणे', name_mr: 'पुणे', level: 'district', parent_id: null, latitude: 18.5204, longitude: 73.8567 },
@@ -525,5 +526,61 @@ export const initialNotifications: AppNotification[] = [
     is_read: false,
     created_at: '2026-09-12T05:35:00Z',
     read_at: null,
+  },
+];
+
+export const initialDiseaseAlerts: DiseaseAlert[] = [
+  {
+    id: 'alert-seed-1',
+    disease_id: 'dis-1',
+    disease_name: 'Foot and Mouth Disease (FMD)',
+    region_level: 'block',
+    district: 'Pune',
+    block: 'Shirur',
+    village: 'Shirapur',
+    risk_level: 'high',
+    case_count: 6,
+    reported_date: '2026-09-10T08:00:00Z',
+    alert_start_date: '2026-09-10T08:00:00Z',
+    alert_expiry_date: '2026-09-24T23:59:59Z',
+    recommended_action: 'Immediate isolation of affected animals, antiseptic foot baths with 4% sodium carbonate, and mandatory ring vaccination within 5km zone.',
+    description: 'Cluster of cattle showing vesicular lesions on tongue and interdigital spaces reported in Shirur block.',
+    containment_radius_km: 5,
+    species_targeted: ['Cattle', 'Buffalo'],
+    preventive_measures: [
+      'Isolate affected livestock immediately',
+      'Disinfect premise with 4% sodium carbonate solution',
+      'Do not transport animals across village or block boundaries',
+    ],
+    source_authority: 'District Animal Husbandry Office (DAHO), Pune',
+    status: 'active',
+    target_audience: 'both',
+    created_at: '2026-09-10T08:00:00Z',
+  },
+  {
+    id: 'alert-seed-2',
+    disease_id: 'dis-2',
+    disease_name: 'Lumpy Skin Disease (LSD)',
+    region_level: 'district',
+    district: 'Pune',
+    block: 'Baramati',
+    risk_level: 'moderate',
+    case_count: 4,
+    reported_date: '2026-09-08T10:00:00Z',
+    alert_start_date: '2026-09-08T10:00:00Z',
+    alert_expiry_date: '2026-09-22T23:59:59Z',
+    recommended_action: 'Strict vector control with insect repellents, mosquito netting, and immediate goat pox vaccine booster administration.',
+    description: 'Nodular skin eruptions detected across dairy farms in Baramati sector.',
+    containment_radius_km: 10,
+    species_targeted: ['Cattle'],
+    preventive_measures: [
+      'Vector control against biting flies and mosquitoes',
+      'Daily body temperature checks',
+      'Administer supportive antipyretic therapy',
+    ],
+    source_authority: 'State Veterinary Disease Diagnostic Laboratory (VDL), Pune',
+    status: 'active',
+    target_audience: 'both',
+    created_at: '2026-09-08T10:00:00Z',
   },
 ];

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { dataService } from '@/lib/supabase/dataService';
+import { dataService, OldDataSummary } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage } from '@/types/database';
 import {
   Shield,
@@ -30,6 +30,7 @@ import {
   Home,
   AlertOctagon,
   UserPlus,
+  X,
 } from 'lucide-react';
 import { GoogleMapLocationPicker, LocationData } from './GoogleMapLocationPicker';
 
@@ -451,6 +452,57 @@ const ONBOARDING_I18N = {
   },
 };
 
+const ACCOUNT_MODAL_I18N = {
+  en: {
+    badge: 'Existing Account Verified • जुने खाते ओळखले',
+    title: 'You already have an account',
+    loginAgainDesc: 'An account registered with {email} was recognized. Welcome back, {name}! Your saved livestock records, farm details, and health history have been restored.',
+    registerDuplicateDesc: 'The email {email} is already registered with JeevRakshak AI. You already have an account! Your existing data and livestock records are safe.',
+    accountHolder: 'Account Owner',
+    farmName: 'Farm / Station',
+    location: 'Registered Location',
+    livestock: 'Livestock Animals',
+    reports: 'Health Reports',
+    animalsCountText: '{count} animal(s) on file',
+    reportsCountText: '{count} report(s) on file',
+    proceedBtn: 'Proceed to Dashboard',
+    signInExistingBtn: 'Sign In to Existing Account',
+    cancelBtn: 'Close',
+  },
+  mr: {
+    badge: 'नोंदणीकृत खाते आढळले • जुने खाते उपलब्ध',
+    title: 'आपले आधीच खाते आहे',
+    loginAgainDesc: '{email} या ईमेलवर आधीच खाते अस्तित्वात आहे. पुन्हा स्वागत आहे, {name}! आपले फार्म, जनावरांचे रेकॉर्ड आणि आरोग्य नोंदी यशस्वीपणे लोड करण्यात आल्या आहेत.',
+    registerDuplicateDesc: '{email} हा ईमेल जीवरक्षक AI मध्ये आधीच नोंदणीकृत आहे. आपले आधीच खाते आहे! आपला जुना डेटा व जनावरांचे रेकॉर्ड सुरक्षित आहेत.',
+    accountHolder: 'खातेधारक शेतकरी',
+    farmName: 'फार्म / संस्था',
+    location: 'नोंदणीकृत ठिकाण',
+    livestock: 'नोंदणीकृत जनावरे',
+    reports: 'आरोग्य अहवाल',
+    animalsCountText: '{count} जनावरे उपलब्ध',
+    reportsCountText: '{count} आरोग्य अहवाल उपलब्ध',
+    proceedBtn: 'डॅशबोर्डवर जा',
+    signInExistingBtn: 'जुने खाते वापरून लॉगिन करा',
+    cancelBtn: 'बंद करा',
+  },
+  hi: {
+    badge: 'मौजूदा खाता सत्यापित • पुराना खाता उपलब्ध',
+    title: 'आपका पहले से एक खाता है',
+    loginAgainDesc: '{email} के लिए पहले से खाता मौजूद है। वापसी पर स्वागत है, {name}! आपके फार्म, पशुधन रिकॉर्ड और स्वास्थ्य रिपोर्ट लोड कर दिए गए हैं।',
+    registerDuplicateDesc: '{email} जीवरक्षक AI में पहले से पंजीकृत है। आपका पहले से एक खाता है! आपका पुराना डेटा और पशुधन रिकॉर्ड सुरक्षित हैं।',
+    accountHolder: 'खाताधारक किसान',
+    farmName: 'फार्म / संस्था',
+    location: 'पंजीकृत स्थान',
+    livestock: 'पंजीकृत पशुधन',
+    reports: 'स्वास्थ्य रिपोर्ट',
+    animalsCountText: '{count} पशु उपलब्ध',
+    reportsCountText: '{count} स्वास्थ्य रिपोर्ट उपलब्ध',
+    proceedBtn: 'डैशबोर्ड पर जाएं',
+    signInExistingBtn: 'मौजूदा खाते से लॉगिन करें',
+    cancelBtn: 'बंद करें',
+  },
+};
+
 export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onComplete }) => {
   const { language, setLanguage } = useLanguage();
   const copy = ONBOARDING_I18N[language] || ONBOARDING_I18N.en;
@@ -501,6 +553,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Pop up modal for existing account detection
+  const [existingAccountModal, setExistingAccountModal] = useState<{
+    isOpen: boolean;
+    type: 'login_again' | 'register_duplicate';
+    summary: OldDataSummary;
+    onProceed: () => void;
+  } | null>(null);
+
   // Validation functions
   const isValidMobile = (val: string): boolean => {
     const clean = val.replace(/[\s\-\(\)]/g, '');
@@ -547,6 +607,38 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       return;
     }
 
+    // Check if account with this email already exists
+    if (email.trim()) {
+      const existingCheck = dataService.checkEmailExists(email.trim());
+      if (existingCheck.exists && existingCheck.summary) {
+        setLoading(false);
+        setExistingAccountModal({
+          isOpen: true,
+          type: 'register_duplicate',
+          summary: existingCheck.summary,
+          onProceed: () => {
+            setExistingAccountModal(null);
+            if (password.trim() && existingCheck.account?.password === password.trim()) {
+              setLoading(true);
+              dataService.signInUser({
+                login: existingCheck.summary!.email,
+                password: password.trim(),
+                role: existingCheck.summary!.role,
+              }).then(() => {
+                setLoading(false);
+                onComplete(existingCheck.summary!.role);
+              });
+            } else {
+              setSignInLogin(existingCheck.summary!.email);
+              setSignInRole(existingCheck.summary!.role);
+              setViewMode('signin');
+            }
+          },
+        });
+        return;
+      }
+    }
+
     const cleanBlock = (locationData.block || selectedBlock || 'shirur').toLowerCase().replace(/\s+/g, '_');
     const cleanDist = (locationData.district || selectedDistrict || 'pune').toLowerCase().replace(/\s+/g, '_');
     const cleanState = (locationData.state || 'maharashtra').toLowerCase().replace(/\s+/g, '_');
@@ -582,13 +674,13 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const handleQuickFillDemo = (role: UserRole) => {
     setSignInRole(role);
     if (role === 'farmer') {
-      setSignInLogin('9823012345');
+      setSignInLogin('farmer@jeevrakshak.org');
       setSignInPassword('Farmer@123');
     } else if (role === 'veterinarian') {
-      setSignInLogin('MSVC-18492');
+      setSignInLogin('vet@jeevrakshak.org');
       setSignInPassword('Vet@12345');
     } else {
-      setSignInLogin('MH-DAHD-0412');
+      setSignInLogin('govt@jeevrakshak.org');
       setSignInPassword('Govt@12345');
     }
     setErrorMsg(null);
@@ -653,26 +745,55 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       setViewMode('auth_error');
     } else {
       const assignedRole = (res.profile as any)?.role || dataService.getCurrentRole() || signInRole;
-      onComplete(assignedRole);
+
+      // If logging in again with an existing account / email, show pop up box saying "You already have an account"
+      if (res.alreadyHadAccount && res.oldDataSummary) {
+        setExistingAccountModal({
+          isOpen: true,
+          type: 'login_again',
+          summary: res.oldDataSummary,
+          onProceed: () => {
+            setExistingAccountModal(null);
+            onComplete(assignedRole);
+          },
+        });
+      } else {
+        onComplete(assignedRole);
+      }
     }
   };
 
   // Quick Demo Guest Bypass
   const handleGuestDemo = () => {
+    const demoUser = {
+      id: 'demo-farmer-1',
+      full_name: 'Suresh Rambhau Shinde',
+      phone: '9822410291',
+      location_id: 'loc-shirapur',
+      district: 'Pune',
+      block: 'Shirur',
+      village: 'Shirapur',
+      state: 'Maharashtra',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    dataService.setCurrentUser(demoUser);
+    dataService.setCurrentRole('farmer');
     dataService.setOnboardingCompleted(true);
     onComplete('farmer');
   };
 
   return (
-    <div className="ambient-hero-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
       {/* Top Navbar */}
       <header
         style={{
-          background: 'rgba(244, 240, 230, 0.94)',
+          background: 'transparent',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--border-subtle)',
-          padding: '12px 20px',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
+          padding: '12px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -681,27 +802,29 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
           zIndex: 40,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'var(--primary)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              background: 'var(--primary-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
+              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
               flexShrink: 0,
             }}
           >
-            <Shield size={22} strokeWidth={2.4} />
+            <Shield size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
-              JeevRakshak AI
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
+                JeevRakshak AI
+              </span>
+            </div>
           </div>
         </div>
 
@@ -716,7 +839,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               fontSize: '0.78rem',
               fontWeight: 600,
               borderRadius: '20px',
-              background: 'var(--surface-raised)',
+              background: '#f1f5f9',
               border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               appearance: 'none',
@@ -737,70 +860,55 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
       {/* VIEW 1: HERO LANDING PAGE */}
       {viewMode === 'hero' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '40px 16px 32px' }}>
-          {/* Main Hero Body */}
-          <div style={{ maxWidth: '860px', width: '100%', textAlign: 'center', margin: 'auto 0' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 16px 40px' }}>
+          <div style={{ maxWidth: '860px', width: '100%', textAlign: 'center', margin: '0 auto' }}>
             {/* Govt Initiative Badge */}
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'rgba(217, 119, 6, 0.1)',
-                color: '#b45309',
-                padding: '6px 16px',
+                background: 'rgba(5, 150, 105, 0.1)',
+                color: 'var(--primary)',
+                padding: '6px 14px',
                 borderRadius: 'var(--radius-full)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                marginBottom: '22px',
-                border: '1px solid rgba(217, 119, 6, 0.3)',
-                boxShadow: '0 2px 10px rgba(217, 119, 6, 0.12)',
+                marginBottom: '18px',
+                border: '1px solid var(--primary-border)',
               }}
-              className="animate-pulse-amber"
             >
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c', display: 'inline-block' }} />
+              <Radio size={14} className="animate-pulse" />
               <span>{copy.govtBadge}</span>
             </div>
 
             {/* Main Headline */}
             <h1
               style={{
-                fontSize: 'clamp(2.1rem, 5.5vw, 3.5rem)',
+                fontSize: 'clamp(1.8rem, 5vw, 3.1rem)',
                 fontWeight: 800,
                 lineHeight: 1.15,
                 color: 'var(--text-main)',
-                marginBottom: '18px',
-                letterSpacing: '-0.025em',
+                marginBottom: '40px',
+                letterSpacing: '-0.02em',
               }}
             >
               {copy.heroTitle1} <br />
-              <span className="text-gradient-saffron">{copy.heroTitle2}</span>
+              <span style={{ color: 'var(--primary)' }}>{copy.heroTitle2}</span>
             </h1>
 
-            {/* Subtitle */}
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 2vw, 1.12rem)',
-                color: 'var(--text-muted)',
-                maxWidth: '700px',
-                margin: '0 auto 36px',
-                lineHeight: 1.6,
-                fontWeight: 500,
-              }}
-            >
-              {copy.heroSub}
-            </p>
+
 
             {/* Primary Action Buttons */}
-            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
               <button
                 onClick={() => {
                   setViewMode('onboarding');
                   setOnboardingStep(1);
                   setErrorMsg(null);
                 }}
-                className="btn-saffron"
-                style={{ padding: '14px 34px', fontSize: '1.02rem', borderRadius: 'var(--radius-full)' }}
+                className="btn-primary"
+                style={{ padding: '14px 30px', fontSize: '1rem', borderRadius: 'var(--radius-full)', gap: '8px' }}
               >
                 <span>{copy.getStarted}</span>
                 <ArrowRight size={18} />
@@ -811,33 +919,31 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setViewMode('signin');
                   setErrorMsg(null);
                 }}
-                className="btn-earth"
-                style={{ padding: '14px 28px', fontSize: '0.98rem', borderRadius: 'var(--radius-full)' }}
+                className="btn-secondary"
+                style={{ padding: '14px 26px', fontSize: '0.95rem', borderRadius: 'var(--radius-full)' }}
               >
                 <span>{copy.signIn}</span>
               </button>
             </div>
-          </div>
 
-          {/* Bottom Clean Link: Skip demo */}
-          <div style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center' }}>
-            <button
-              onClick={handleGuestDemo}
-              style={{
-                fontSize: '0.84rem',
-                color: 'var(--text-muted)',
-                textDecoration: 'underline',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '8px 16px',
-                transition: 'color 0.2s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-            >
-              {copy.skipGuest}
-            </button>
+
+            {/* Quick Demo Bypass */}
+            <div style={{ marginTop: '32px' }}>
+              <button
+                onClick={handleGuestDemo}
+                style={{
+                  fontSize: '0.82rem',
+                  color: 'var(--text-muted)',
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '8px',
+                }}
+              >
+                {copy.skipGuest}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -881,7 +987,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       width: s === onboardingStep ? '20px' : '8px',
                       height: '8px',
                       borderRadius: '4px',
-                      background: s <= onboardingStep ? 'var(--primary)' : 'var(--border-subtle)',
+                      background: s <= onboardingStep ? 'var(--primary)' : '#e2e8f0',
                       transition: 'all 0.25s ease',
                     }}
                   />
@@ -929,7 +1035,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         padding: '14px',
                         borderRadius: 'var(--radius-md)',
                         border: language === lang.id ? '2px solid var(--primary)' : '1px solid var(--border-card)',
-                        background: language === lang.id ? 'var(--primary-light)' : 'var(--surface)',
+                        background: language === lang.id ? 'var(--primary-light)' : '#fff',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -948,7 +1054,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           width: '20px',
                           height: '20px',
                           borderRadius: '50%',
-                          border: `2px solid ${language === lang.id ? 'var(--primary)' : 'var(--border-subtle)'}`,
+                          border: `2px solid ${language === lang.id ? 'var(--primary)' : '#cbd5e1'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -963,7 +1069,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 <button
                   onClick={() => setOnboardingStep(2)}
-                  className="btn-saffron"
+                  className="btn-primary"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
                   <span>{copy.continue}</span>
@@ -1013,7 +1119,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           padding: '12px 14px',
                           borderRadius: 'var(--radius-md)',
                           border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border-card)',
-                          background: isSelected ? 'var(--primary-light)' : 'var(--surface)',
+                          background: isSelected ? 'var(--primary-light)' : '#fff',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -1026,7 +1132,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                             width: '36px',
                             height: '36px',
                             borderRadius: '8px',
-                            background: isSelected ? 'var(--primary)' : 'var(--surface-raised)',
+                            background: isSelected ? 'var(--primary)' : '#f1f5f9',
                             color: isSelected ? '#fff' : 'var(--text-muted)',
                             display: 'flex',
                             alignItems: 'center',
@@ -1049,7 +1155,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                             width: '18px',
                             height: '18px',
                             borderRadius: '50%',
-                            border: `2px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
+                            border: `2px solid ${isSelected ? 'var(--primary)' : '#cbd5e1'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1066,7 +1172,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 <button
                   onClick={() => setOnboardingStep(4)}
-                  className="btn-saffron"
+                  className="btn-primary"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
                   <span>{copy.continue}</span>
@@ -1102,747 +1208,372 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
         </div>
       )}
 
-      {/* VIEW 2 (STEP 4): FULL WEB PAGE REGISTRATION & PROFILE CREATION */}
+      {/* VIEW 2 (STEP 4): SIMPLE & CLEAN CREATE ACCOUNT (CREDENTIAL-BASED) */}
       {viewMode === 'onboarding' && onboardingStep === 4 && (
-        <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
-          {/* 1. TOP SUB-HEADER APPLICATION BAR */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '24px 16px', minHeight: 'calc(100vh - 80px)' }}>
           <div
+            className="modal-card"
             style={{
-              background: 'var(--surface)',
-              borderBottom: '1px solid var(--border-card)',
-              padding: '12px 24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              flexWrap: 'wrap',
-              gap: '12px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '32px 28px',
+              borderRadius: '24px',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04)',
+              border: '1px solid #e2e8f0',
+              background: '#ffffff',
             }}
           >
-            {/* Back Button to Step 2 */}
-            <button
-              type="button"
-              onClick={() => {
-                setOnboardingStep(2);
-                setErrorMsg(null);
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'var(--surface-raised)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                padding: '8px 14px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                color: 'var(--text-main)',
-                cursor: 'pointer',
-                transition: 'background 0.15s ease',
-              }}
-            >
-              <ArrowLeft size={16} />
-              <span>{copy.back}</span>
-            </button>
+            {/* Top Navigation & Role Badge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setOnboardingStep(2);
+                  setErrorMsg(null);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                <ArrowLeft size={16} />
+                <span>{copy.back}</span>
+              </button>
 
-            {/* 3-Step Breadcrumb Stepper */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '22px',
-                    height: '22px',
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  ✓
-                </span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {copy.stepperLang || 'Language'}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#065f46',
+                  background: '#ecfdf5',
+                  padding: '3px 12px',
+                  borderRadius: '20px',
+                  border: '1px solid #a7f3d0',
+                }}
+              >
+                <span>{selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}</span>
+                <span>
+                  {selectedRole === 'farmer' ? 'Farmer Account' : selectedRole === 'veterinarian' ? 'Veterinarian Account' : 'Government Account'}
                 </span>
               </div>
+            </div>
 
-              <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
+            {/* Title & Subtitle */}
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+              {copy.step4Title}
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '22px', lineHeight: 1.4 }}>
+              {copy.step4Sub}
+            </p>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '22px',
-                    height: '22px',
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  ✓
-                </span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {copy.stepperRole || 'Role'}
-                </span>
-              </div>
-
-              <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
-
+            {/* Error Message */}
+            {errorMsg && (
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  background: 'var(--primary-light)',
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  border: '1.5px solid var(--primary)',
+                  gap: '10px',
+                  background: 'var(--critical-bg)',
+                  color: 'var(--critical)',
+                  border: '1px solid var(--critical-border)',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  fontSize: '0.82rem',
+                  marginBottom: '18px',
+                  fontWeight: 600,
                 }}
               >
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  3
-                </span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 800 }}>
-                  {copy.stepperAccount || 'Create Account'}
-                </span>
+                <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                <span>{errorMsg}</span>
               </div>
-            </div>
+            )}
 
-            {/* Active Role Chip */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'var(--primary-light)',
-                color: 'var(--primary)',
-                border: '1px solid var(--primary)',
-                padding: '5px 14px',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-              }}
-            >
-              <span>{selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}</span>
-              <span>
-                {selectedRole === 'farmer' ? 'Farmer Portal' : selectedRole === 'veterinarian' ? 'Veterinarian Portal' : 'Government Official'}
-              </span>
-            </div>
-          </div>
+            <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Full Name */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ marginBottom: '6px' }}>
+                  {copy.fullName} <span style={{ color: 'var(--critical)' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    required
+                    placeholder={copy.fullNamePlaceholder}
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (errorMsg) setErrorMsg(null);
+                    }}
+                    className="form-input"
+                    style={{ paddingLeft: '38px', height: '44px', borderRadius: '10px' }}
+                  />
+                  <User size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                </div>
+              </div>
 
-          {/* 2. HERO PAGE HEADER */}
-          <div style={{ maxWidth: '680px', width: '100%', margin: '28px auto 0', padding: '0 20px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'var(--primary-light)',
-                color: 'var(--primary)',
-                padding: '5px 14px',
-                borderRadius: '20px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                marginBottom: '10px',
-                border: '1px solid var(--border-subtle)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              <Shield size={14} />
-              <span>{copy.step4Badge || 'NATIONAL LIVESTOCK REGISTRY • SECURE PROFILE CREATION'}</span>
-            </div>
-            <h1
-              style={{
-                fontSize: 'clamp(1.5rem, 2.5vw, 2.1rem)',
-                fontWeight: 800,
-                color: 'var(--text-main)',
-                lineHeight: 1.2,
-                marginBottom: '6px',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {copy.step4Title}
-            </h1>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0, maxWidth: '820px' }}>
-              {copy.step4Sub}
-            </p>
-          </div>
+              {/* Mobile Number */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ marginBottom: 0 }}>
+                    {copy.mobile} <span style={{ color: 'var(--critical)' }}>*</span>
+                  </label>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      background: 'rgba(45, 106, 79, 0.1)',
+                      color: '#2D6A4F',
+                      padding: '1px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {copy.compulsoryBadge}
+                  </span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="tel"
+                    required
+                    placeholder={copy.mobilePlaceholder}
+                    value={phone}
+                    onBlur={() => setPhoneTouched(true)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (errorMsg) setErrorMsg(null);
+                    }}
+                    className="form-input"
+                    style={{
+                      paddingLeft: '38px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      borderColor: phoneTouched && phone.trim() && !isValidMobile(phone) ? 'var(--critical)' : undefined,
+                    }}
+                  />
+                  <Phone size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                </div>
+                {phoneTouched && phone.trim() && !isValidMobile(phone) && (
+                  <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                    {copy.invalidMobile}
+                  </div>
+                )}
+              </div>
 
-          {/* 3. CLEAN SINGLE-COLUMN REGISTRATION FORM */}
-          <div
-            style={{
-              maxWidth: '680px',
-              width: '100%',
-              margin: '24px auto 60px',
-              padding: '0 20px',
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                background: 'var(--surface)',
-                borderRadius: '24px',
-                border: '1px solid var(--border-card)',
-                padding: '36px 32px',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              {errorMsg && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    background: 'var(--critical-bg)',
-                    color: 'var(--critical)',
-                    border: '1px solid var(--critical-border)',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    fontSize: '0.85rem',
-                    marginBottom: '24px',
-                    fontWeight: 600,
-                  }}
-                >
-                  <AlertTriangle size={18} style={{ flexShrink: 0 }} />
-                  <span>{errorMsg}</span>
+              {/* Email (Optional) */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ marginBottom: 0 }}>
+                    {copy.email}
+                  </label>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      background: '#f1f5f9',
+                      color: 'var(--text-muted)',
+                      padding: '1px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {copy.optionalBadge}
+                  </span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    placeholder={copy.emailPlaceholder}
+                    value={email}
+                    onBlur={() => setEmailTouched(true)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errorMsg) setErrorMsg(null);
+                    }}
+                    className="form-input"
+                    style={{
+                      paddingLeft: '38px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      borderColor: emailTouched && email.trim() && !isValidEmail(email) ? 'var(--critical)' : undefined,
+                    }}
+                  />
+                  <Mail size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                </div>
+                {emailTouched && email.trim() && !isValidEmail(email) && (
+                  <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                    {copy.invalidEmail}
+                  </div>
+                )}
+              </div>
+
+              {/* Role-specific identifiers for Vet and Gov (compact) */}
+              {selectedRole === 'veterinarian' && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ marginBottom: '6px' }}>
+                    MSVC Veterinary Council License Number <span style={{ color: 'var(--critical)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. MSVC-18492"
+                    value={vetLicense}
+                    onChange={(e) => setVetLicense(e.target.value)}
+                    className="form-input"
+                    style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
+                  />
                 </div>
               )}
 
-              <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
-                {/* SECTION 1: PERSONAL & CONTACT INFORMATION */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        background: 'var(--primary-light)',
-                        color: 'var(--primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <User size={18} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {copy.personalInfoTitle || 'Personal & Contact Information'}
-                      </h3>
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
-                        {copy.personalInfoSub || 'Official contact points for veterinary triage, health alerts, and verified records'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                    {/* Full Name */}
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label">
-                        {copy.fullName} <span style={{ color: 'var(--critical)' }}>*</span>
-                      </label>
-                      <div style={{ position: 'relative' }}>
-                        <input
-                          type="text"
-                          required
-                          placeholder={copy.fullNamePlaceholder}
-                          value={fullName}
-                          onChange={(e) => {
-                            setFullName(e.target.value);
-                            if (errorMsg) setErrorMsg(null);
-                          }}
-                          className="form-input"
-                          style={{ paddingLeft: '38px', height: '44px', borderRadius: '10px' }}
-                        />
-                        <User size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                      </div>
-                    </div>
-
-                    {/* Phone Number */}
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ marginBottom: 0 }}>
-                          {copy.mobile} <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 700,
-                            background: 'var(--primary-light)',
-                            color: 'var(--primary)',
-                            padding: '1px 8px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {copy.compulsoryBadge}
-                        </span>
-                      </div>
-                      <div style={{ position: 'relative' }}>
-                        <input
-                          type="tel"
-                          required
-                          placeholder={copy.mobilePlaceholder}
-                          value={phone}
-                          onBlur={() => setPhoneTouched(true)}
-                          onChange={(e) => {
-                            setPhone(e.target.value);
-                            if (errorMsg) setErrorMsg(null);
-                          }}
-                          className="form-input"
-                          style={{
-                            paddingLeft: '38px',
-                            height: '44px',
-                            borderRadius: '10px',
-                            borderColor: phoneTouched && phone.trim() && !isValidMobile(phone) ? 'var(--critical)' : undefined,
-                          }}
-                        />
-                        <Phone size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                      </div>
-                      {phoneTouched && phone.trim() && !isValidMobile(phone) && (
-                        <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                          {copy.invalidMobile}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Email Address */}
-                  <div className="form-group" style={{ marginTop: '16px', marginBottom: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>
-                        {copy.email}
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 600,
-                          background: 'var(--surface-raised)',
-                          color: 'var(--text-muted)',
-                          padding: '1px 8px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {copy.optionalBadge}
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="email"
-                        placeholder={copy.emailPlaceholder}
-                        value={email}
-                        onBlur={() => setEmailTouched(true)}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{
-                          paddingLeft: '38px',
-                          height: '44px',
-                          borderRadius: '10px',
-                          borderColor: emailTouched && email.trim() && !isValidEmail(email) ? 'var(--critical)' : undefined,
-                        }}
-                      />
-                      <Mail size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                    </div>
-                    {emailTouched && email.trim() && !isValidEmail(email) && (
-                      <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                        {copy.invalidEmail}
-                      </div>
-                    )}
-                  </div>
+              {selectedRole === 'government' && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ marginBottom: '6px' }}>
+                    Department Official Employee ID <span style={{ color: 'var(--critical)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. MH-DAHD-0412"
+                    value={govtEmployeeId}
+                    onChange={(e) => setGovtEmployeeId(e.target.value)}
+                    className="form-input"
+                    style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
+                  />
                 </div>
+              )}
 
-                {/* SECTION 2: ROLE-SPECIFIC CREDENTIALS */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        background: 'var(--primary-light)',
-                        color: 'var(--primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {selectedRole === 'veterinarian' ? <Stethoscope size={18} /> : selectedRole === 'government' ? <Building2 size={18} /> : <Home size={18} />}
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {copy.roleInfoTitle || 'Role-Specific Credentials'}
-                      </h3>
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
-                        {copy.roleInfoSub || 'Official accreditation and herd management parameters'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {selectedRole === 'farmer' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 600,
-                              background: 'var(--surface-raised)',
-                              color: 'var(--text-muted)',
-                              padding: '1px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {copy.optionalBadge}
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder={copy.farmNamePlaceholder}
-                          value={farmName}
-                          onChange={(e) => setFarmName(e.target.value)}
-                          className="form-input"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.livestockCount}</label>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 600,
-                              background: 'var(--surface-raised)',
-                              color: 'var(--text-muted)',
-                              padding: '1px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {copy.optionalBadge}
-                          </span>
-                        </div>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder={copy.livestockPlaceholder}
-                          value={herdSize}
-                          onChange={(e) => setHerdSize(e.target.value)}
-                          className="form-input"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedRole === 'veterinarian' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">
-                          MSVC Veterinary Council License Number <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. MSVC-18492"
-                          value={vetLicense}
-                          onChange={(e) => setVetLicense(e.target.value)}
-                          className="form-input"
-                          style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">
-                          Assigned Veterinary Hospital / Polyclinic <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Taluka Veterinary Polyclinic, Baramati"
-                          value={vetHospitalName}
-                          onChange={(e) => setVetHospitalName(e.target.value)}
-                          className="form-input"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedRole === 'government' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">
-                          Department Official Employee ID <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. MH-DAHD-0412"
-                          value={govtEmployeeId}
-                          onChange={(e) => setGovtEmployeeId(e.target.value)}
-                          className="form-input"
-                          style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
-
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Government Official Designation</label>
-                        <select
-                          value={govtDesignation}
-                          onChange={(e) => setGovtDesignation(e.target.value)}
-                          className="form-select"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        >
-                          <option value="District Animal Husbandry Officer (DAHO)">District Animal Husbandry Officer (DAHO)</option>
-                          <option value="State Animal Husbandry Officer">State Animal Husbandry Officer</option>
-                          <option value="Taluka / Block Veterinary Officer">Taluka / Block Veterinary Officer</option>
-                          <option value="Disease Monitoring & Surveillance Officer">Disease Monitoring & Surveillance Officer</option>
-                          <option value="National Vaccination Program Officer">National Vaccination Program Officer</option>
-                          <option value="Emergency 1962 Response Commander">Emergency 1962 Response Commander</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* SECTION 3: ACCOUNT SECURITY & PASSWORD */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        background: 'var(--primary-light)',
-                        color: 'var(--primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Lock size={18} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {copy.securityTitle || 'Account Security & Password'}
-                      </h3>
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
-                        {copy.securitySub || 'Protect your portal access with government-grade credentials'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>
-                        {copy.password} <span style={{ color: 'var(--critical)' }}>*</span>
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
-                          background: 'var(--primary-light)',
-                          color: 'var(--primary)',
-                          padding: '1px 8px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {copy.compulsoryBadge}
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        placeholder={copy.passwordPlaceholder}
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{ paddingLeft: '38px', paddingRight: '42px', height: '44px', borderRadius: '10px' }}
-                      />
-                      <Lock size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: 'absolute',
-                          right: '12px',
-                          top: '12px',
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--text-muted)',
-                          cursor: 'pointer',
-                          padding: '2px',
-                        }}
-                        aria-label="Toggle password visibility"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-
-                    {/* Interactive Password Strength Meter & Checklist */}
-                    {password.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: '12px',
-                          padding: '14px 16px',
-                          background: 'var(--surface-raised)',
-                          borderRadius: '12px',
-                          border: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                            {pwCriteriaMet <= 2 ? copy.pwStrengthWeak : pwCriteriaMet <= 4 ? copy.pwStrengthMedium : copy.pwStrengthStrong}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.78rem',
-                              fontWeight: 800,
-                              color: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
-                            }}
-                          >
-                            {pwCriteriaMet} / 5 Criteria Met
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '6px',
-                            background: 'var(--border-subtle)',
-                            borderRadius: '3px',
-                            overflow: 'hidden',
-                            marginBottom: '12px',
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: '100%',
-                              width: `${(pwCriteriaMet / 5) * 100}%`,
-                              background: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
-                              transition: 'all 0.3s ease',
-                            }}
-                          />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
-                          {[
-                            { label: copy.pwReqMinLength, met: pwStrength.hasMinLength },
-                            { label: copy.pwReqUpper, met: pwStrength.hasUpper },
-                            { label: copy.pwReqLower, met: pwStrength.hasLower },
-                            { label: copy.pwReqNumber, met: pwStrength.hasNumber },
-                            { label: copy.pwReqSpecial, met: pwStrength.hasSpecial },
-                          ].map((item, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '0.74rem',
-                                color: item.met ? 'var(--stable)' : 'var(--text-muted)',
-                                fontWeight: item.met ? 700 : 400,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: '15px',
-                                  height: '15px',
-                                  borderRadius: '50%',
-                                  background: item.met ? 'var(--stable)' : 'var(--border-subtle)',
-                                  color: '#fff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '9px',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {item.met ? '✓' : '•'}
-                              </div>
-                              <span>{item.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* SUBMIT BUTTON */}
-                <div style={{ marginTop: '8px' }}>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-saffron"
+              {/* Password */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ marginBottom: 0 }}>
+                    {copy.password} <span style={{ color: 'var(--critical)' }}>*</span>
+                  </label>
+                  <span
                     style={{
-                      width: '100%',
-                      borderRadius: '12px',
-                      padding: '14px 20px',
-                      height: '50px',
-                      fontSize: '1rem',
+                      fontSize: '0.68rem',
                       fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
+                      background: 'rgba(45, 106, 79, 0.1)',
+                      color: '#2D6A4F',
+                      padding: '1px 8px',
+                      borderRadius: '4px',
                     }}
                   >
-                    <span>{loading ? copy.authenticating : copy.finishBtn}</span>
-                    <ArrowRight size={18} />
-                  </button>
-
-                  <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    <span>{copy.alreadyHaveAccount || 'Already registered on JeevRakshak?'} </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setViewMode('signin');
-                        setOnboardingStep(1);
-                        setErrorMsg(null);
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--accent)',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                        padding: 0,
-                      }}
-                    >
-                      {copy.signInLink || 'Sign In here'}
-                    </button>
-                  </div>
+                    {copy.compulsoryBadge}
+                  </span>
                 </div>
-              </form>
-            </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder={copy.passwordPlaceholder}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errorMsg) setErrorMsg(null);
+                    }}
+                    className="form-input"
+                    style={{ paddingLeft: '38px', paddingRight: '42px', height: '44px', borderRadius: '10px' }}
+                  />
+                  <Lock size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '12px',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      padding: '2px',
+                    }}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Compact Password Strength Meter */}
+                {password.length > 0 && (
+                  <div style={{ marginTop: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                        {pwCriteriaMet <= 2 ? copy.pwStrengthWeak : pwCriteriaMet <= 4 ? copy.pwStrengthMedium : copy.pwStrengthStrong}
+                      </span>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)' }}>
+                        {pwCriteriaMet} / 5
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${(pwCriteriaMet / 5) * 100}%`,
+                          background: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
+                          transition: 'all 0.3s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  height: '48px',
+                  fontSize: '0.96rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '6px',
+                }}
+              >
+                <span>{loading ? copy.authenticating : copy.finishBtn}</span>
+                <ArrowRight size={18} />
+              </button>
+
+              {/* Switch to Sign In */}
+              <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                <span>{copy.alreadyHaveAccount || 'Already registered on JeevRakshak?'} </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode('signin');
+                    setOnboardingStep(1);
+                    setErrorMsg(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--primary)',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    padding: 0,
+                  }}
+                >
+                  {copy.signInLink || 'Sign In here'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -1857,9 +1588,9 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               width: '100%',
               padding: '32px 28px',
               borderRadius: '24px',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-card)',
-              background: 'var(--surface)',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04)',
+              border: '1px solid #e2e8f0',
+              background: '#ffffff',
             }}
           >
             {/* Top Navigation */}
@@ -1891,11 +1622,11 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 style={{
                   fontSize: '0.72rem',
                   fontWeight: 700,
-                  color: 'var(--primary)',
-                  background: 'var(--primary-light)',
+                  color: '#065f46',
+                  background: '#ecfdf5',
                   padding: '3px 10px',
                   borderRadius: '20px',
-                  border: '1px solid var(--border-subtle)',
+                  border: '1px solid #a7f3d0',
                 }}
               >
                 🔒 SECURE PORTAL AUTH
@@ -1909,31 +1640,9 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               {copy.signInRoleSelectTitle || 'Select your role and enter your registered credentials to access your dedicated workspace.'}
             </p>
 
-            {/* UNIFIED ROLE SELECTION CONSOLE */}
-            <div
-              style={{
-                background: 'var(--surface-raised)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '14px',
-                padding: '10px 12px',
-                marginBottom: '18px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              {/* Segmented Switcher */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
-                  background: 'var(--surface)',
-                  padding: '4px',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
+            {/* 3-ROLE SELECTOR CARDS */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {[
                   {
                     id: 'farmer' as UserRole,
@@ -1943,13 +1652,13 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   },
                   {
                     id: 'veterinarian' as UserRole,
-                    label: copy.signInRoleVet || 'Vet Doctor',
+                    label: copy.signInRoleVet || 'Doctor',
                     sub: 'पशुवैद्यक',
                     badge: '🩺',
                   },
                   {
                     id: 'government' as UserRole,
-                    label: copy.signInRoleGov || 'Govt Official',
+                    label: copy.signInRoleGov || 'Official',
                     sub: 'शासकीय',
                     badge: '🏛️',
                   },
@@ -1965,75 +1674,112 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       }}
                       style={{
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '6px',
-                        padding: '8px 4px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: isSel ? 'var(--primary)' : 'transparent',
-                        color: isSel ? '#ffffff' : 'var(--text-main)',
+                        gap: '4px',
+                        padding: '12px 8px',
+                        borderRadius: '14px',
+                        border: isSel ? '2px solid #2D6A4F' : '1.5px solid #e2e8f0',
+                        background: isSel ? '#ecfdf5' : '#ffffff',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
-                        fontWeight: isSel ? 800 : 600,
-                        fontSize: '0.8rem',
-                        boxShadow: isSel ? '0 2px 8px rgba(27, 94, 75, 0.2)' : 'none',
+                        boxShadow: isSel ? '0 4px 12px rgba(45, 106, 79, 0.12)' : 'none',
+                        position: 'relative',
                       }}
                     >
-                      <span style={{ fontSize: '1rem', lineHeight: 1 }}>{r.badge}</span>
-                      <span>{r.label}</span>
+                      <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{r.badge}</span>
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          fontWeight: isSel ? 800 : 700,
+                          color: isSel ? '#065f46' : 'var(--text-main)',
+                          textAlign: 'center',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {r.id === 'farmer' ? 'Farmer' : r.id === 'veterinarian' ? 'Vet Doctor' : 'Govt Official'}
+                      </span>
+                      <span style={{ fontSize: '0.68rem', color: isSel ? '#047857' : 'var(--text-muted)' }}>{r.sub}</span>
+                      {isSel && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-6px',
+                            right: '-6px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: '#2D6A4F',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            fontWeight: 800,
+                          }}
+                        >
+                          ✓
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
+            </div>
 
-              {/* Role Meta & Demo Fill Bar */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.74rem',
-                  padding: '2px 4px',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
-                    {signInRole === 'farmer'
-                      ? '👨‍🌾 Farmer Portal: '
-                      : signInRole === 'veterinarian'
-                      ? '🩺 MSVC Veterinary Portal: '
-                      : '🏛️ Government Portal: '}
-                  </span>
-                  <span>
-                    {signInRole === 'farmer'
-                      ? (copy.signInRoleFarmerSub || 'AI Triage, Vaccination Ledger & Alerts')
-                      : signInRole === 'veterinarian'
-                      ? (copy.signInRoleVetSub || 'Clinical Cases, Prescriptions & EMR')
-                      : (copy.signInRoleGovSub || 'Surveillance Heatmaps & DAHO SOPs')}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFillDemo(signInRole)}
-                  className="btn-saffron"
-                  style={{
-                    padding: '4px 9px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    borderRadius: '7px',
-                    flexShrink: 0,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                  title="Auto-fill demo credentials for instant testing"
-                >
-                  <span>⚡ {copy.quickFillDemo || 'Demo Fill'}</span>
-                </button>
+            {/* ROLE SUMMARY BANNER */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '9px 12px',
+                marginBottom: '18px',
+                fontSize: '0.76rem',
+              }}
+            >
+              <div style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                  {signInRole === 'farmer'
+                    ? '👨‍🌾 Farmer Portal: '
+                    : signInRole === 'veterinarian'
+                    ? '🩺 Veterinary Portal: '
+                    : '🏛️ Government Portal: '}
+                </span>
+                <span>
+                  {signInRole === 'farmer'
+                    ? (copy.signInRoleFarmerSub || 'AI Triage, Vaccination Ledger & Outbreak Alerts')
+                    : signInRole === 'veterinarian'
+                    ? (copy.signInRoleVetSub || 'Clinical Cases, Prescriptions & Lab Requisitions')
+                    : (copy.signInRoleGovSub || 'State Surveillance, Heatmaps & Containment SOPs')}
+                </span>
               </div>
+
+              {/* Quick Fill Demo Button */}
+              <button
+                type="button"
+                onClick={() => handleQuickFillDemo(signInRole)}
+                style={{
+                  background: 'rgba(45, 106, 79, 0.08)',
+                  border: '1px solid rgba(45, 106, 79, 0.25)',
+                  color: '#2D6A4F',
+                  borderRadius: '8px',
+                  padding: '4px 8px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  marginLeft: '8px',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Fill demo credentials for instant testing"
+              >
+                ⚡ {copy.quickFillDemo || 'Demo Fill'}
+              </button>
             </div>
 
             {errorMsg && (
@@ -2142,7 +1888,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-saffron"
+                className="btn-primary"
                 style={{
                   width: '100%',
                   borderRadius: '12px',
@@ -2182,7 +1928,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                 }}
                 style={{
-                  color: 'var(--accent)',
+                  color: 'var(--primary)',
                   fontWeight: 700,
                   background: 'none',
                   border: 'none',
@@ -2207,9 +1953,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               maxWidth: '500px',
               width: '100%',
               padding: '34px 26px',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-card)',
-              background: 'var(--surface)',
+              boxShadow: '0 20px 45px -12px rgba(220, 38, 38, 0.18), var(--shadow-lg)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: 'var(--radius-xl)',
               textAlign: 'center',
             }}
@@ -2227,7 +1972,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 justifyContent: 'center',
                 margin: '0 auto 18px',
                 border: '4px solid #fecaca',
-                boxShadow: '0 8px 20px rgba(220, 38, 38, 0.15)',
+                boxShadow: '0 8px 20px rgba(220, 38, 38, 0.2)',
               }}
             >
               <AlertOctagon size={34} strokeWidth={2.4} />
@@ -2283,7 +2028,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             {/* Detail snippet box showing entered details */}
             <div
               style={{
-                background: 'var(--surface-raised)',
+                background: '#f8fafc',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px 14px',
@@ -2321,8 +2066,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             {/* Tips / Checklist */}
             <div
               style={{
-                background: 'rgba(217, 119, 6, 0.08)',
-                border: '1px dashed var(--accent)',
+                background: 'rgba(245, 158, 11, 0.06)',
+                border: '1px dashed #fcd34d',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px 14px',
                 textAlign: 'left',
@@ -2348,7 +2093,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                   setSignInPassword('');
                 }}
-                className="btn-earth"
+                className="btn-primary"
                 style={{
                   width: '100%',
                   padding: '13px 20px',
@@ -2359,6 +2104,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   justifyContent: 'center',
                   gap: '8px',
                   borderRadius: 'var(--radius-md)',
+                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
                   cursor: 'pointer',
                 }}
               >
@@ -2373,12 +2119,12 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                   setSignInPassword('');
                 }}
-                className="btn-saffron"
+                className="btn-outline"
                 style={{
                   width: '100%',
                   padding: '11px 18px',
                   fontSize: '0.88rem',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -2415,6 +2161,205 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               >
                 <UserPlus size={15} />
                 <span>{copy.createNewAccountBtn}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP UP BOX: "You already have an account" / जुने खाते ओळखले */}
+      {existingAccountModal && existingAccountModal.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '30px 28px',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+              border: '2px solid rgba(16, 185, 129, 0.4)',
+              position: 'relative',
+              textAlign: 'left',
+            }}
+          >
+            {/* Top Accent Icon & Badge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  color: '#065f46',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  border: '1px solid #a7f3d0',
+                }}
+              >
+                <CheckCircle2 size={15} color="#059669" />
+                <span>
+                  {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.badge || ACCOUNT_MODAL_I18N.en.badge}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setExistingAccountModal(null)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Heading */}
+            <h2
+              style={{
+                fontSize: '1.45rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                marginBottom: '8px',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
+              }}
+            >
+              {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.title || ACCOUNT_MODAL_I18N.en.title}
+            </h2>
+
+            {/* Subtitle / Description */}
+            <p
+              style={{
+                fontSize: '0.88rem',
+                color: '#475569',
+                lineHeight: 1.5,
+                marginBottom: '18px',
+              }}
+            >
+              {existingAccountModal.type === 'login_again'
+                ? (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.loginAgainDesc || ACCOUNT_MODAL_I18N.en.loginAgainDesc)
+                    .replace('{email}', existingAccountModal.summary.email)
+                    .replace('{name}', existingAccountModal.summary.fullName)
+                : (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.registerDuplicateDesc || ACCOUNT_MODAL_I18N.en.registerDuplicateDesc)
+                    .replace('{email}', existingAccountModal.summary.email)}
+            </p>
+
+            {/* Old Data Summary Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                border: '1.5px solid #bbf7d0',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '20px',
+              }}
+            >
+              <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={13} />
+                <span>RESTORED ACCOUNT DATA / पुनर्संचयित जुना डेटा</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.accountHolder || 'Account Owner'}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 700, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {existingAccountModal.summary.fullName}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.farmName || 'Farm / Station'}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: '#047857', fontWeight: 700, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {existingAccountModal.summary.farmName}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.livestock || 'Livestock Animals'}
+                  </div>
+                  <div style={{ fontSize: '0.92rem', color: '#059669', fontWeight: 800, marginTop: '2px' }}>
+                    {existingAccountModal.summary.animalsCount} {language === 'mr' ? 'जनावरे' : language === 'hi' ? 'पशु' : 'Cattle/Animals'}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.reports || 'Health Reports'}
+                  </div>
+                  <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 800, marginTop: '2px' }}>
+                    {existingAccountModal.summary.reportsCount} {language === 'mr' ? 'नोंदी' : language === 'hi' ? 'रिपोर्ट' : 'Records'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '10px', fontSize: '0.76rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <MapPin size={13} color="#059669" />
+                <span>
+                  {existingAccountModal.summary.village}, {existingAccountModal.summary.block}, {existingAccountModal.summary.district}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={existingAccountModal.onProceed}
+                style={{
+                  width: '100%',
+                  padding: '13px 20px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                }}
+              >
+                <span>
+                  {existingAccountModal.type === 'login_again'
+                    ? (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.proceedBtn || ACCOUNT_MODAL_I18N.en.proceedBtn)
+                    : (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.signInExistingBtn || ACCOUNT_MODAL_I18N.en.signInExistingBtn)}
+                </span>
+                <ArrowRight size={18} />
               </button>
             </div>
           </div>

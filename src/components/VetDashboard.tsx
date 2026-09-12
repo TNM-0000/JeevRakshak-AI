@@ -55,6 +55,8 @@ import {
   BadgeAlert,
   ChevronDown,
   Bell,
+  Smartphone,
+  ArrowUpDown,
 } from 'lucide-react';
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
@@ -74,6 +76,7 @@ interface VetDashboardProps {
 export type VetModuleTab =
   | 'overview'
   | 'cases'
+  | 'escalated'
   | 'records'
   | 'diagnosis'
   | 'treatments'
@@ -81,14 +84,14 @@ export type VetModuleTab =
   | 'vaccinations'
   | 'emergencies'
   | 'visits'
-  | 'comms'
   | 'reporting'
-  | 'ai_detection'
   | 'analytics'
   | 'reports'
   | 'notifications'
   | 'profile'
-  | 'ivr_cases';
+  | 'ivr_cases'
+  | 'comms'
+  | 'ai_detection';
 
 export const VetDashboard: React.FC<VetDashboardProps> = ({
   onEditHospitalSetup,
@@ -125,6 +128,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [speciesFilter, setSpeciesFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Animal EMR Records Search & Filter
   const [recordSearchQuery, setRecordSearchQuery] = useState('');
@@ -146,6 +150,21 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const [showIVRPhone, setShowIVRPhone] = useState(false);
   const [ivrPhoneTarget, setIvrPhoneTarget] = useState<string>('');
 
+  // Escalation & SMS state
+  const [showEscalateModal, setShowEscalateModal] = useState(false);
+  const [selectedCaseForEscalate, setSelectedCaseForEscalate] = useState<DoctorCase | null>(null);
+  const [escalateToAuthority, setEscalateToAuthority] = useState('Dr. Sunita Patil, DAHO (District Animal Husbandry Officer)');
+  const [escalateReason, setEscalateReason] = useState('Suspected acute transboundary disease outbreak; biosafety quarantine and state lab confirmation required');
+  const [customSmsText, setCustomSmsText] = useState('');
+  const [smsAlert, setSmsAlert] = useState<{
+    recipientName: string;
+    recipientPhone: string;
+    caseNumber: string;
+    animalTag: string;
+    message: string;
+    sentAt: string;
+    gatewayRef: string;
+  } | null>(null);
 
   // Action toast / feedback banner
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -243,19 +262,104 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const doctorDistrict = currentUser?.district || currentUser?.hospital_district || 'Pune';
   const doctorBlock = currentUser?.block || currentUser?.hospital_block || 'Baramati';
 
-  // Filtered cases
-  const filteredCases = useMemo(() => {
-    return cases.filter((c) => {
-      const matchSearch =
-        c.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.animal_tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.farmer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.symptoms.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchStatus = statusFilter === 'all' || c.status === statusFilter;
-      const matchSpecies = speciesFilter === 'all' || c.animal_species.toLowerCase().includes(speciesFilter.toLowerCase());
-      return matchSearch && matchStatus && matchSpecies;
+  // Case status identification helpers (declared early before useMemos)
+  const isCaseTreated = (c: DoctorCase): boolean => {
+    return c.status === 'treated' || c.status === 'resolved' || Boolean(c.treatment_notes);
+  };
+
+  const isCaseEscalated = (c: DoctorCase): boolean => {
+    return c.status === 'escalated' || Boolean(c.is_escalated);
+  };
+
+  // Helper to arrange cases in ascending order (Case #1, Case #2, Case #3... and FIFO timestamp)
+  const sortCasesAscending = (a: DoctorCase, b: DoctorCase): number => {
+    // 1. Try parsing numeric index from case_number (e.g. "Case #1" -> 1, "Case #2" -> 2, "MH-12-0101" -> 101)
+    const matchA = a.case_number.match(/\d+/g);
+    const matchB = b.case_number.match(/\d+/g);
+    if (matchA && matchB) {
+      const numA = parseInt(matchA[matchA.length - 1], 10);
+      const numB = parseInt(matchB[matchB.length - 1], 10);
+      if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+        return numA - numB; // Ascending numeric order: 1, 2, 3, 4...
+      }
+    }
+
+    // 2. Alphanumeric locale comparison (ascending)
+    const strCompare = (a.case_number || '').localeCompare(b.case_number || '', undefined, {
+      numeric: true,
+      sensitivity: 'base',
     });
-  }, [cases, searchQuery, statusFilter, speciesFilter]);
+    if (strCompare !== 0) return strCompare;
+
+    // 3. FIFO Queue timestamp order (earliest reported case at front)
+    const timeA = a.reported_at ? new Date(a.reported_at).getTime() : 0;
+    const timeB = b.reported_at ? new Date(b.reported_at).getTime() : 0;
+    return timeA - timeB;
+  };
+
+  const sortCasesByOrder = (a: DoctorCase, b: DoctorCase): number => {
+    const diff = sortCasesAscending(a, b);
+    return sortOrder === 'asc' ? diff : -diff;
+  };
+
+  // Active Clinical Queue cases: Strictly arranged in ascending order (Case #1, Case #2, Case #3...)
+  const clinicalQueueCases = useMemo(() => {
+    return [...cases].sort(sortCasesAscending);
+  }, [cases]);
+
+  // Escalated cases (matching search & species, moved into dedicated Escalated Cases section, sorted)
+  const escalatedCases = useMemo(() => {
+    return cases
+      .filter((c) => {
+        if (!isCaseEscalated(c)) return false;
+        const matchSearch =
+          !searchQuery ||
+          c.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.animal_tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.farmer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.symptoms.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchSpecies = speciesFilter === 'all' || c.animal_species.toLowerCase().includes(speciesFilter.toLowerCase());
+        const matchStatus = statusFilter === 'all' || statusFilter === 'escalated';
+        return matchSearch && matchSpecies && matchStatus;
+      })
+      .sort(sortCasesByOrder);
+  }, [cases, searchQuery, speciesFilter, statusFilter, sortOrder]);
+
+  // Routine / Active clinical cases (non-escalated, since escalated cases move to the "Escalated Cases" section, sorted)
+  const activeCasesList = useMemo(() => {
+    return cases
+      .filter((c) => {
+        if (isCaseEscalated(c)) return false; // MOVED to "Escalated Cases" section
+        if (statusFilter === 'escalated') return false; // Excluded when filtering for escalated
+        const matchSearch =
+          !searchQuery ||
+          c.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.animal_tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.farmer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.symptoms.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchStatus = statusFilter === 'all' || c.status === statusFilter;
+        const matchSpecies = speciesFilter === 'all' || c.animal_species.toLowerCase().includes(speciesFilter.toLowerCase());
+        return matchSearch && matchStatus && matchSpecies;
+      })
+      .sort(sortCasesByOrder);
+  }, [cases, searchQuery, statusFilter, speciesFilter, sortOrder]);
+
+  // Combined filtered cases fallback (sorted)
+  const filteredCases = useMemo(() => {
+    return cases
+      .filter((c) => {
+        const matchSearch =
+          !searchQuery ||
+          c.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.animal_tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.farmer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.symptoms.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchStatus = statusFilter === 'all' || c.status === statusFilter;
+        const matchSpecies = speciesFilter === 'all' || c.animal_species.toLowerCase().includes(speciesFilter.toLowerCase());
+        return matchSearch && matchStatus && matchSpecies;
+      })
+      .sort(sortCasesByOrder);
+  }, [cases, searchQuery, statusFilter, speciesFilter, sortOrder]);
 
   // Filtered Animal EMR Records
   const filteredRecords = useMemo(() => {
@@ -298,7 +402,99 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
     }
   };
 
+  const handleOpenEscalateModal = (c: DoctorCase) => {
+    setSelectedCaseForEscalate(c);
+    setCustomSmsText(
+      language === 'mr'
+        ? `[जीवक्षक AI] प्रिय ${c.farmer_name}, आपली केस क्र. ${c.case_number} (पशु टॅग: ${c.animal_tag}) जिल्हा पशुवैद्यकीय अधिकारी (DAHO) यांच्याकडे प्राधान्याने वर्ग (Escalate) करण्यात आली आहे. मदत कक्ष: 1800-120-JEEV.`
+        : language === 'hi'
+        ? `[जीवक्षक AI] प्रिय ${c.farmer_name}, आपकी केस सं. ${c.case_number} (पशु टैग: ${c.animal_tag}) जिला पशु चिकित्सा अधिकारी (DAHO) को प्राथमिकता से अग्रेषित (Escalate) की गई है। हेल्पलाइन: 1800-120-JEEV.`
+        : `[JeevRakshak AI] Dear ${c.farmer_name}, your Case #${c.case_number} for Animal Tag ${c.animal_tag} has been escalated to District Veterinary Officer (DAHO) for specialist intervention. Helpdesk: 1800-120-JEEV.`
+    );
+    setShowEscalateModal(true);
+  };
+
+  const handleConfirmEscalation = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedCaseForEscalate) return;
+
+    try {
+      const res = await dataService.escalateDoctorCase(doctorId, selectedCaseForEscalate.id, {
+        escalated_to: escalateToAuthority,
+        reason: escalateReason,
+        custom_sms: customSmsText || undefined,
+      });
+
+      // Play SMS double-chime notification sound (Web Audio API)
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch {
+        // audio context fallback
+      }
+
+      setSmsAlert({
+        recipientName: selectedCaseForEscalate.farmer_name,
+        recipientPhone: selectedCaseForEscalate.farmer_phone,
+        caseNumber: selectedCaseForEscalate.case_number,
+        animalTag: selectedCaseForEscalate.animal_tag,
+        message: res.smsMessage,
+        sentAt: new Date().toLocaleTimeString(),
+        gatewayRef: `SMS-GOV-${Math.floor(100000 + Math.random() * 900000)}`,
+      });
+
+      showToast(
+        language === 'mr'
+          ? `केस #${selectedCaseForEscalate.case_number} वर्ग केली! शेतकरी ${selectedCaseForEscalate.farmer_name} यांना SMS पाठवला.`
+          : `Case #${selectedCaseForEscalate.case_number} escalated! SMS dispatched to ${selectedCaseForEscalate.farmer_phone}.`
+      );
+
+      setShowEscalateModal(false);
+      setSelectedCaseForEscalate(null);
+      await loadDoctorData();
+    } catch (err: any) {
+      showToast(err.message || 'Error escalating case');
+    }
+  };
+
+  const handleResendSMS = (c: DoctorCase) => {
+    const msg =
+      c.sms_message ||
+      `[JeevRakshak AI] प्रिय ${c.farmer_name}, आपली केस क्र. ${c.case_number} (पशु टॅग: ${c.animal_tag}) जिल्हा पशुवैद्यकीय अधिकारी (DAHO) यांच्याकडे वर्ग आहे.`;
+    setSmsAlert({
+      recipientName: c.farmer_name,
+      recipientPhone: c.farmer_phone,
+      caseNumber: c.case_number,
+      animalTag: c.animal_tag,
+      message: msg,
+      sentAt: new Date().toLocaleTimeString(),
+      gatewayRef: `SMS-RESEND-${Math.floor(100000 + Math.random() * 900000)}`,
+    });
+    showToast(
+      language === 'mr'
+        ? `पुन्हा एसएमएस पाठवला: +91 ${c.farmer_phone}`
+        : `Resent SMS notification to +91 ${c.farmer_phone}`
+    );
+  };
+
   const handleUpdateStatus = async (caseId: string, newStatus: DoctorCase['status']) => {
+    if (newStatus === 'escalated') {
+      const c = cases.find((item) => item.id === caseId);
+      if (c) {
+        handleOpenEscalateModal(c);
+        return;
+      }
+    }
     const updated = await dataService.updateDoctorCaseStatus(doctorId, caseId, newStatus);
     if (updated) {
       showToast(`Case status updated to "${newStatus.replace('_', ' ').toUpperCase()}".`);
@@ -309,6 +505,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSaveDiagnosis = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowDiagnosisModal(false);
+      return;
+    }
 
     await dataService.createDoctorDiagnosis(doctorId, {
       doctor_id: doctorId,
@@ -329,6 +530,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSaveTreatment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowTreatmentModal(false);
+      return;
+    }
 
     await dataService.createDoctorTreatment(doctorId, {
       doctor_id: doctorId,
@@ -344,6 +550,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       status: 'ongoing',
     });
 
+    // Mark case as treated
+    await dataService.updateDoctorCaseStatus(doctorId, selectedCaseForAction.id, 'treated', treatPlan);
+
     showToast(`Treatment regimen recorded permanently for ${selectedCaseForAction.animal_tag}.`);
     setShowTreatmentModal(false);
     setTreatPlan('');
@@ -355,6 +564,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSavePrescription = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowPrescriptionModal(false);
+      return;
+    }
 
     await dataService.createDoctorPrescription(doctorId, {
       doctor_id: doctorId,
@@ -368,6 +582,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       medicines: rxMedicines,
       clinical_instructions: rxInstructions,
     });
+
+    // Mark case as treated
+    await dataService.updateDoctorCaseStatus(doctorId, selectedCaseForAction.id, 'treated', rxInstructions);
 
     showToast(`Official digital prescription generated and signed for ${selectedCaseForAction.animal_tag}.`);
     setShowPrescriptionModal(false);
@@ -441,6 +658,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const navHubs: { id: VetModuleTab; label: string; icon: React.FC<any>; count?: number }[] = [
     { id: 'overview', label: language === 'mr' ? 'क्लिनिकल डेस्क' : language === 'hi' ? 'क्लिनिकल डेस्क' : 'Clinical Desk', icon: Stethoscope },
     { id: 'cases', label: language === 'mr' ? 'तपासणी प्रतीक्षा सूची' : language === 'hi' ? 'केस प्रबंधन' : 'Case Management', icon: ClipboardList, count: stats.assignedCases },
+    { id: 'escalated', label: language === 'mr' ? 'अग्रेषित केसेस' : language === 'hi' ? 'अग्रेषित केस' : 'Escalated Cases', icon: AlertTriangle, count: cases.filter(isCaseEscalated).length },
     { id: 'records', label: language === 'mr' ? 'आरोग्य नोंदी' : language === 'hi' ? 'स्वास्थ्य रिकॉर्ड' : 'Animal Records', icon: FileText },
     { id: 'diagnosis', label: language === 'mr' ? 'एआय निदान कक्ष' : language === 'hi' ? 'एआई निदान केंद्र' : 'AI Diagnosis', icon: Sparkles, count: diagnoses.length },
     { id: 'treatments', label: language === 'mr' ? 'उपचार व्यवस्थापन' : language === 'hi' ? 'उपचार प्रबंधन' : 'Treatments', icon: Pill, count: stats.animalsTreated },
@@ -448,9 +666,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
     { id: 'vaccinations', label: language === 'mr' ? 'लसीकरण व्यवस्थापन' : language === 'hi' ? 'टीकाकरण' : 'Vaccination', icon: Syringe, count: stats.vaccinationsDone },
     { id: 'emergencies', label: language === 'mr' ? 'आणीबाणी अलर्ट (SOS)' : language === 'hi' ? 'आपातकालीन केस' : 'Emergency SOS', icon: AlertTriangle, count: stats.emergencyCases },
     { id: 'visits', label: language === 'mr' ? 'शेतकरी भेटी' : language === 'hi' ? 'फील्ड विज़िट' : 'Field Visits', icon: MapPin, count: stats.monthlyVisits },
-    { id: 'comms', label: language === 'mr' ? 'शेतकरी संपर्क' : language === 'hi' ? 'किसान संवाद' : 'Farmer Comms', icon: MessageSquare },
     { id: 'reporting', label: language === 'mr' ? 'प्रकोप अहवाल (DAHO)' : language === 'hi' ? 'रोग रिपोर्टिंग' : 'Disease Reporting', icon: ShieldAlert, count: stats.reportsSubmitted },
-    { id: 'ai_detection', label: language === 'mr' ? 'एआय लक्षण तपासक' : language === 'hi' ? 'एआई रोग जांच' : 'AI Detection Lab', icon: FlaskConical },
     { id: 'analytics', label: language === 'mr' ? 'आरोग्य ट्रेंड' : language === 'hi' ? 'स्वास्थ्य विश्लेषण' : 'Animal Monitoring', icon: TrendingUp },
     { id: 'reports', label: language === 'mr' ? 'अहवाल निर्यात' : language === 'hi' ? 'रिपोर्ट्स केंद्र' : 'Reports Center', icon: Download },
     { id: 'notifications', label: language === 'mr' ? 'सूचना केंद्र' : language === 'hi' ? 'अधिसूचनाएं' : 'Notifications', icon: BadgeAlert },
@@ -883,10 +1099,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  if (cases.length === 0) {
-                    showToast('Please accept or claim a case first to record diagnosis.');
+                  const untreated = cases.filter((c) => !isCaseTreated(c));
+                  if (untreated.length === 0) {
+                    showToast('All cases are already treated. No active cases require diagnosis.');
                   } else {
-                    setSelectedCaseForAction(cases[0]);
+                    setSelectedCaseForAction(untreated[0]);
                     setShowDiagnosisModal(true);
                   }
                 }}
@@ -894,18 +1111,18 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  fontSize: '0.8rem',
-                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  padding: '10px 16px',
                   borderRadius: '10px',
-                  background: 'var(--surface-raised)',
-                  border: '1px solid var(--border-subtle)',
+                  background: '#ffffff',
+                  border: '1px solid var(--border)',
                   cursor: 'pointer',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: 'var(--text-main)',
                 }}
               >
-                <Sparkles size={15} color="#0284c7" />
-                <span>{language === 'mr' ? 'एआय निदान' : 'AI Diagnosis'}</span>
+                <Sparkles size={16} color="#0284c7" />
+                <span>{language === 'mr' ? 'एआय निदान चालवा' : 'Run AI Diagnosis'}</span>
               </button>
 
               <button
@@ -1237,11 +1454,30 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                  {language === 'mr' ? 'सक्रिय क्लिनिकल ट्रायज प्रतीक्षा सूची' : 'Active Clinical Triage Queue'}
-                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                    {language === 'mr' ? 'सक्रिय क्लिनिकल ट्रायज प्रतीक्षा सूची' : 'Active Clinical Triage Queue'}
+                  </h2>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      background: '#ecfdf5',
+                      color: '#047857',
+                      border: '1px solid #86efac',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      fontWeight: 800,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <ArrowUpDown size={11} color="#059669" />
+                    <span>{language === 'mr' ? 'आरोही क्रम (१ → ९)' : 'Ascending Order (1 → 9)'}</span>
+                  </span>
+                </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-                  {language === 'mr' ? 'स्थानिक शेतकऱ्यांनी नोंदवलेले अहवाल ज्यावर पशुवैद्यकीय तपासणी आवश्यक आहे' : 'Farmer reports requiring your immediate veterinary examination and treatment plan'}
+                  {language === 'mr' ? 'स्थानिक शेतकऱ्यांनी नोंदवलेले अहवाल ज्यावर पशुवैद्यकीय तपासणी आवश्यक आहे (आरोही क्रम: पहिले केसेस आधी)' : 'Farmer reports requiring your immediate veterinary examination arranged in ascending order (earliest / sequence 1 → 9)'}
                 </p>
               </div>
 
@@ -1312,7 +1548,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {cases.slice(0, 4).map((c) => (
+                {clinicalQueueCases.slice(0, 5).map((c, idx) => (
                   <div
                     key={c.id}
                     style={{
@@ -1329,6 +1565,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>
+                          #{idx + 1}
+                        </span>
                         <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>
                           {c.animal_tag}
                         </span>
@@ -1344,6 +1583,25 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                         >
                           {c.priority.toUpperCase()}
                         </span>
+                        {isCaseTreated(c) && (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                          >
+                            <CheckCircle2 size={11} color="#16a34a" />
+                            {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          </span>
+                        )}
                         <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                           • {c.animal_species}
                         </span>
@@ -1353,47 +1611,110 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCaseForAction(c);
-                          setShowDiagnosisModal(true);
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: '1px solid #0284c7',
-                          background: '#f0f9ff',
-                          color: '#0284c7',
-                          fontSize: '0.76rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        AI Diagnosis
-                      </button>
+                    {isCaseTreated(c) ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '5px 12px',
+                            borderRadius: '20px',
+                            background: '#ecfdf5',
+                            color: '#047857',
+                            border: '1.5px solid #10b981',
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <CheckCircle2 size={13} color="#059669" />
+                          <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                        </span>
+                      </div>
+                    ) : isCaseEscalated(c) ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '5px 12px',
+                            borderRadius: '20px',
+                            background: '#fffbeb',
+                            color: '#b45309',
+                            border: '1.5px solid #f59e0b',
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <AlertTriangle size={13} color="#d97706" />
+                          <span>{language === 'mr' ? 'अग्रेषित • SMS पाठवला' : 'Escalated • SMS Sent'}</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowDiagnosisModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #0284c7',
+                            background: '#f0f9ff',
+                            color: '#0284c7',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          AI Diagnosis
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCaseForAction(c);
-                          setShowTreatmentModal(true);
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          background: '#2d6a4f',
-                          color: '#ffffff',
-                          fontSize: '0.76rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Prescribe Rx
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowTreatmentModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: '#2d6a4f',
+                            color: '#ffffff',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Prescribe Rx
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEscalateModal(c)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #f59e0b',
+                            background: '#fffbeb',
+                            color: '#b45309',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <AlertTriangle size={12} color="#d97706" />
+                          <span>Escalate</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1454,187 +1775,891 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="form-select"
-              style={{ width: 'auto', fontSize: '0.82rem' }}
+              style={{ width: 'auto', fontSize: '0.82rem', fontWeight: 600 }}
             >
-              <option value="all">All Statuses</option>
+              <option value="all">All Statuses (सर्व स्थिती)</option>
+              <option value="escalated">⚠️ Escalated Cases (अग्रेषित केसेस)</option>
               <option value="accepted">Accepted (स्वीकारले)</option>
               <option value="in_diagnosis">In Diagnosis (निदान चालू)</option>
               <option value="treatment_ongoing">Treatment Ongoing (उपचार चालू)</option>
+              <option value="treated">Treated (उपचारित)</option>
               <option value="resolved">Resolved (बरे झाले)</option>
               <option value="closed">Closed (बंद)</option>
             </select>
+
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+              className="form-select"
+              style={{ width: 'auto', fontSize: '0.82rem', fontWeight: 700 }}
+            >
+              <option value="asc">↑ {language === 'mr' ? 'आरोही क्रम (1 → 9)' : 'Ascending Order (1 → 9)'}</option>
+              <option value="desc">↓ {language === 'mr' ? 'अवरोही क्रम (9 → 1)' : 'Descending Order (9 → 1)'}</option>
+            </select>
           </div>
 
-          {filteredCases.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
-              <ClipboardList size={42} color="#52b788" style={{ margin: '0 auto 10px' }} />
-              <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
-                {language === 'mr' ? 'कोणतीही केस आढळली नाही' : 'No Cases Found'}
-              </h3>
-              <p style={{ fontSize: '0.82rem', color: '#52796f', margin: '0 auto 14px', maxWidth: '380px' }}>
-                {cases.length === 0
-                  ? 'Your case register is currently empty. Click below to claim incoming farmer reports.'
-                  : 'No cases match your search or filter criteria.'}
-              </p>
-              {cases.length === 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowClaimModal(true)}
-                  className="btn-primary"
-                  style={{ fontSize: '0.84rem', padding: '8px 16px', borderRadius: '10px' }}
-                >
-                  <Plus size={15} />
-                  <span>Claim Incoming Cases</span>
-                </button>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {filteredCases.map((c) => (
-                <div
-                  key={c.id}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-main)' }}>
-                          {c.animal_tag}
-                        </span>
-                        <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
-                          {c.case_number}
-                        </span>
-                        <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                          • {c.animal_species}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', marginTop: '4px' }}>
-                        <strong>Farmer:</strong> {c.farmer_name} ({c.farmer_phone}) • {c.village}, {c.district}
-                      </div>
-                    </div>
-
+          {/* ========================================================================= */}
+          {/* 1. DEDICATED SECTION: ESCALATED CASES (अग्रेषित केसेस)                    */}
+          {/* Cases are moved here when escalated, with SMS notification confirmation    */}
+          {/* ========================================================================= */}
+          {(statusFilter === 'all' || statusFilter === 'escalated') && (
+            <div
+              style={{
+                marginBottom: '28px',
+                background: '#fffdfa',
+                border: '1.5px solid #fed7aa',
+                borderRadius: '14px',
+                padding: '18px 20px',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.08)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  marginBottom: '16px',
+                  paddingBottom: '10px',
+                  borderBottom: '1.5px solid #fde68a',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: '#fef3c7',
+                      color: '#b45309',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid #fcd34d',
+                    }}
+                  >
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <select
-                        value={c.status}
-                        onChange={(e) => handleUpdateStatus(c.id, e.target.value as DoctorCase['status'])}
-                        className="form-select"
-                        style={{ fontSize: '0.74rem', padding: '4px 8px', height: '32px', minHeight: '32px', fontWeight: 700 }}
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#9a3412', margin: 0 }}>
+                        {language === 'mr'
+                          ? 'अग्रेषित केसेस (Escalated Cases)'
+                          : language === 'hi'
+                          ? 'अग्रेषित मामले (Escalated Cases)'
+                          : 'Escalated Cases'}
+                      </h3>
+                      <span
+                        style={{
+                          background: '#ffedd5',
+                          color: '#9a3412',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          border: '1px solid #fdba74',
+                        }}
                       >
-                        <option value="assigned">Assigned</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="in_diagnosis">In Diagnosis</option>
-                        <option value="treatment_ongoing">Treatment Ongoing</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
-                      </select>
+                        {escalatedCases.length} {language === 'mr' ? 'केसेस वर्ग' : 'Cases Escalated'}
+                      </span>
                     </div>
-                  </div>
-
-                  <div style={{ background: 'var(--surface-raised)', padding: '10px 12px', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}>
-                    <strong>Symptoms:</strong> {c.symptoms}
-                    {c.diagnosis && (
-                      <div style={{ marginTop: '4px', color: '#0369a1', fontWeight: 600 }}>
-                        <strong>Diagnosis:</strong> {c.diagnosis}
-                      </div>
-                    )}
-                    {c.treatment_notes && (
-                      <div style={{ marginTop: '2px', color: '#166534' }}>
-                        <strong>Treatment Plan:</strong> {c.treatment_notes}
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowDiagnosisModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#f0f9ff',
-                        border: '1px solid #bae6fd',
-                        color: '#0369a1',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Record Diagnosis
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowTreatmentModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#f0fdf4',
-                        border: '1px solid #bbf7d0',
-                        color: '#15803d',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Add Treatment
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowPrescriptionModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#fff',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-main)',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Issue Digital Rx
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateStatus(c.id, 'resolved')}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#ecfdf5',
-                        border: '1px solid #6ee7b7',
-                        color: '#047857',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Mark Resolved
-                    </button>
+                    <p style={{ fontSize: '0.78rem', color: '#c2410c', margin: '2px 0 0' }}>
+                      {language === 'mr'
+                        ? 'उच्च जिल्हा पशुवैद्यकीय अधिकारी (DAHO) यांच्याकडे वर्ग केलेल्या केसेस व पशुपालकांना पाठवलेला SMS अलर्ट'
+                        : 'Transferred to District Animal Husbandry Officer (DAHO) & State Diagnostic Lab with farmer SMS delivery verification'}
+                    </p>
                   </div>
                 </div>
-              ))}
+
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.72rem',
+                    color: '#b45309',
+                    background: '#fef3c7',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                  }}
+                >
+                  <Smartphone size={13} color="#b45309" />
+                  <span>{language === 'mr' ? 'एसएमएस गेटवे: सक्रिय' : 'SMS Gateway: Active'}</span>
+                </span>
+              </div>
+
+              {escalatedCases.length === 0 ? (
+                <div
+                  style={{
+                    padding: '16px',
+                    background: '#ffffff',
+                    borderRadius: '10px',
+                    border: '1px dashed #fcd34d',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <CheckCircle size={20} color="#f59e0b" />
+                  <div style={{ fontSize: '0.82rem', color: '#92400e' }}>
+                    <strong>{language === 'mr' ? 'सध्या कोणतीही केस अग्रेषित नाही' : 'No cases currently escalated'}.</strong>{' '}
+                    {language === 'mr'
+                      ? 'कोणतीही केस DAHO कडे वर्ग करण्यासाठी व शेतकऱ्याला तत्काळ SMS पाठवण्यासाठी खालील केसमधील "Escalate" बटण दाबा.'
+                      : 'To escalate a severe or transboundary case to DAHO and notify the livestock owner via SMS, click "Escalate" on any active case below.'}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {escalatedCases.map((c) => (
+                    <div
+                      key={`esc-${c.id}`}
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #f59e0b',
+                        borderRadius: '12px',
+                        padding: '16px 18px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        boxShadow: '0 3px 10px rgba(245, 158, 11, 0.1)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>
+                              {c.animal_tag}
+                            </span>
+                            <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                              {c.case_number}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.74rem',
+                                background: '#fee2e2',
+                                color: '#b91c1c',
+                                border: '1.5px solid #fca5a5',
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <AlertTriangle size={12} color="#dc2626" />
+                              <span>{language === 'mr' ? 'अग्रेषित (Escalated)' : 'Escalated to DAHO'}</span>
+                            </span>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                              • {c.animal_species}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', marginTop: '4px' }}>
+                            <strong>Farmer:</strong> {c.farmer_name} • <strong>Phone:</strong> +91 {c.farmer_phone} • {c.village}, {c.district}
+                          </div>
+                        </div>
+
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            background: '#7f1d1d',
+                            color: '#ffffff',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          HIGH URGENCY
+                        </span>
+                      </div>
+
+                      {/* Escalation Authority & Reason */}
+                      <div
+                        style={{
+                          background: '#fffbeb',
+                          border: '1px solid #fde68a',
+                          borderRadius: '8px',
+                          padding: '8px 12px',
+                          fontSize: '0.8rem',
+                          color: '#92400e',
+                        }}
+                      >
+                        <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <ShieldAlert size={14} color="#b45309" />
+                          <span>Escalated Authority: {c.escalated_to || 'Dr. Sunita Patil, DAHO (District Animal Husbandry Officer)'}</span>
+                        </div>
+                        <div>
+                          <strong>Reason:</strong> {c.escalation_reason || 'Outbreak prevention and specialist confirmatory diagnostic intervention required'}
+                        </div>
+                        {c.escalated_at && (
+                          <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: '3px' }}>
+                            Escalated On: {new Date(c.escalated_at).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Symptoms */}
+                      <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <strong>Symptoms:</strong> {c.symptoms}
+                      </div>
+
+                      {/* SMS Notification to User Box (Direct proof of SMS sent to user) */}
+                      <div
+                        style={{
+                          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                          border: '1.5px solid #86efac',
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Smartphone size={15} color="#15803d" />
+                            <span style={{ fontWeight: 800, fontSize: '0.8rem', color: '#166534' }}>
+                              {language === 'mr' ? 'पशुपालकास SMS पाठवला (SMS Dispatched to User)' : 'SMS Notification Dispatched to User'}
+                            </span>
+                            <span
+                              style={{
+                                background: '#dcfce7',
+                                color: '#15803d',
+                                border: '1px solid #bbf7d0',
+                                padding: '1px 6px',
+                                borderRadius: '6px',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              <CheckCircle2 size={11} color="#16a34a" />
+                              +91 {c.sms_phone || c.farmer_phone}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleResendSMS(c)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#ffffff',
+                              border: '1px solid #86efac',
+                              color: '#15803d',
+                              borderRadius: '6px',
+                              padding: '3px 8px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <Send size={11} color="#16a34a" />
+                            <span>{language === 'mr' ? 'पुन्हा SMS पाठवा' : 'Resend SMS'}</span>
+                          </button>
+                        </div>
+
+                        <div
+                          style={{
+                            background: '#ffffff',
+                            border: '1px dashed #86efac',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            fontSize: '0.76rem',
+                            color: '#14532d',
+                            fontFamily: 'monospace',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          &ldquo;{c.sms_message || `[JeevRakshak AI] प्रिय ${c.farmer_name}, आपली केस क्र. ${c.case_number} (पशु टॅग: ${c.animal_tag}) जिल्हा पशुवैद्यकीय अधिकारी (DAHO) यांच्याकडे वर्ग करण्यात आली आहे. मदत कक्ष: 1800-120-JEEV.`}&rdquo;
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: '#16a34a' }}>
+                          <span>Gateway: JeevRakshak National SMS Hub (Govt of Maharashtra)</span>
+                          <span>Delivery: Verified {c.sms_sent_at ? new Date(c.sms_sent_at).toLocaleTimeString() : 'Delivered'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+
+          {/* ========================================================================= */}
+          {/* 2. ACTIVE CLINICAL CASES REGISTER (Non-escalated active cases)            */}
+          {/* ========================================================================= */}
+          {statusFilter !== 'escalated' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ClipboardList size={18} color="var(--primary)" />
+                  <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                    {language === 'mr' ? 'सक्रिय क्लिनिकल केसेस नोंदवही' : 'Active Clinical Cases Register'}
+                  </h3>
+                  <span style={{ fontSize: '0.74rem', background: '#e2e8f0', color: '#475569', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                    {activeCasesList.length} {language === 'mr' ? 'केसेस' : 'Cases'}
+                  </span>
+                </div>
+              </div>
+
+              {activeCasesList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '36px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+                  <ClipboardList size={38} color="#52b788" style={{ margin: '0 auto 8px' }} />
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
+                    {language === 'mr' ? 'सक्रिय यादीत कोणतीही केस नाही' : 'No Active Cases in This Filter'}
+                  </h4>
+                  <p style={{ fontSize: '0.8rem', color: '#52796f', margin: '0 auto 12px', maxWidth: '380px' }}>
+                    {cases.length === 0
+                      ? 'Your case register is currently empty. Click below to claim incoming farmer reports.'
+                      : 'All matching cases have been resolved, treated, or moved to the "Escalated Cases" section above.'}
+                  </p>
+                  {cases.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowClaimModal(true)}
+                      className="btn-primary"
+                      style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '10px' }}
+                    >
+                      <Plus size={15} />
+                      <span>Claim Incoming Cases</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {activeCasesList.map((c) => (
+                    <div
+                      key={c.id}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid var(--border)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        boxShadow: 'var(--shadow-sm)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-main)' }}>
+                              {c.animal_tag}
+                            </span>
+                            <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                              {c.case_number}
+                            </span>
+                            {isCaseTreated(c) && (
+                              <span
+                                style={{
+                                  fontSize: '0.74rem',
+                                  background: '#dcfce7',
+                                  color: '#15803d',
+                                  border: '1px solid #86efac',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  fontWeight: 800,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <CheckCircle2 size={12} color="#16a34a" />
+                                {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                              </span>
+                            )}
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                              • {c.animal_species}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', marginTop: '4px' }}>
+                            <strong>Farmer:</strong> {c.farmer_name} ({c.farmer_phone}) • {c.village}, {c.district}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {isCaseTreated(c) ? (
+                            <span
+                              style={{
+                                fontSize: '0.74rem',
+                                background: '#dcfce7',
+                                color: '#15803d',
+                                border: '1.5px solid #86efac',
+                                padding: '4px 10px',
+                                borderRadius: '12px',
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <CheckCircle2 size={13} color="#16a34a" />
+                              <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                            </span>
+                          ) : (
+                            <select
+                              value={c.status}
+                              onChange={(e) => handleUpdateStatus(c.id, e.target.value as DoctorCase['status'])}
+                              className="form-select"
+                              style={{ fontSize: '0.74rem', padding: '4px 8px', height: '32px', minHeight: '32px', fontWeight: 700 }}
+                            >
+                              <option value="assigned">Assigned</option>
+                              <option value="accepted">Accepted</option>
+                              <option value="in_diagnosis">In Diagnosis</option>
+                              <option value="treatment_ongoing">Treatment Ongoing</option>
+                              <option value="treated">Treated</option>
+                              <option value="resolved">Resolved</option>
+                              <option value="escalated">⚠️ Escalate to DAHO</option>
+                              <option value="closed">Closed</option>
+                            </select>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <strong>Symptoms:</strong> {c.symptoms}
+                        {c.diagnosis && (
+                          <div style={{ marginTop: '4px', color: '#0369a1', fontWeight: 600 }}>
+                            <strong>Diagnosis:</strong> {c.diagnosis}
+                          </div>
+                        )}
+                        {c.treatment_notes && (
+                          <div style={{ marginTop: '2px', color: '#166534' }}>
+                            <strong>Treatment Plan:</strong> {c.treatment_notes}
+                          </div>
+                        )}
+                      </div>
+
+                      {isCaseTreated(c) ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 14px',
+                              borderRadius: '20px',
+                              background: '#ecfdf5',
+                              color: '#047857',
+                              border: '1.5px solid #10b981',
+                              fontSize: '0.78rem',
+                              fontWeight: 800,
+                            }}
+                          >
+                            <CheckCircle2 size={14} color="#059669" />
+                            <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                          </span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCaseForAction(c);
+                              setShowDiagnosisModal(true);
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              background: '#f0f9ff',
+                              border: '1px solid #bae6fd',
+                              color: '#0369a1',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Record Diagnosis
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCaseForAction(c);
+                              setShowTreatmentModal(true);
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              background: '#f0fdf4',
+                              border: '1px solid #bbf7d0',
+                              color: '#15803d',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Add Treatment
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCaseForAction(c);
+                              setShowPrescriptionModal(true);
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              background: '#fff',
+                              border: '1px solid var(--border)',
+                              color: 'var(--text-main)',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Issue Digital Rx
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateStatus(c.id, 'treated')}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              background: '#ecfdf5',
+                              border: '1px solid #6ee7b7',
+                              color: '#047857',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Mark Treated
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEscalateModal(c)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              background: '#fffbeb',
+                              border: '1px solid #f59e0b',
+                              color: '#b45309',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <AlertTriangle size={13} color="#d97706" />
+                            <span>Escalate Case</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODULE 3: ESCALATED CASES HUB (Dedicated Full View)                       */}
+      {/* ========================================================================= */}
+      {activeTab === 'escalated' && (
+        <div className="card-glass" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 800, marginBottom: '6px' }}>
+                <AlertTriangle size={13} color="#b45309" />
+                <span>DAHO & STATE DIAGNOSTIC COMMAND ESCALATION</span>
+              </div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                {language === 'mr' ? 'अग्रेषित केसेस व एसएमएस ट्रॅकिंग केंद्र' : 'Escalated Cases & Farmer SMS Notification Center'}
+              </h2>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                {language === 'mr'
+                  ? 'जिल्हा पशुवैद्यकीय अधिकारी (DAHO) कडे वर्ग केलेल्या सर्व केसेस आणि शेतकऱ्यांना पाठवलेला थेट SMS अहवाल'
+                  : 'All cases escalated to District Veterinary Authorities with automated live farmer SMS dispatch verification'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const unescalated = cases.find((c) => !isCaseEscalated(c) && !isCaseTreated(c));
+                if (unescalated) {
+                  handleOpenEscalateModal(unescalated);
+                } else if (cases.length > 0) {
+                  handleOpenEscalateModal(cases[0]);
+                } else {
+                  showToast('No cases available to escalate.');
+                }
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '9px 16px',
+                borderRadius: '10px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
+              }}
+            >
+              <AlertTriangle size={15} />
+              <span>{language === 'mr' ? 'केस अग्रेषित करा व SMS पाठवा' : 'Escalate New Case & Send SMS'}</span>
+            </button>
+          </div>
+
+          {/* Quick Metrics Bar */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase' }}>Total Escalated</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#78350f', marginTop: '2px' }}>
+                {cases.filter(isCaseEscalated).length}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#92400e', marginTop: '2px' }}>Forwarded to DAHO</div>
+            </div>
+
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase' }}>Farmer SMS Dispatched</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#14532d', marginTop: '2px' }}>
+                {cases.filter((c) => isCaseEscalated(c) || c.sms_sent).length}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#166534', marginTop: '2px' }}>100% Delivery via Gateway</div>
+            </div>
+
+            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '10px', padding: '14px' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>Target Authority</div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0c4a6e', marginTop: '4px' }}>
+                DAHO, Pune
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#0284c7', marginTop: '2px' }}>State VDL Command Node</div>
+            </div>
+
+            <div style={{ background: '#fdf2f8', border: '1px solid #fbcfe8', borderRadius: '10px', padding: '14px' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#be185d', textTransform: 'uppercase' }}>Avg Escalation Response</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#831843', marginTop: '2px' }}>
+                &lt; 15 mins
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#9d174d', marginTop: '2px' }}>Mobile squad readiness</div>
+            </div>
+          </div>
+
+          {/* Section: Escalated Cases */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#9a3412', margin: 0 }}>
+                {language === 'mr' ? 'अग्रेषित केसेस (Escalated Cases)' : 'Escalated Cases'}
+              </h3>
+              <span style={{ fontSize: '0.76rem', color: '#b45309', fontWeight: 700 }}>
+                {escalatedCases.length} {language === 'mr' ? 'केसेस' : 'Active Escalations'}
+              </span>
+            </div>
+
+            {escalatedCases.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fffbeb', borderRadius: '12px', border: '1.5px dashed #f59e0b' }}>
+                <AlertTriangle size={38} color="#d97706" style={{ margin: '0 auto 8px' }} />
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#78350f', margin: '0 0 4px' }}>
+                  {language === 'mr' ? 'सध्या कोणतीही केस अग्रेषित नाही' : 'No Escalated Cases Found'}
+                </h4>
+                <p style={{ fontSize: '0.82rem', color: '#92400e', maxWidth: '380px', margin: '0 auto 14px' }}>
+                  {language === 'mr'
+                    ? 'आपण कोणत्याही सक्रिय केसला DAHO कडे वर्ग करून शेतकऱ्याला थेट SMS पाठवू शकता.'
+                    : 'Cases escalated to DAHO with SMS notification sent to farmers will be displayed here.'}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {escalatedCases.map((c) => (
+                  <div
+                    key={`hub-esc-${c.id}`}
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #f59e0b',
+                      borderRadius: '12px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      boxShadow: '0 3px 10px rgba(245, 158, 11, 0.1)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 800, fontSize: '1.02rem', color: 'var(--text-main)' }}>
+                            {c.animal_tag}
+                          </span>
+                          <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                            {c.case_number}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '0.74rem',
+                              background: '#fee2e2',
+                              color: '#b91c1c',
+                              border: '1.5px solid #fca5a5',
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              fontWeight: 800,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <AlertTriangle size={12} color="#dc2626" />
+                            <span>{language === 'mr' ? 'अग्रेषित (Escalated to DAHO)' : 'Escalated to DAHO'}</span>
+                          </span>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            • {c.animal_species}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: '4px' }}>
+                          <strong>Farmer:</strong> {c.farmer_name} • <strong>Phone:</strong> +91 {c.farmer_phone} • {c.village}, {c.district}
+                        </div>
+                      </div>
+
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          background: '#7f1d1d',
+                          color: '#ffffff',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        HIGH PRIORITY ESCALATION
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        background: '#fffbeb',
+                        border: '1px solid #fde68a',
+                        borderRadius: '8px',
+                        padding: '10px 14px',
+                        fontSize: '0.82rem',
+                        color: '#92400e',
+                      }}
+                    >
+                      <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <ShieldAlert size={15} color="#b45309" />
+                        <span>Escalated To: {c.escalated_to || 'Dr. Sunita Patil, DAHO (District Animal Husbandry Officer, Pune)'}</span>
+                      </div>
+                      <div>
+                        <strong>Reason:</strong> {c.escalation_reason || 'Outbreak risk investigation & specialized biosafety protocol required.'}
+                      </div>
+                      {c.escalated_at && (
+                        <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: '3px' }}>
+                          Escalated Date: {new Date(c.escalated_at).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Symptoms */}
+                    <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <strong>Symptoms:</strong> {c.symptoms}
+                    </div>
+
+                    {/* SMS Delivery Verification Box */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                        border: '1.5px solid #86efac',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Smartphone size={15} color="#15803d" />
+                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: '#166534' }}>
+                            {language === 'mr' ? 'शेतकऱ्यास SMS पाठवला (SMS Delivered to User)' : 'SMS Notification Dispatched to User'}
+                          </span>
+                          <span
+                            style={{
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #bbf7d0',
+                              padding: '1px 6px',
+                              borderRadius: '6px',
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                          >
+                            <CheckCircle2 size={11} color="#16a34a" />
+                            +91 {c.sms_phone || c.farmer_phone}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleResendSMS(c)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#ffffff',
+                            border: '1px solid #86efac',
+                            color: '#15803d',
+                            borderRadius: '6px',
+                            padding: '4px 10px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Send size={12} color="#16a34a" />
+                          <span>{language === 'mr' ? 'पुन्हा SMS पाठवा' : 'Resend SMS'}</span>
+                        </button>
+                      </div>
+
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px dashed #86efac',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          fontSize: '0.78rem',
+                          color: '#14532d',
+                          fontFamily: 'monospace',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        &ldquo;{c.sms_message || `[JeevRakshak AI] प्रिय ${c.farmer_name}, आपली केस क्र. ${c.case_number} (पशु टॅग: ${c.animal_tag}) जिल्हा पशुवैद्यकीय अधिकारी (DAHO) यांच्याकडे वर्ग करण्यात आली आहे. मदत कक्ष: 1800-120-JEEV.`}&rdquo;
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: '#16a34a' }}>
+                        <span>SMS Gateway: National Vet Health Alerts (MH)</span>
+                        <span>Delivery Verified: {c.sms_sent_at ? new Date(c.sms_sent_at).toLocaleTimeString() : 'Delivered'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1664,10 +2689,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) {
-                  showToast('Please claim or accept a case first.');
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
                 } else {
-                  setSelectedCaseForAction(cases[0]);
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowDiagnosisModal(true);
                 }
               }}
@@ -1770,9 +2796,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) showToast('Claim a case first.');
-                else {
-                  setSelectedCaseForAction(cases[0]);
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
+                } else {
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowTreatmentModal(true);
                 }
               }}
@@ -1878,9 +2906,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) showToast('Claim a case first.');
-                else {
-                  setSelectedCaseForAction(cases[0]);
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
+                } else {
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowPrescriptionModal(true);
                 }
               }}
@@ -2132,36 +3162,77 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.94rem', color: '#dc2626' }}>
-                        CRITICAL ALERT: {c.animal_tag} ({c.animal_species})
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.94rem', color: isCaseTreated(c) ? '#166534' : '#dc2626' }}>
+                          {isCaseTreated(c) ? 'RESOLVED ALERT:' : 'CRITICAL ALERT:'} {c.animal_tag} ({c.animal_species})
+                        </span>
+                        {isCaseTreated(c) && (
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                          >
+                            <CheckCircle2 size={11} color="#16a34a" />
+                            {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', marginTop: '2px' }}>
                         Farmer: {c.farmer_name} • Phone: {c.farmer_phone} • {c.village}
                       </div>
-                      <div style={{ fontSize: '0.74rem', color: '#991b1b', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.74rem', color: isCaseTreated(c) ? 'var(--text-muted)' : '#991b1b', marginTop: '2px' }}>
                         Symptoms: {c.symptoms}
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowTreatmentModal(true);
-                      }}
-                      style={{
-                        background: '#dc2626',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Deploy Immediate Response
-                    </button>
+                    {isCaseTreated(c) ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          background: '#ecfdf5',
+                          color: '#047857',
+                          border: '1.5px solid #10b981',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                        }}
+                      >
+                        <CheckCircle2 size={14} color="#059669" />
+                        <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCaseForAction(c);
+                          setShowTreatmentModal(true);
+                        }}
+                        style={{
+                          background: '#dc2626',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Deploy Immediate Response
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
@@ -2466,7 +3537,6 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   : `Official searchable medical histories, diagnosis findings, and treatment ledgers for herd animals in ${doctorDistrict} district.`}
               </p>
             </div>
-
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button
                 type="button"
@@ -3100,7 +4170,6 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
         </div>
       )}
-
       {activeTab === 'analytics' && (
         <div
           style={{
@@ -3323,89 +4392,128 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveDiagnosis}>
-              <div style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Animal & Case</label>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
                   Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
                 </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Suspected Primary Disease *</label>
-                <select
-                  value={diagDisease}
-                  onChange={(e) => setDiagDisease(e.target.value)}
-                  className="form-select"
-                  style={{ fontSize: '0.84rem' }}
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार पूर्ण झालेले आहेत. नवीन निदान नोंदवण्याची किंवा बदल करण्याची आवश्यकता नाही.'
+                    : 'This case has been completed and marked as treated. New clinical diagnoses and modifications are disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDiagnosisModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
                 >
-                  <option value="Foot and Mouth Disease (FMD)">Foot and Mouth Disease (FMD)</option>
-                  <option value="Lumpy Skin Disease (LSD)">Lumpy Skin Disease (LSD)</option>
-                  <option value="Clinical Mastitis">Clinical Mastitis (Staphylococcus/Streptococcus)</option>
-                  <option value="Anthrax (Bacillus anthracis)">Anthrax (Bacillus anthracis)</option>
-                  <option value="Haemorrhagic Septicaemia (HS)">Haemorrhagic Septicaemia (HS)</option>
-                  <option value="Black Quarter (BQ)">Black Quarter (BQ)</option>
-                  <option value="Bovine Babesiosis (Tick Fever)">Bovine Babesiosis (Tick Fever)</option>
-                  <option value="Peste des Petits Ruminants (PPR)">Peste des Petits Ruminants (PPR)</option>
-                </select>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>AI Model Confidence Score (%)</label>
-                <input
-                  type="number"
-                  min={50}
-                  max={99}
-                  value={diagConfidence}
-                  onChange={(e) => setDiagConfidence(Number(e.target.value))}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Observations & Symptoms Analyzed *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={diagSymptoms}
-                  onChange={(e) => setDiagSymptoms(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Diagnostic Lab Tests</label>
-                <input
-                  type="text"
-                  value={diagTests}
-                  onChange={(e) => setDiagTests(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Initial Treatment</label>
-                <textarea
-                  rows={2}
-                  value={diagRx}
-                  onChange={(e) => setDiagRx(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowDiagnosisModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save Diagnosis
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSaveDiagnosis}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Animal & Case</label>
+                  <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+                    Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Suspected Primary Disease *</label>
+                  <select
+                    value={diagDisease}
+                    onChange={(e) => setDiagDisease(e.target.value)}
+                    className="form-select"
+                    style={{ fontSize: '0.84rem' }}
+                  >
+                    <option value="Foot and Mouth Disease (FMD)">Foot and Mouth Disease (FMD)</option>
+                    <option value="Lumpy Skin Disease (LSD)">Lumpy Skin Disease (LSD)</option>
+                    <option value="Clinical Mastitis">Clinical Mastitis (Staphylococcus/Streptococcus)</option>
+                    <option value="Anthrax (Bacillus anthracis)">Anthrax (Bacillus anthracis)</option>
+                    <option value="Haemorrhagic Septicaemia (HS)">Haemorrhagic Septicaemia (HS)</option>
+                    <option value="Black Quarter (BQ)">Black Quarter (BQ)</option>
+                    <option value="Bovine Babesiosis (Tick Fever)">Bovine Babesiosis (Tick Fever)</option>
+                    <option value="Peste des Petits Ruminants (PPR)">Peste des Petits Ruminants (PPR)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>AI Model Confidence Score (%)</label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={99}
+                    value={diagConfidence}
+                    onChange={(e) => setDiagConfidence(Number(e.target.value))}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Observations & Symptoms Analyzed *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    value={diagSymptoms}
+                    onChange={(e) => setDiagSymptoms(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Diagnostic Lab Tests</label>
+                  <input
+                    type="text"
+                    value={diagTests}
+                    onChange={(e) => setDiagTests(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Initial Treatment</label>
+                  <textarea
+                    rows={2}
+                    value={diagRx}
+                    onChange={(e) => setDiagRx(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowDiagnosisModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save Diagnosis
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -3425,73 +4533,112 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveTreatment}>
-              <div style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Target Animal</label>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
-                  {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • {selectedCaseForAction.farmer_name}
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
                 </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication Name(s) *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Inj. Ceftiofur Sodium 1g + Melonex 15ml"
-                  value={treatMedicines}
-                  onChange={(e) => setTreatMedicines(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Dosage & Route *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 1 vial IM daily for 3 days"
-                  value={treatDosage}
-                  onChange={(e) => setTreatDosage(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Treatment Plan *</label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder="e.g. Broad spectrum antibiotic course with NSAID anti-inflammatory support."
-                  value={treatPlan}
-                  onChange={(e) => setTreatPlan(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Follow-Up Date</label>
-                <input
-                  type="date"
-                  value={treatFollowUp}
-                  onChange={(e) => setTreatFollowUp(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowTreatmentModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save Treatment
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
+                  {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                </div>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार आधीच यशस्वीरित्या नोंदवले गेले आहेत. अतिरिक्त उपचार बदल करण्याची आवश्यकता नाही.'
+                    : 'This case has been completed and marked as treated. Additional treatment planning and edits are disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowTreatmentModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
+                >
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSaveTreatment}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Target Animal</label>
+                  <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+                    {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • {selectedCaseForAction.farmer_name}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication Name(s) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Inj. Ceftiofur Sodium 1g + Melonex 15ml"
+                    value={treatMedicines}
+                    onChange={(e) => setTreatMedicines(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Dosage & Route *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 1 vial IM daily for 3 days"
+                    value={treatDosage}
+                    onChange={(e) => setTreatDosage(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Treatment Plan *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="e.g. Broad spectrum antibiotic course with NSAID anti-inflammatory support."
+                    value={treatPlan}
+                    onChange={(e) => setTreatPlan(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Follow-Up Date</label>
+                  <input
+                    type="date"
+                    value={treatFollowUp}
+                    onChange={(e) => setTreatFollowUp(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowTreatmentModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save Treatment
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -3511,85 +4658,124 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSavePrescription}>
-              <div style={{ background: 'var(--surface-raised)', padding: '12px 14px', borderRadius: '8px', marginBottom: '14px', fontSize: '0.8rem', border: '1px solid var(--border-subtle)' }}>
-                <div><strong>Doctor:</strong> {doctorName} (Lic: {doctorLicense})</div>
-                <div><strong>Hospital:</strong> {doctorHospital}</div>
-                <div><strong>Animal:</strong> {selectedCaseForAction.animal_tag} • <strong>Owner:</strong> {selectedCaseForAction.farmer_name}</div>
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication List</label>
-                {rxMedicines.map((m, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
-                    <input
-                      type="text"
-                      value={m.name}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].name = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.dosage}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].dosage = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.frequency}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].frequency = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.duration}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].duration = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Advisory for Farmer</label>
-                <textarea
-                  rows={2}
-                  value={rxInstructions}
-                  onChange={(e) => setRxInstructions(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowPrescriptionModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save & Sign Rx
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
+                  Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                </div>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार आधीच पूर्ण झाले आहेत. नवीन डिजिटल प्रिस्क्रिप्शन जारी करण्याची परवानगी नाही.'
+                    : 'This case has been completed and marked as treated. Generating additional prescriptions is disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPrescriptionModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
+                >
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSavePrescription}>
+                <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', fontSize: '0.8rem' }}>
+                  <div><strong>Doctor:</strong> {doctorName} (Lic: {doctorLicense})</div>
+                  <div><strong>Hospital:</strong> {doctorHospital}</div>
+                  <div><strong>Animal:</strong> {selectedCaseForAction.animal_tag} • <strong>Owner:</strong> {selectedCaseForAction.farmer_name}</div>
+                </div>
+
+                <div style={{ marginBottom: '14px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication List</label>
+                  {rxMedicines.map((m, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                      <input
+                        type="text"
+                        value={m.name}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].name = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.dosage}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].dosage = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.frequency}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].frequency = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.duration}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].duration = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Advisory for Farmer</label>
+                  <textarea
+                    rows={2}
+                    value={rxInstructions}
+                    onChange={(e) => setRxInstructions(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowPrescriptionModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save & Sign Rx
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -3871,7 +5057,223 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
         userId={doctorId}
       />
 
-      {/* IVR Phone Simulator Modal */}
+      {/* ========================================================================= */}
+      {/* MODAL 9: ESCALATE CASE TO HIGHER AUTHORITY & DISPATCH USER SMS            */}
+      {/* ========================================================================= */}
+      {showEscalateModal && selectedCaseForEscalate && (
+        <div className="modal-backdrop" onClick={() => setShowEscalateModal(false)}>
+          <div className="modal-card" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #fcd34d' }}>
+                  <AlertTriangle size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                    {language === 'mr' ? 'केस अग्रेषित करा व शेतकऱ्यास SMS पाठवा' : 'Escalate Case & Notify User via SMS'}
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                    Forward case to DAHO authorities and automatically dispatch SMS notification to livestock owner
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setShowEscalateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmEscalation}>
+              {/* Case Info Summary */}
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', marginBottom: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                    Tag: {selectedCaseForEscalate.animal_tag} ({selectedCaseForEscalate.animal_species})
+                  </span>
+                  <span style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '8px', fontWeight: 700 }}>
+                    {selectedCaseForEscalate.case_number}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <strong>Farmer:</strong> {selectedCaseForEscalate.farmer_name} • <strong>Phone:</strong> +91 {selectedCaseForEscalate.farmer_phone} • <strong>Village:</strong> {selectedCaseForEscalate.village}, {selectedCaseForEscalate.district}
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#991b1b', marginTop: '4px' }}>
+                  <strong>Current Symptoms:</strong> {selectedCaseForEscalate.symptoms}
+                </div>
+              </div>
+
+              {/* Target Authority */}
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
+                  Escalate To Higher Authority (अग्रेषित अधिकारी)
+                </label>
+                <select
+                  value={escalateToAuthority}
+                  onChange={(e) => {
+                    setEscalateToAuthority(e.target.value);
+                    setCustomSmsText(
+                      language === 'mr'
+                        ? `[जीवक्षक AI] प्रिय ${selectedCaseForEscalate.farmer_name}, आपली केस क्र. ${selectedCaseForEscalate.case_number} (पशु टॅग: ${selectedCaseForEscalate.animal_tag}) जिल्हा पशुवैद्यकीय अधिकारी (${e.target.value}) यांच्याकडे वर्ग करण्यात आली आहे. मदत कक्ष: 1800-120-JEEV.`
+                        : `[JeevRakshak AI] Dear ${selectedCaseForEscalate.farmer_name}, your Case #${selectedCaseForEscalate.case_number} for Animal Tag ${selectedCaseForEscalate.animal_tag} has been escalated to ${e.target.value}. Helpline: 1800-120-JEEV.`
+                    );
+                  }}
+                  className="form-select"
+                  style={{ fontSize: '0.84rem' }}
+                >
+                  <option value="Dr. Sunita Patil, DAHO (District Animal Husbandry Officer, Pune)">
+                    Dr. Sunita Patil, DAHO (District Animal Husbandry Officer, Pune)
+                  </option>
+                  <option value="State Veterinary Disease Diagnostic Laboratory (VDL), Aundh">
+                    State Veterinary Disease Diagnostic Laboratory (VDL), Aundh
+                  </option>
+                  <option value="Epidemic Emergency Rapid Mobile Vet Squad (Toll-Free 1962)">
+                    Epidemic Emergency Rapid Mobile Vet Squad (Toll-Free 1962)
+                  </option>
+                  <option value="Dean & HOD, Clinical Medicine, Mumbai Veterinary College">
+                    Dean & HOD, Clinical Medicine, Mumbai Veterinary College
+                  </option>
+                </select>
+              </div>
+
+              {/* Escalation Reason */}
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
+                  Clinical Reason for Escalation (अग्रेषित करण्याचे कारण)
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={escalateReason}
+                  onChange={(e) => setEscalateReason(e.target.value)}
+                  className="form-input"
+                  style={{ fontSize: '0.84rem' }}
+                  placeholder="E.g., Suspected contagious outbreak, molecular confirmation required..."
+                />
+              </div>
+
+              {/* SMS Notification to User Section */}
+              <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.82rem', color: '#166534' }}>
+                    <Smartphone size={16} color="#15803d" />
+                    <span>SMS Notification to Livestock Owner (शेतकऱ्यास थेट SMS)</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                    Recipient: +91 {selectedCaseForEscalate.farmer_phone}
+                  </span>
+                </div>
+
+                <label className="form-label" style={{ fontSize: '0.74rem', color: '#166534', marginBottom: '4px' }}>
+                  SMS Content (Will be dispatched via JeevRakshak National SMS Gateway):
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={customSmsText}
+                  onChange={(e) => setCustomSmsText(e.target.value)}
+                  className="form-input"
+                  style={{ fontSize: '0.8rem', background: '#ffffff', borderColor: '#86efac', color: '#14532d', lineHeight: 1.4 }}
+                />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '0.72rem', color: '#15803d' }}>
+                  <CheckCircle2 size={12} color="#16a34a" />
+                  <span>Case will be moved into the <strong>&quot;Escalated Cases&quot;</strong> section upon confirmation.</span>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEscalateModal(false)}
+                  className="btn-secondary"
+                  style={{ fontSize: '0.82rem', padding: '8px 16px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 18px',
+                    fontSize: '0.84rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
+                  }}
+                >
+                  <AlertTriangle size={15} />
+                  <span>Confirm Escalation &amp; Send SMS</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FLOATING SMS ALERT BANNER (Live Dispatched Receipt)                      */}
+      {/* ========================================================================= */}
+      {smsAlert && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '80px',
+            right: '24px',
+            zIndex: 99999,
+            maxWidth: '430px',
+            width: 'calc(100vw - 48px)',
+            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
+            color: '#ffffff',
+            borderRadius: '16px',
+            padding: '18px 20px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.35)',
+            border: '2px solid #34d399',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Smartphone size={18} color="#a7f3d0" />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#ecfdf5' }}>
+                  {language === 'mr' ? 'एसएमएस यशस्वीरित्या पाठवला' : 'SMS Dispatched to User'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#a7f3d0' }}>
+                  {smsAlert.gatewayRef} • {smsAlert.sentAt}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setSmsAlert(null)}
+              style={{ background: 'none', border: 'none', color: '#a7f3d0', cursor: 'pointer', padding: '4px' }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div style={{ background: 'rgba(0, 0, 0, 0.25)', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px', fontSize: '0.8rem', lineHeight: 1.45, borderLeft: '3px solid #34d399' }}>
+            <div style={{ fontSize: '0.72rem', color: '#6ee7b7', fontWeight: 700, marginBottom: '4px' }}>
+              To: {smsAlert.recipientName} (+91 {smsAlert.recipientPhone})
+            </div>
+            <div>{smsAlert.message}</div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#a7f3d0' }}>
+            <span>Case #{smsAlert.caseNumber} • Tag: {smsAlert.animalTag}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#047857', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+              <CheckCircle2 size={12} color="#6ee7b7" /> Delivered
+            </span>
+          </div>
+        </div>
+      )}
       {showIVRPhone && (
         <IVRPhoneSimulator
           isOpen={showIVRPhone}

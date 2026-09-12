@@ -5,8 +5,6 @@ import {
   Phone,
   PhoneCall,
   Mic,
-  Volume2,
-  VolumeX,
   Play,
   Pause,
   AlertTriangle,
@@ -15,15 +13,11 @@ import {
   MapPin,
   Sparkles,
   User,
-  Activity,
-  Send,
-  Calendar,
-  ExternalLink,
   Search,
-  Filter,
   RefreshCw,
   FileAudio,
-  ShieldAlert,
+  Check,
+  ShieldCheck,
 } from 'lucide-react';
 import { IVRReport, IVRCallbackRequest, IVREmergencyCase } from '@/types/database';
 import { dataService } from '@/lib/supabase/dataService';
@@ -36,7 +30,6 @@ interface VetIVRMonitorProps {
 
 export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
   onOpenPhoneSimulator,
-  onConvertToCase,
 }) => {
   const [reports, setReports] = useState<IVRReport[]>([]);
   const [callbacks, setCallbacks] = useState<IVRCallbackRequest[]>([]);
@@ -95,7 +88,7 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
 
   const handleAcceptReport = async (reportId: string) => {
     await dataService.updateIVRReportStatus(reportId, 'accepted');
-    showToast(`IVR Voice Report accepted and assigned to Dr. Rahul Kulkarni`);
+    showToast('IVR Voice Report accepted and assigned to clinical queue.');
     await loadData();
   };
 
@@ -105,7 +98,7 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
       'completed',
       'Doctor called farmer back and provided tele-advice.'
     );
-    showToast(`Callback marked as resolved.`);
+    showToast('Doctor callback marked as resolved.');
     await loadData();
   };
 
@@ -126,161 +119,305 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Toast Notification */}
       {actionSuccess && (
-        <div className="fixed top-5 right-5 z-50 bg-emerald-800 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-sm font-semibold border border-emerald-600 animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
+            color: '#fff',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            border: '1.5px solid #52b788',
+          }}
+        >
+          <CheckCircle2 size={18} color="#52b788" />
           <span>{actionSuccess}</span>
         </div>
       )}
 
-      {/* Top Banner */}
-      <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Top Banner (Website Forest Green Theme) */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '24px 28px',
+          color: '#ffffff',
+          boxShadow: 'var(--shadow-md)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2 border border-emerald-400/30">
-              <Phone className="w-3.5 h-3.5" />
-              Toll-Free 1800-120-JEEV Rural Voice Intake Desk
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
+              <Phone size={13} color="#95d5b2" />
+              <span>TOLL-FREE 1800-120-JEEV RURAL VOICE INTAKE DESK</span>
             </div>
-            <h2 className="text-2xl font-bold tracking-tight">
+
+            <h2 style={{ fontSize: 'clamp(1.3rem, 2.8vw, 1.7rem)', fontWeight: 800, margin: '4px 0 6px', color: '#ffffff' }}>
               Veterinary IVR & Tele-Consultation Console
             </h2>
-            <p className="text-sm text-emerald-100/80 mt-1 max-w-2xl">
-              Real-time incoming voice disease reports from non-smartphone livestock owners, automatic speech-to-text transcripts, AI diagnostic triage, and priority callback requests.
+
+            <p style={{ fontSize: '0.84rem', color: '#d8f3dc', maxWidth: '680px', lineHeight: 1.5 }}>
+              Real-time incoming voice disease reports from non-smartphone livestock owners, automated speech-to-text transcripts, AI diagnostic triage, and priority callback queues.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {onOpenPhoneSimulator && (
               <button
+                type="button"
                 onClick={() => onOpenPhoneSimulator()}
-                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition transform hover:scale-105 active:scale-95"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#52b788',
+                  color: '#1b4332',
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(82, 183, 136, 0.3)',
+                }}
               >
-                <PhoneCall className="w-4 h-4" />
-                Launch IVR Phone Simulator
+                <PhoneCall size={16} />
+                <span>Launch IVR Simulator</span>
               </button>
             )}
+
             <button
+              type="button"
               onClick={loadData}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(255,255,255,0.15)',
+                color: '#ffffff',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                border: '1px solid rgba(255,255,255,0.25)',
+                cursor: 'pointer',
+              }}
               title="Refresh Queue"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Metrics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/10">
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-xs text-gray-300 block">Total Voice Reports</span>
-            <span className="text-2xl font-extrabold text-white">{reports.length}</span>
+        {/* Metrics Counters Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginTop: '22px', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <span style={{ fontSize: '0.74rem', color: '#d8f3dc', display: 'block', fontWeight: 600 }}>Total Voice Reports</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.2 }}>{reports.length}</span>
           </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-xs text-amber-300 block">Pending Callbacks</span>
-            <span className="text-2xl font-extrabold text-amber-300">
+          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <span style={{ fontSize: '0.74rem', color: '#fde68a', display: 'block', fontWeight: 600 }}>Pending Callbacks</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fde68a', lineHeight: 1.2 }}>
               {callbacks.filter((c) => c.status === 'pending').length}
             </span>
           </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-xs text-rose-300 block">1962 SOS Dispatches</span>
-            <span className="text-2xl font-extrabold text-rose-300">{emergencies.length}</span>
+          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <span style={{ fontSize: '0.74rem', color: '#fecdd3', display: 'block', fontWeight: 600 }}>1962 SOS Dispatches</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fecdd3', lineHeight: 1.2 }}>{emergencies.length}</span>
           </div>
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <span className="text-xs text-emerald-300 block">Avg Triage Speed</span>
-            <span className="text-2xl font-extrabold text-emerald-300">&lt; 3 mins</span>
+          <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <span style={{ fontSize: '0.74rem', color: '#95d5b2', display: 'block', fontWeight: 600 }}>Avg Triage Speed</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#95d5b2', lineHeight: 1.2 }}>&lt; 3 mins</span>
           </div>
         </div>
       </div>
 
       {/* Tab Switcher & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div
+        className="glass-card"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '12px 16px',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
+            type="button"
             onClick={() => setActiveTab('reports')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'reports'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'reports' ? 800 : 600,
+              background: activeTab === 'reports' ? '#2d6a4f' : '#ffffff',
+              color: activeTab === 'reports' ? '#ffffff' : 'var(--text-main)',
+              border: activeTab === 'reports' ? '1.5px solid #2d6a4f' : '1px solid var(--border-subtle)',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'reports' ? '0 4px 12px rgba(45, 106, 79, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <Mic className="w-3.5 h-3.5" />
-            Voice Disease Reports ({reports.length})
+            <Mic size={14} color={activeTab === 'reports' ? '#95d5b2' : '#52796f'} />
+            <span>Voice Disease Reports ({reports.length})</span>
           </button>
+
           <button
+            type="button"
             onClick={() => setActiveTab('callbacks')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'callbacks'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'callbacks' ? 800 : 600,
+              background: activeTab === 'callbacks' ? '#2d6a4f' : '#ffffff',
+              color: activeTab === 'callbacks' ? '#ffffff' : 'var(--text-main)',
+              border: activeTab === 'callbacks' ? '1.5px solid #2d6a4f' : '1px solid var(--border-subtle)',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'callbacks' ? '0 4px 12px rgba(45, 106, 79, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <PhoneCall className="w-3.5 h-3.5" />
-            Doctor Callbacks ({callbacks.filter((c) => c.status === 'pending').length})
+            <PhoneCall size={14} color={activeTab === 'callbacks' ? '#95d5b2' : '#52796f'} />
+            <span>Doctor Callbacks ({callbacks.filter((c) => c.status === 'pending').length})</span>
           </button>
+
           <button
+            type="button"
             onClick={() => setActiveTab('emergencies')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'emergencies'
-                ? 'bg-rose-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: activeTab === 'emergencies' ? 800 : 600,
+              background: activeTab === 'emergencies' ? '#dc2626' : '#ffffff',
+              color: activeTab === 'emergencies' ? '#ffffff' : 'var(--text-main)',
+              border: activeTab === 'emergencies' ? '1.5px solid #dc2626' : '1px solid var(--border-subtle)',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'emergencies' ? '0 4px 12px rgba(220, 38, 38, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            1962 SOS ({emergencies.length})
+            <AlertTriangle size={14} color={activeTab === 'emergencies' ? '#ffffff' : '#dc2626'} />
+            <span>1962 SOS Dispatches ({emergencies.length})</span>
           </button>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+        <div style={{ position: 'relative', width: '280px' }}>
+          <Search size={14} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
           <input
             type="text"
             placeholder="Search by Case ID, phone, disease..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-600"
+            className="form-input"
+            style={{ paddingLeft: '34px', fontSize: '0.8rem', height: '36px' }}
           />
         </div>
       </div>
 
       {/* TAB 1: Voice Disease Reports */}
       {activeTab === 'reports' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {filteredReports.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-200">
-              <FileAudio className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-gray-800">No IVR Voice Reports</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Voice reports submitted by farmers calling 1800-120-JEEV will show up here automatically.
+            <div className="glass-card" style={{ padding: '48px 20px', textAlign: 'center' }}>
+              <FileAudio size={42} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                No IVR Voice Reports
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto' }}>
+                Voice reports submitted by farmers calling 1800-120-JEEV will show up here automatically in real time.
               </p>
             </div>
           ) : (
             filteredReports.map((report) => (
               <div
                 key={report.id}
-                className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:border-emerald-300 transition"
+                className="glass-card"
+                style={{
+                  padding: '20px',
+                  borderRadius: 'var(--radius-xl)',
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  {/* Left Column: Details */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono font-bold text-sm bg-emerald-50 text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-200">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Top Case Badge & Metadata Row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontWeight: 800,
+                          fontSize: '0.88rem',
+                          background: 'var(--primary-light)',
+                          color: 'var(--primary-hover)',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--primary-border)',
+                        }}
+                      >
                         {report.case_id}
                       </span>
+
                       <span
-                        className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                          report.risk_level === 'critical'
-                            ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                            : report.risk_level === 'urgent'
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        }`}
+                        style={{
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          padding: '3px 10px',
+                          borderRadius: '20px',
+                          background:
+                            report.risk_level === 'critical'
+                              ? '#fef2f2'
+                              : report.risk_level === 'urgent'
+                              ? '#fffbeb'
+                              : '#f0fdf4',
+                          color:
+                            report.risk_level === 'critical'
+                              ? '#dc2626'
+                              : report.risk_level === 'urgent'
+                              ? '#d97706'
+                              : '#16a34a',
+                          border: `1px solid ${
+                            report.risk_level === 'critical'
+                              ? '#fecaca'
+                              : report.risk_level === 'urgent'
+                              ? '#fde68a'
+                              : '#bbf7d0'
+                          }`,
+                        }}
                       >
                         {report.risk_level} Priority
                       </span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
+
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={13} />
                         {new Date(report.created_at).toLocaleString([], {
                           dateStyle: 'short',
                           timeStyle: 'short',
@@ -288,90 +425,167 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                        <User className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{report.farmer_name || 'Shri Babanrao Babar'}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-700 font-mono font-medium">
-                        <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{report.farmer_phone}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{report.village}, {report.taluka}</span>
-                      </div>
-                    </div>
-
-                    {/* Vernacular Speech Audio & Transcript Box */}
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                          <Mic className="w-3.5 h-3.5 text-indigo-600" />
-                          Farmer Vernacular Voice Recording & STT Transcript:
-                        </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {report.status === 'pending_review' ? (
                         <button
-                          onClick={() => handlePlayVoice(report.id, report.transcript || '')}
-                          className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1 transition"
+                          type="button"
+                          onClick={() => handleAcceptReport(report.id)}
+                          className="btn-primary"
+                          style={{
+                            fontSize: '0.78rem',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                          }}
                         >
-                          {playingAudioId === report.id ? (
-                            <>
-                              <Pause className="w-3 h-3" /> Stop Audio
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-3 h-3" /> Play Audio
-                            </>
-                          )}
+                          Accept Case
                         </button>
-                      </div>
-                      <p className="text-xs text-gray-800 leading-relaxed font-mono italic bg-white p-2.5 rounded-lg border border-slate-200">
-                        &quot;{report.transcript || 'जनावराची लक्षणे फोनवर सांगितली.'}&quot;
-                      </p>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            color: '#166534',
+                            background: '#dcfce7',
+                            padding: '5px 12px',
+                            borderRadius: '20px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            border: '1px solid #86efac',
+                          }}
+                        >
+                          <CheckCircle2 size={14} /> Under Clinical Care
+                        </span>
+                      )}
+
+                      <a
+                        href={`tel:${report.farmer_phone}`}
+                        className="btn-secondary"
+                        style={{
+                          width: '34px',
+                          height: '34px',
+                          padding: 0,
+                          borderRadius: '50%',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title="Direct Dial Farmer"
+                      >
+                        <Phone size={14} color="#2d6a4f" />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Caller & Location Info */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)', fontWeight: 600 }}>
+                      <User size={15} color="var(--primary)" />
+                      <span>{report.farmer_name || 'Shri Babanrao Babar'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)', fontFamily: 'monospace', fontWeight: 600 }}>
+                      <Phone size={15} color="var(--primary)" />
+                      <span>{report.farmer_phone}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}>
+                      <MapPin size={15} color="var(--primary)" />
+                      <span>{report.village}, {report.taluka}</span>
+                    </div>
+                  </div>
+
+                  {/* Vernacular Voice Audio & Transcript Box */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Mic size={14} color="var(--primary)" />
+                        Farmer Vernacular Voice Recording & STT Transcript:
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePlayVoice(report.id, report.transcript || '')}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: playingAudioId === report.id ? '#dc2626' : '#2d6a4f',
+                          color: '#ffffff',
+                          padding: '5px 12px',
+                          borderRadius: '20px',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {playingAudioId === report.id ? (
+                          <>
+                            <Pause size={12} />
+                            <span>Stop Audio</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play size={12} />
+                            <span>Play Audio</span>
+                          </>
+                        )}
+                      </button>
                     </div>
 
-                    {/* AI Diagnosis and Action Recommendations */}
-                    <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                          <span className="text-xs font-bold text-emerald-950">
-                            AI Triaged Disease: {report.suspected_disease}
-                          </span>
-                          <span className="text-[10px] bg-emerald-200/80 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
-                            {report.ai_confidence_score}% Confidence
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-emerald-800 mt-1 flex flex-wrap gap-1">
-                          {report.recommended_actions?.slice(0, 2).map((act, i) => (
-                            <span key={i} className="inline-block bg-white/70 px-2 py-0.5 rounded border border-emerald-200/60">
-                              • {act}
-                            </span>
-                          ))}
-                        </div>
+                    <p
+                      style={{
+                        fontSize: '0.84rem',
+                        color: 'var(--text-main)',
+                        lineHeight: 1.6,
+                        fontStyle: 'italic',
+                        background: '#ffffff',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-subtle)',
+                        margin: 0,
+                      }}
+                    >
+                      &quot;{report.transcript || 'जनावराची लक्षणे फोनवर सांगितली.'}&quot;
+                    </p>
+                  </div>
+
+                  {/* AI Diagnosis and Action Recommendations */}
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      border: '1px solid #bbf7d0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '10px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <Sparkles size={15} color="#059669" />
+                        <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#065f46' }}>
+                          AI Triaged Disease: {report.suspected_disease}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', border: '1px solid #86efac' }}>
+                          {report.ai_confidence_score}% Confidence
+                        </span>
                       </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {report.status === 'pending_review' ? (
-                          <button
-                            onClick={() => handleAcceptReport(report.id)}
-                            className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-sm transition"
-                          >
-                            Accept Case
-                          </button>
-                        ) : (
-                          <span className="text-xs font-bold text-emerald-800 bg-emerald-200/70 px-3 py-1.5 rounded-xl flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Under Clinical Care
+                      <div style={{ fontSize: '0.76rem', color: '#047857', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {report.recommended_actions?.slice(0, 2).map((act, i) => (
+                          <span key={i} style={{ background: 'rgba(255,255,255,0.8)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #a7f3d0' }}>
+                            • {act}
                           </span>
-                        )}
-
-                        <a
-                          href={`tel:${report.farmer_phone}`}
-                          className="p-2 rounded-xl bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 transition"
-                          title="Direct Dial Farmer"
-                        >
-                          <Phone className="w-4 h-4" />
-                        </a>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -384,12 +598,14 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
 
       {/* TAB 2: Doctor Callbacks */}
       {activeTab === 'callbacks' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {filteredCallbacks.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-200">
-              <PhoneCall className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-gray-800">No Pending Callbacks</h3>
-              <p className="text-xs text-gray-500 mt-1">
+            <div className="glass-card" style={{ padding: '48px 20px', textAlign: 'center' }}>
+              <PhoneCall size={42} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                No Pending Callbacks
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto' }}>
                 Farmers who press Option 3 on the IVR to speak with a vet will appear in this queue.
               </p>
             </div>
@@ -397,37 +613,50 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
             filteredCallbacks.map((cb) => (
               <div
                 key={cb.id}
-                className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="glass-card"
+                style={{
+                  padding: '18px 20px',
+                  borderRadius: 'var(--radius-xl)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '14px',
+                }}
               >
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-gray-900">{cb.farmer_name}</span>
-                    <span className="text-xs font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '240px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: 'var(--text-main)' }}>{cb.farmer_name}</span>
+                    <span style={{ fontSize: '0.76rem', fontFamily: 'monospace', color: '#166534', background: '#dcfce7', padding: '2px 8px', borderRadius: '6px', border: '1px solid #86efac', fontWeight: 700 }}>
                       {cb.farmer_phone}
                     </span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
-                        cb.priority === 'urgent'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        background: cb.priority === 'urgent' ? '#fef3c7' : '#dcfce7',
+                        color: cb.priority === 'urgent' ? '#92400e' : '#166534',
+                      }}
                     >
                       {cb.priority}
                     </span>
                   </div>
 
-                  <p className="text-xs text-gray-700 font-medium">
-                    <span className="text-gray-400 font-normal">Reason: </span>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', margin: 0 }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Reason: </span>
                     {cb.reason}
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={13} color="var(--primary)" />
                       {cb.village}, {cb.taluka}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={13} />
                       {new Date(cb.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -436,27 +665,53 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {cb.status === 'pending' ? (
                     <>
                       <a
                         href={`tel:${cb.farmer_phone}`}
                         onClick={() => handleCompleteCallback(cb.id)}
-                        className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition"
+                        className="btn-primary"
+                        style={{
+                          fontSize: '0.78rem',
+                          padding: '8px 16px',
+                          borderRadius: '20px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
                       >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        Call Farmer Now
+                        <PhoneCall size={14} />
+                        <span>Call Farmer Now</span>
                       </a>
                       <button
+                        type="button"
                         onClick={() => handleCompleteCallback(cb.id)}
-                        className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition"
+                        className="btn-secondary"
+                        style={{
+                          fontSize: '0.78rem',
+                          padding: '8px 14px',
+                          borderRadius: '20px',
+                        }}
                       >
                         Mark Completed
                       </button>
                     </>
                   ) : (
-                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Resolved
+                    <span
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: '#166534',
+                        background: '#dcfce7',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
+                      <CheckCircle2 size={14} /> Resolved
                     </span>
                   )}
                 </div>
@@ -468,58 +723,89 @@ export const VetIVRMonitor: React.FC<VetIVRMonitorProps> = ({
 
       {/* TAB 3: 1962 SOS Dispatches */}
       {activeTab === 'emergencies' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {emergencies.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-200">
-              <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-gray-800">No Active 1962 SOS Cases</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Emergency calls made via Toll-Free IVR option 4 appear here immediately.
+            <div className="glass-card" style={{ padding: '48px 20px', textAlign: 'center' }}>
+              <AlertTriangle size={42} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                No Active 1962 SOS Cases
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto' }}>
+                Emergency calls made via Toll-Free IVR option 4 appear here immediately with ambulance tracking.
               </p>
             </div>
           ) : (
             emergencies.map((emg) => (
               <div
                 key={emg.id}
-                className="bg-rose-50/50 rounded-2xl p-5 border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="glass-card"
+                style={{
+                  padding: '18px 20px',
+                  borderRadius: 'var(--radius-xl)',
+                  background: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)',
+                  border: '1.5px solid #fecdd3',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '14px',
+                }}
               >
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm bg-rose-600 text-white px-2.5 py-0.5 rounded-lg">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '240px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontFamily: 'monospace',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        background: '#dc2626',
+                        color: '#ffffff',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                      }}
+                    >
                       {emg.emergency_code}
                     </span>
-                    <span className="text-xs font-bold text-rose-800 uppercase px-2 py-0.5 bg-rose-100 rounded-full">
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#991b1b', background: '#fee2e2', padding: '2px 8px', borderRadius: '12px', border: '1px solid #fca5a5' }}>
                       CRITICAL DISPATCH
                     </span>
-                    <span className="text-xs font-mono font-semibold text-gray-700">
+                    <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--text-main)' }}>
                       {emg.farmer_phone}
                     </span>
                   </div>
 
-                  <p className="text-xs text-rose-950 font-medium">
-                    Animal: <span className="font-bold">{emg.animal_type}</span> • Description:{' '}
-                    {emg.description}
+                  <p style={{ fontSize: '0.84rem', color: '#881337', fontWeight: 600, margin: 0 }}>
+                    Animal: <span style={{ fontWeight: 800 }}>{emg.animal_type}</span> • Description: {emg.description}
                   </p>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-600">
-                    <span className="flex items-center gap-1 font-medium">
-                      <MapPin className="w-3.5 h-3.5 text-rose-600" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.76rem', color: '#9f1239' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                      <MapPin size={13} color="#dc2626" />
                       {emg.village}, {emg.taluka}
                     </span>
                     <span>•</span>
-                    <span className="font-semibold text-rose-700">
+                    <span style={{ fontWeight: 700 }}>
                       Ambulance: {emg.dispatched_unit} (ETA {emg.eta_minutes} mins)
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div>
                   <a
                     href={`tel:${emg.farmer_phone}`}
-                    className="px-4 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition"
+                    className="btn-primary"
+                    style={{
+                      background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                      fontSize: '0.78rem',
+                      padding: '8px 16px',
+                      borderRadius: '20px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
                   >
-                    <Phone className="w-3.5 h-3.5" />
-                    Contact Farmer
+                    <Phone size={14} />
+                    <span>Contact Farmer</span>
                   </a>
                 </div>
               </div>

@@ -77,7 +77,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
       const currentUser = dataService.getCurrentUser();
       const newHerd = await dataService.createHerd({
         name: currentUser?.full_name ? `${currentUser.full_name}'s Herd` : 'Livestock Herd',
-        owner_profile_id: currentUser?.id || '00000000-0000-0000-0000-000000000000',
+        owner_profile_id: currentUser?.id || 'prof-local-farmer',
         location_id: '',
       });
       targetHerdId = newHerd.id;
@@ -421,7 +421,12 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                   <option value="Camel">{language === 'mr' ? 'उंट (Camel)' : language === 'hi' ? 'ऊंट (Camel)' : 'Camel'}</option>
                   <option value="Horse">{language === 'mr' ? 'घोडा / खच्चर (Horse / Equine)' : language === 'hi' ? 'घोड़ा / खच्चर (Horse / Equine)' : 'Horse / Equine'}</option>
                   <option value="Pig">{language === 'mr' ? 'डुक्कर (Pig / Swine)' : language === 'hi' ? 'सूअर (Pig / Swine)' : 'Pig / Swine'}</option>
-                  <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken / Duck)'}</option>
+                  <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken)'}</option>
+                  <option value="Rabbit">{language === 'mr' ? 'ससा (Rabbit)' : language === 'hi' ? 'खरगोश (Rabbit)' : 'Rabbit'}</option>
+                  <option value="Duck">{language === 'mr' ? 'बदक (Duck)' : language === 'hi' ? 'बत्तख (Duck)' : 'Duck'}</option>
+                  <option value="Quail">{language === 'mr' ? 'बटेर / लाव्हा (Quail)' : language === 'hi' ? 'बटेर (Quail)' : 'Quail'}</option>
+                  <option value="Mule">{language === 'mr' ? 'खेच्चर / खच्चर (Mule)' : language === 'hi' ? 'खच्चर (Mule)' : 'Mule'}</option>
+                  <option value="Fishery">{language === 'mr' ? 'मत्स्यपालन / मासे (Fishery / Aquaculture)' : language === 'hi' ? 'मत्स्य पालन (Fishery / Aquaculture)' : 'Fishery / Aquaculture'}</option>
                   <option value="Yak">{language === 'mr' ? 'याक / मिथुन (Yak / Mithun)' : language === 'hi' ? 'याक / मिथुन (Yak / Mithun)' : 'Yak / Mithun'}</option>
                   <option value="Donkey">{language === 'mr' ? 'गाढव (Donkey)' : language === 'hi' ? 'गधा (Donkey)' : 'Donkey'}</option>
                 </select>
