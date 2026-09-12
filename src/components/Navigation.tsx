@@ -24,9 +24,10 @@ import {
   UserCheck,
   Settings as SettingsIcon,
   Phone,
+  Pill,
 } from 'lucide-react';
 
-export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'surveillance' | 'alerts';
+export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'prescriptions' | 'surveillance' | 'alerts';
 
 export type GovCleanModule =
   | 'dashboard'
@@ -154,6 +155,11 @@ export const Navigation: React.FC<NavigationProps> = ({
         id: 'herd' as ActiveTab,
         label: t.nav.herd,
         icon: Layers,
+      },
+      {
+        id: 'prescriptions' as ActiveTab,
+        label: language === 'mr' ? 'डॉक्टर प्रिस्क्रिप्शन' : language === 'hi' ? 'डॉक्टर प्रिस्क्रिप्शन' : 'Doctor Prescriptions',
+        icon: Pill,
       },
       {
         id: 'cases' as ActiveTab,

@@ -77,9 +77,7 @@ export type VetModuleTab =
   | 'vaccinations'
   | 'emergencies'
   | 'visits'
-  | 'comms'
   | 'reporting'
-  | 'ai_detection'
   | 'analytics'
   | 'reports'
   | 'notifications'
@@ -410,9 +408,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
     { id: 'vaccinations', label: language === 'mr' ? 'लसीकरण व्यवस्थापन' : language === 'hi' ? 'टीकाकरण' : 'Vaccination', icon: Syringe, count: stats.vaccinationsDone },
     { id: 'emergencies', label: language === 'mr' ? 'आणीबाणी अलर्ट (SOS)' : language === 'hi' ? 'आपातकालीन केस' : 'Emergency SOS', icon: AlertTriangle, count: stats.emergencyCases },
     { id: 'visits', label: language === 'mr' ? 'शेतकरी भेटी' : language === 'hi' ? 'फील्ड विज़िट' : 'Field Visits', icon: MapPin, count: stats.monthlyVisits },
-    { id: 'comms', label: language === 'mr' ? 'शेतकरी संपर्क' : language === 'hi' ? 'किसान संवाद' : 'Farmer Comms', icon: MessageSquare },
     { id: 'reporting', label: language === 'mr' ? 'प्रकोप अहवाल (DAHO)' : language === 'hi' ? 'रोग रिपोर्टिंग' : 'Disease Reporting', icon: ShieldAlert, count: stats.reportsSubmitted },
-    { id: 'ai_detection', label: language === 'mr' ? 'एआय लक्षण तपासक' : language === 'hi' ? 'एआई रोग जांच' : 'AI Detection Lab', icon: FlaskConical },
     { id: 'analytics', label: language === 'mr' ? 'आरोग्य ट्रेंड' : language === 'hi' ? 'स्वास्थ्य विश्लेषण' : 'Animal Monitoring', icon: TrendingUp },
     { id: 'reports', label: language === 'mr' ? 'अहवाल निर्यात' : language === 'hi' ? 'रिपोर्ट्स केंद्र' : 'Reports Center', icon: Download },
     { id: 'notifications', label: language === 'mr' ? 'सूचना केंद्र' : language === 'hi' ? 'अधिसूचनाएं' : 'Notifications', icon: BadgeAlert },
@@ -1905,101 +1901,6 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {activeTab === 'comms' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Farmer Tele-Communication & Virtual Consultation
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Direct messaging, voice advisories and video appointment scheduling with registered farmers
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, marginBottom: '6px' }}>
-                <Video size={18} color="#0284c7" />
-                <span>Tele-Health Video Room</span>
-              </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Conduct live visual inspection of animal lesions or behavior via encrypted WebRTC channel.
-              </p>
-              <button
-                type="button"
-                onClick={() => showToast('Virtual consultation room link generated and dispatched to farmer SMS.')}
-                className="btn-primary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                Launch Tele-Consult
-              </button>
-            </div>
-
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, marginBottom: '6px' }}>
-                <MessageSquare size={18} color="#166534" />
-                <span>Farmer Direct Chat</span>
-              </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Send follow-up instructions, dosage reminders and medication alerts directly in Marathi / Hindi.
-              </p>
-              <button
-                type="button"
-                onClick={() => showToast('Chat channel initialized with local village dairy co-op.')}
-                className="btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                Open Message Thread
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'ai_detection' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            AI Livestock Disease Detection Lab
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Deep learning computer vision & clinical natural language processing for rapid pathogen classification
-          </p>
-
-          <div style={{ background: '#f8fff9', border: '1.5px dashed #52b788', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
-            <FlaskConical size={36} color="#2d6a4f" style={{ margin: '0 auto 8px' }} />
-            <div style={{ fontWeight: 800, color: '#1b4332', fontSize: '0.94rem' }}>
-              Upload Clinical Lesion Photo or Thermal Scan
-            </div>
-            <p style={{ fontSize: '0.78rem', color: '#52796f', margin: '4px auto 14px', maxWidth: '400px' }}>
-              Supports bovine mouth/foot vesicular photos, lumpy skin nodules, and ocular discharge images for instant classification.
-            </p>
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="ai-image-upload"
-              onChange={() => showToast('Image uploaded. AI Vision Model classifies: Foot and Mouth Disease (Confidence: 96.2%).')}
-            />
-            <label
-              htmlFor="ai-image-upload"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#2d6a4f',
-                color: '#fff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              <Sparkles size={14} />
-              <span>Analyze Image with AI</span>
-            </label>
-          </div>
         </div>
       )}
 

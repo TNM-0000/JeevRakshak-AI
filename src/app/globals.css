@@ -171,17 +171,18 @@ a {
 .top-header {
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 40;
+  z-index: 100;
   width: 100%;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
 }
 
 @media (min-width: 1024px) {

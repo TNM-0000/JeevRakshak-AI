@@ -23,14 +23,17 @@ import {
   Phone,
   Plus,
   X,
+  Pill,
 } from 'lucide-react';
 import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
+import { DoctorPrescriptionRecord } from '@/types/database';
 
 interface FarmerDashboardProps {
   onSelectAnimal: (animalId: string) => void;
   onOpenReport: () => void;
   onOpenAdvisory: () => void;
   onOpenCases: () => void;
+  onOpenPrescriptions?: () => void;
 }
 
 export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
@@ -38,10 +41,12 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   onOpenReport,
   onOpenAdvisory,
   onOpenCases,
+  onOpenPrescriptions,
 }) => {
   const { t, language } = useLanguage();
   const [animals, setAnimals] = useState<AnimalWithDetails[]>([]);
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
+  const [prescriptions, setPrescriptions] = useState<DoctorPrescriptionRecord[]>([]);
   const [weather, setWeather] = useState<WeatherObservation | null>(null);
   const [farmName, setFarmName] = useState<string>('');
   const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
@@ -112,6 +117,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
     });
     dataService.getAnimals().then(setAnimals);
     dataService.getHealthReports().then(setReports);
+    dataService.getFarmerPrescriptions().then(setPrescriptions);
     dataService.getWeather(language).then((wx) => {
       if (wx.length > 0) setWeather(wx[0]);
     });
@@ -301,6 +307,75 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Doctor Prescriptions & Vet Care Plans Card */}
+      {prescriptions.length > 0 && (
+        <div
+          className="glass-card"
+          style={{
+            borderLeft: '4px solid #059669',
+            background: 'linear-gradient(to right, #ecfdf5 0%, #ffffff 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '18px 20px',
+            borderRadius: 'var(--radius-xl)',
+            border: '1px solid #a7f3d0',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: '#d1fae5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Pill size={18} />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.94rem', fontWeight: 800, color: '#064e3b' }}>
+                  {language === 'mr' ? 'डॉक्टरांचे प्रिस्क्रिप्शन व उपचार सल्ला' : language === 'hi' ? 'डॉक्टर प्रिस्क्रिप्शन व उपचार' : 'Doctor Prescriptions & Vet Care Plans'}
+                </span>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                  {prescriptions[0].doctor_name} • {prescriptions[0].animal_tag}
+                </div>
+              </div>
+            </div>
+
+            {onOpenPrescriptions && (
+              <button
+                type="button"
+                onClick={onOpenPrescriptions}
+                className="btn-primary"
+                style={{ fontSize: '0.76rem', padding: '6px 14px', borderRadius: '20px' }}
+              >
+                <span>{language === 'mr' ? 'सर्व प्रिस्क्रिप्शन पहा →' : language === 'hi' ? 'सभी पर्चे देखें →' : 'View All Prescriptions →'}</span>
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.8rem', color: 'var(--text-main)', background: '#ffffff', padding: '10px 14px', borderRadius: '10px', border: '1px solid #a7f3d0' }}>
+            <span style={{ fontWeight: 700, color: '#059669' }}>
+              {prescriptions[0].animal_tag} ({localizeSpecies(prescriptions[0].animal_species, language)}):
+            </span>
+            <span>
+              {prescriptions[0].medicines.map((m) => `${m.name} (${m.dosage})`).join(' • ')}
+            </span>
+            {prescriptions[0].follow_up_date && (
+              <span style={{ marginLeft: 'auto', background: '#ecfdf5', color: '#15803d', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
+                {language === 'mr' ? 'पुढील तपासणी:' : 'Follow-up:'} {prescriptions[0].follow_up_date}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Weather & Seasonal Disease Alert Card */}
       <div
@@ -592,6 +667,11 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                     <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken / Duck)'}</option>
                     <option value="Yak">{language === 'mr' ? 'याक / मिथुन (Yak / Mithun)' : language === 'hi' ? 'याक / मिथुन (Yak / Mithun)' : 'Yak / Mithun'}</option>
                     <option value="Donkey">{language === 'mr' ? 'गाढव (Donkey)' : language === 'hi' ? 'गधा (Donkey)' : 'Donkey'}</option>
+                    <option value="Rabbit">{language === 'mr' ? 'ससा (Rabbit)' : language === 'hi' ? 'खरगोश (Rabbit)' : 'Rabbit / Cuniculture'}</option>
+                    <option value="Duck">{language === 'mr' ? 'बदक (Duck)' : language === 'hi' ? 'बत्तख (Duck)' : 'Duck / Waterfowl'}</option>
+                    <option value="Quail">{language === 'mr' ? 'लाव्हा / बटेर (Quail)' : language === 'hi' ? 'बटेर (Quail)' : 'Quail / Bater'}</option>
+                    <option value="Mule">{language === 'mr' ? 'खच्चर (Mule)' : language === 'hi' ? 'खच्चर (Mule)' : 'Mule / Equine Hybrid'}</option>
+                    <option value="Fishery">{language === 'mr' ? 'मत्स्य पालन (Fishery)' : language === 'hi' ? 'मत्स्य पालन (Fishery)' : 'Fishery / Aqua Livestock'}</option>
                   </select>
                 </div>
 

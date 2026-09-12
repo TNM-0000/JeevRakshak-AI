@@ -455,6 +455,11 @@ export interface DoctorPrescriptionRecord {
   animal_species: string;
   farmer_name: string;
   farmer_phone: string;
+  diagnosis?: string;
+  case_id?: string;
+  case_number?: string;
+  follow_up_date?: string;
+  status?: 'active' | 'completed';
   medicines: Array<{
     name: string;
     dosage: string;

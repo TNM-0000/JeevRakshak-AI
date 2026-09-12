@@ -526,6 +526,7 @@ export class LocalStore {
   ivrEmergencies: IVREmergencyCase[] = [...initialIVREmergencies];
   ivrAnnouncements: IVRAnnouncement[] = [...initialIVRAnnouncements];
   ivrFeedback: IVRFeedback[] = [...initialIVRFeedback];
+  prescriptions: DoctorPrescriptionRecord[] = [];
   currentRole: UserRole = 'farmer';
   currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
@@ -631,6 +632,62 @@ export class LocalStore {
 
         const savedIVRFeedback = localStorage.getItem('jr_ivr_feedback');
         if (savedIVRFeedback) this.ivrFeedback = JSON.parse(savedIVRFeedback);
+
+        const savedPrescriptions = localStorage.getItem('jr_prescriptions');
+        if (savedPrescriptions) {
+          this.prescriptions = JSON.parse(savedPrescriptions);
+        } else {
+          // Default seed prescriptions specifically for demo farmer's animals
+          this.prescriptions = [
+            {
+              id: 'rx-demo-101',
+              doctor_id: 'demo-vet-1',
+              doctor_name: 'Dr. Priya Kulkarni, B.V.Sc & A.H.',
+              license_number: 'MSVC-18492',
+              hospital_name: 'Taluka Veterinary Polyclinic, Baramati',
+              animal_tag: 'COW-023',
+              animal_species: 'Cattle (Gir Cow)',
+              farmer_name: 'Suresh Rambhau Shinde',
+              farmer_phone: '9822410291',
+              diagnosis: 'Foot and Mouth Disease (FMD) & Secondary Pododermatitis',
+              case_id: 'case-demo-101',
+              case_number: 'JR-CASE-261',
+              follow_up_date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+              status: 'active',
+              medicines: [
+                { name: 'Inj. Ceftiofur Sodium 1g', dosage: '1 vial IM daily', frequency: 'OD', duration: '3 Days' },
+                { name: 'Inj. Melonex (Meloxicam 100mg)', dosage: '15 ml IM', frequency: 'OD', duration: '3 Days' },
+                { name: 'Himax Antiseptic & Fly Repellent Spray', dosage: 'Apply on oral & foot lesions', frequency: 'BD', duration: '5 Days' },
+                { name: 'Potassium Permanganate (KMNO4 1:1000)', dosage: 'Foot & mouth antiseptic wash', frequency: 'BD', duration: '5 Days' },
+              ],
+              clinical_instructions: 'Isolate animal in dry shed with disinfected lime bedding. Wash lesions twice daily with KMNO4 before applying Himax spray. Provide soft green fodder and lukewarm jaggery water.',
+              created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+            },
+            {
+              id: 'rx-demo-102',
+              doctor_id: 'demo-vet-1',
+              doctor_name: 'Dr. Priya Kulkarni, B.V.Sc & A.H.',
+              license_number: 'MSVC-18492',
+              hospital_name: 'Taluka Veterinary Polyclinic, Baramati',
+              animal_tag: 'MH-12-0089',
+              animal_species: 'Buffalo (Murrah)',
+              farmer_name: 'Baburao Kale',
+              farmer_phone: '9822456789',
+              diagnosis: 'Acute Clinical Mastitis (Staphylococcus aureus)',
+              case_id: 'case-demo-102',
+              case_number: 'JR-CASE-262',
+              follow_up_date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+              status: 'active',
+              medicines: [
+                { name: 'Inj. Ceftiofur Sodium 1g', dosage: '1 vial IM', frequency: 'OD', duration: '3 Days' },
+                { name: 'Inj. Melonex (Meloxicam)', dosage: '15 ml IM', frequency: 'OD', duration: '3 Days' },
+                { name: 'Intramammary Infusion Cloxacillin', dosage: '1 tube per teat', frequency: 'BD', duration: '3 Days' },
+              ],
+              clinical_instructions: 'Strip affected quarter completely before infusion. Maintain strict teat-dip hygiene.',
+              created_at: new Date(Date.now() - 40000000).toISOString(),
+            },
+          ];
+        }
       } catch {
         // ignore localStorage error
       }
@@ -650,6 +707,7 @@ export class LocalStore {
         localStorage.setItem('jr_escalations', JSON.stringify(this.caseEscalations));
         localStorage.setItem('jr_outbreaks', JSON.stringify(this.outbreaks));
         localStorage.setItem('jr_notifications', JSON.stringify(this.notifications));
+        localStorage.setItem('jr_prescriptions', JSON.stringify(this.prescriptions));
         localStorage.setItem('jr_current_role', this.currentRole);
         localStorage.setItem('jeevrakshak_lang', this.currentLanguage);
         if (this.currentUser) {
@@ -1327,6 +1385,7 @@ export const dataService = {
   // 2. Herds (Real user herds)
   async getHerds(ownerId?: string): Promise<Herd[]> {
     const activeOwnerId = ownerId || localStore.currentUser?.id || 'prof-local-farmer';
+    const isDemoFarmer = activeOwnerId === 'prof-local-farmer' || activeOwnerId === 'demo-farmer-1' || !localStore.currentUser;
     const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
     if (!isOffline) {
       try {
@@ -1343,31 +1402,21 @@ export const dataService = {
       }
     }
 
-    let filtered = localStore.herds.filter((h) =>
-      !h.owner_profile_id ||
-      h.owner_profile_id === '00000000-0000-0000-0000-000000000000' ||
-      h.owner_profile_id === activeOwnerId ||
-      (localStore.currentUser && h.owner_profile_id === localStore.currentUser.id)
-    );
+    let filtered = localStore.herds.filter((h) => {
+      if (isDemoFarmer) {
+        return !h.owner_profile_id || h.owner_profile_id === '00000000-0000-0000-0000-000000000000' || h.owner_profile_id === 'prof-local-farmer' || h.owner_profile_id === 'demo-farmer-1';
+      }
+      return String(h.owner_profile_id) === String(activeOwnerId);
+    });
 
     if (filtered.length > 0) {
-      filtered.forEach((h) => {
-        h.owner_profile_id = activeOwnerId;
-      });
       return filtered;
-    }
-
-    if (localStore.herds.length > 0) {
-      localStore.herds.forEach((h) => {
-        h.owner_profile_id = activeOwnerId;
-      });
-      return localStore.herds;
     }
 
     const synthHerd: Herd = {
       id: `herd-${activeOwnerId}`,
       owner_profile_id: activeOwnerId,
-      name: localStore.currentUser?.full_name ? `${localStore.currentUser.full_name}'s Farm` : 'My Livestock Herd',
+      name: localStore.currentUser?.farm_name || (localStore.currentUser?.full_name ? `${localStore.currentUser.full_name}'s Farm` : 'My Livestock Farm'),
       location_id: localStore.currentUser?.location_id || '1',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -1422,9 +1471,10 @@ export const dataService = {
     let rawAnimals: Animal[] = [];
     const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
 
-    // If farmer, scope animals to the farmer's herd(s)
+    // If farmer, scope animals strictly to the farmer's herd(s)
     if (localStore.currentRole === 'farmer') {
       const currentUserId = String(localStore.currentUser?.id || 'prof-local-farmer');
+      const isDemoFarmer = currentUserId === 'prof-local-farmer' || currentUserId === 'demo-farmer-1' || !localStore.currentUser;
       const userHerds = await this.getHerds(currentUserId);
       const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
       userHerdIds.add(`herd-${currentUserId}`);
@@ -1450,30 +1500,38 @@ export const dataService = {
 
       // Merge matching animals from localStore strictly belonging to this user or their herd
       const localMatching = localStore.animals.filter((a) => {
-        if (!a.owner_profile_id || a.owner_profile_id === '00000000-0000-0000-0000-000000000000') return true;
         if (String(a.owner_profile_id) === currentUserId) return true;
         if ((a as any).owner_id && String((a as any).owner_id) === currentUserId) return true;
         if (a.herd_id && userHerdIds.has(String(a.herd_id))) return true;
+        if (isDemoFarmer && (!a.owner_profile_id || a.owner_profile_id === '00000000-0000-0000-0000-000000000000' || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1')) {
+          return true;
+        }
         return false;
       });
 
       const seenIds = new Set(rawAnimals.map((a) => String(a.id)));
       for (const a of localMatching) {
         if (!seenIds.has(String(a.id))) {
-          a.owner_profile_id = currentUserId;
           rawAnimals.push(a);
           seenIds.add(String(a.id));
         }
       }
 
-      // OFFLINE RESILIENCE: If rawAnimals is empty but localStore has animals, preserve all localStore animals!
-      if (rawAnimals.length === 0 && localStore.animals.length > 0) {
-        localStore.animals.forEach((a) => {
-          a.owner_profile_id = currentUserId;
-          if (!a.herd_id) a.herd_id = Array.from(userHerdIds)[0] || `herd-${currentUserId}`;
+      // Seed demo animals ONLY for demo farmer if empty
+      if (isDemoFarmer && rawAnimals.length === 0) {
+        rawAnimals = [
+          { id: 'anim-1', herd_id: 'herd-1', tag_number: 'COW-023', species: 'Cattle', breed: 'Gir', sex: 'female', date_of_birth: '2022-04-12', owner_profile_id: 'prof-local-farmer' },
+          { id: 'anim-2', herd_id: 'herd-1', tag_number: 'BUF-108', species: 'Buffalo', breed: 'Murrah', sex: 'female', date_of_birth: '2021-08-20', owner_profile_id: 'prof-local-farmer' },
+          { id: 'anim-3', herd_id: 'herd-1', tag_number: 'GOAT-042', species: 'Goat', breed: 'Osmanabadi', sex: 'female', date_of_birth: '2023-01-15', owner_profile_id: 'prof-local-farmer' },
+        ];
+        rawAnimals.forEach((demoAnim) => {
+          if (!localStore.animals.some((a) => a.id === demoAnim.id)) {
+            localStore.animals.push(demoAnim);
+          }
         });
-        rawAnimals = [...localStore.animals];
+        localStore.save();
       }
+      // Note: For real non-demo users, if rawAnimals is empty, it STAYS EMPTY! Zero hardcoded data!
     } else {
       // Veterinarian or Government or general overview
       if (!isOffline) {
@@ -2724,7 +2782,75 @@ export const dataService = {
     };
     store.prescriptions.unshift(newRx);
     this._saveDoctorStore(doctorId, store);
+
+    // Ripple into localStore.prescriptions so the farmer receives this prescription immediately!
+    const existsIdx = localStore.prescriptions.findIndex((p) => p.id === newRx.id);
+    if (existsIdx >= 0) {
+      localStore.prescriptions[existsIdx] = newRx;
+    } else {
+      localStore.prescriptions.unshift(newRx);
+    }
+
+    // Add alert notification for the farmer
+    localStore.notifications.unshift({
+      id: `notif-rx-${Date.now()}`,
+      recipient_profile_id: localStore.currentUser?.id || 'prof-local-farmer',
+      health_report_id: null,
+      outbreak_event_id: null,
+      notification_type: 'health_alert',
+      title: `Digital Rx Issued: ${newRx.animal_tag}`,
+      title_en: `Digital Rx Issued: ${newRx.animal_tag}`,
+      title_hi: `डिजिटल प्रिस्क्रिप्शन जारी: ${newRx.animal_tag}`,
+      title_mr: `डिजिटल प्रिस्क्रिप्शन जारी: ${newRx.animal_tag}`,
+      message: `Dr. ${newRx.doctor_name} has prescribed ${newRx.medicines.length} medicine(s) for ${newRx.animal_tag}.`,
+      message_en: `Dr. ${newRx.doctor_name} has prescribed ${newRx.medicines.length} medicine(s) for ${newRx.animal_tag}.`,
+      message_hi: `डॉ. ${newRx.doctor_name} ने ${newRx.animal_tag} के लिए ${newRx.medicines.length} दवा(एं) निर्धारित की हैं।`,
+      message_mr: `डॉ. ${newRx.doctor_name} यांनी ${newRx.animal_tag} साठी ${newRx.medicines.length} औषधे विहित केली आहेत.`,
+      is_read: false,
+      read_at: null,
+      created_at: new Date().toISOString(),
+    });
+    localStore.save();
+
     return newRx;
+  },
+
+  async getFarmerPrescriptions(filter?: { animalTag?: string; farmerPhone?: string }): Promise<DoctorPrescriptionRecord[]> {
+    const currentUser = localStore.currentUser;
+    const isDemoFarmer = !currentUser || currentUser.id === 'demo-farmer-1' || currentUser.id === 'prof-local-farmer';
+
+    // Retrieve user's animals to match by tag
+    const userAnimals = await this.getAnimals();
+    const userAnimalTags = new Set(userAnimals.map((a) => a.tag_number.toUpperCase()));
+
+    let list = localStore.prescriptions;
+
+    // For real logged in users, strictly match by farmer phone or owned animal tags
+    if (!isDemoFarmer && currentUser) {
+      const phone = currentUser.phone ? currentUser.phone.replace(/\D/g, '') : '';
+      list = list.filter((p) => {
+        const pPhone = p.farmer_phone ? p.farmer_phone.replace(/\D/g, '') : '';
+        if (phone && pPhone && (phone.endsWith(pPhone) || pPhone.endsWith(phone))) return true;
+        if (p.animal_tag && userAnimalTags.has(p.animal_tag.toUpperCase())) return true;
+        return false;
+      });
+    }
+
+    if (filter?.animalTag) {
+      list = list.filter((p) => p.animal_tag.toUpperCase() === filter.animalTag!.toUpperCase());
+    }
+
+    return [...list];
+  },
+
+  async updatePrescriptionStatus(prescriptionId: string, status: 'active' | 'completed'): Promise<boolean> {
+    const found = localStore.prescriptions.find((p) => p.id === prescriptionId);
+    if (found) {
+      found.status = status;
+      localStore.save();
+      return true;
+    }
+    return false;
   },
 
   // 6. Vaccination Management
