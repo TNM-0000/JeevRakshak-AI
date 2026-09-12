@@ -83,7 +83,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [mortalityCount, setMortalityCount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
-  const [source, setSource] = useState<ReportSource>('mobile');
+  const [source] = useState<ReportSource>('web');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Step 3: Result from AI Triage
@@ -553,24 +553,6 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               placeholder={t.reporting.notesPlaceholder}
               className="form-textarea"
             />
-          </div>
-
-          {/* Source Selection (Mapped to report_source enum: web, mobile, ivr) */}
-          <div className="form-group">
-            <label className="form-label">{t.reporting.source}</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {(['mobile', 'web', 'ivr'] as ReportSource[]).map((src) => (
-                <button
-                  type="button"
-                  key={src}
-                  onClick={() => setSource(src)}
-                  className={`role-pill ${source === src ? 'active' : ''}`}
-                  style={{ textTransform: 'capitalize', padding: '6px 14px' }}
-                >
-                  {src.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
           </div>
 
           <button
