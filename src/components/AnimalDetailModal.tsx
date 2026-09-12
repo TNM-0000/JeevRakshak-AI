@@ -120,7 +120,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--surface-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-subtle)' }}
           >
             <X size={18} />
           </button>
@@ -128,21 +128,21 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
 
         {/* Quick Meta Cards */}
         <div className="modal-meta-grid">
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.species}</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{localizeSpecies(animal.species, language)}</div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.breed}</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{localizeBreed(animal.breed, language)}</div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.sex}</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 700, textTransform: 'capitalize' }}>
               {animal.sex === 'female' ? t.animalProfile.female : t.animalProfile.male}
             </div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               {language === 'mr' ? 'जन्मतारीख' : language === 'hi' ? 'जन्म तिथि' : 'DOB'}
             </div>
@@ -157,7 +157,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
               onClose();
               onReportAnimal(animal.id);
             }}
-            className="btn-primary"
+            className="btn-saffron"
             style={{ flex: 1, padding: '10px 16px', fontSize: '0.85rem' }}
           >
             <Activity size={16} />
@@ -283,7 +283,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
             </div>
 
             {showAddVaccine && (
-              <form onSubmit={handleSaveVaccine} style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
+              <form onSubmit={handleSaveVaccine} style={{ background: 'var(--surface-raised)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
                   <label className="form-label" style={{ fontSize: '0.78rem' }}>
                     {language === 'mr' ? 'लसीचे नाव' : language === 'hi' ? 'टीके का नाम' : 'Vaccine Name'}
@@ -360,7 +360,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
             </div>
 
             {showAddTreatment && (
-              <form onSubmit={handleSaveTreatment} style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
+              <form onSubmit={handleSaveTreatment} style={{ background: 'var(--surface-raised)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
                   <label className="form-label" style={{ fontSize: '0.78rem' }}>
                     {language === 'mr' ? 'औषध / उपचाराचे नाव' : language === 'hi' ? 'दवा / उपचार का नाम' : 'Medicine / Treatment Name'}

@@ -32,33 +32,28 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
       <header className="top-header">
       {/* Primary Top Row: Brand & Actions */}
       <div className="header-primary-row">
-        {/* Brand & Govt Badge */}
+        {/* Brand */}
         <div className="header-brand">
           <div
             style={{
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
               flexShrink: 0,
             }}
           >
             <Shield size={18} strokeWidth={2.4} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                {t.appName}
-              </h1>
-            </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {language === 'mr' ? 'महाराष्ट्र शासन • #२६१२८' : language === 'hi' ? 'महाराष्ट्र सरकार • #26128' : 'Govt. of Maharashtra • #26128'}
-            </p>
+            <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+              {t.appName}
+            </h1>
           </div>
         </div>
 
@@ -75,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
                 fontSize: '0.76rem',
                 fontWeight: 600,
                 borderRadius: '20px',
-                background: '#f1f5f9',
+                background: 'var(--surface-raised)',
                 border: '1px solid var(--border-subtle)',
                 cursor: 'pointer',
                 appearance: 'none',
@@ -153,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              background: '#f8fafc',
+              background: 'var(--surface-raised)',
               border: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',

@@ -197,17 +197,11 @@ export const Navigation: React.FC<NavigationProps> = ({
               borderRadius: 'var(--radius-lg)',
               background:
                 currentRole === 'veterinarian'
-                  ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)'
+                  ? 'linear-gradient(135deg, #edf6f2 0%, #f7faf8 100%)'
                   : currentRole === 'government'
-                  ? 'linear-gradient(135deg, #F8FFF9 0%, #E8F5E9 100%)'
-                  : 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)',
-              border: `1px solid ${
-                currentRole === 'veterinarian'
-                  ? 'rgba(2, 132, 199, 0.25)'
-                  : currentRole === 'government'
-                  ? 'rgba(82, 183, 136, 0.3)'
-                  : 'var(--primary-border)'
-              }`,
+                  ? 'linear-gradient(135deg, #edf6f2 0%, #f5f8f6 100%)'
+                  : 'linear-gradient(135deg, #fbf7ef 0%, #f4eee1 100%)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -218,10 +212,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                   borderRadius: '50%',
                   background:
                     currentRole === 'veterinarian'
-                      ? '#0284c7'
+                      ? 'var(--primary)'
                       : currentRole === 'government'
-                      ? '#2ECC71'
-                      : 'var(--stable)',
+                      ? '#2d6a4f'
+                      : 'var(--accent)',
                   display: 'inline-block',
                 }}
               />
@@ -231,10 +225,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                   fontWeight: 700,
                   color:
                     currentRole === 'veterinarian'
-                      ? '#0369a1'
+                      ? 'var(--primary)'
                       : currentRole === 'government'
-                      ? '#2D6A4F'
-                      : 'var(--primary-hover)',
+                      ? '#2d6a4f'
+                      : 'var(--accent-deep)',
                   textTransform: 'uppercase',
                 }}
               >
@@ -288,10 +282,10 @@ export const Navigation: React.FC<NavigationProps> = ({
           {currentRole === 'farmer' && (
             <button
               onClick={() => onSelectTab('report')}
-              className="btn-primary"
-              style={{ width: '100%', borderRadius: 'var(--radius-lg)', padding: '14px' }}
+              className="btn-saffron"
+              style={{ width: '100%', padding: '12px' }}
             >
-              <Plus size={18} />
+              <Plus size={18} strokeWidth={2.6} />
               <span>{t.dashboard.quickReport}</span>
             </button>
           )}
@@ -299,15 +293,10 @@ export const Navigation: React.FC<NavigationProps> = ({
           {currentRole === 'veterinarian' && (
             <button
               onClick={() => onSelectTab('report')}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                borderRadius: 'var(--radius-lg)',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              }}
+              className="btn-earth"
+              style={{ width: '100%', padding: '12px' }}
             >
-              <Plus size={18} />
+              <Plus size={18} strokeWidth={2.6} />
               <span>{language === 'mr' ? 'नवीन तपासणी नोंदवा' : language === 'hi' ? 'नई केस रिपोर्ट' : 'Log Clinical Visit'}</span>
             </button>
           )}
@@ -318,12 +307,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                 onSelectGovModule?.('emergency');
                 onSelectTab('surveillance');
               }}
-              className="btn-primary"
+              className="btn-earth"
               style={{
                 width: '100%',
-                borderRadius: 'var(--radius-lg)',
-                padding: '14px',
-                background: '#2D6A4F',
+                padding: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -404,9 +391,9 @@ export const Navigation: React.FC<NavigationProps> = ({
               aria-label="Primary Action"
               style={{
                 background:
-                  currentRole === 'veterinarian'
-                    ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
-                    : undefined,
+                  currentRole === 'farmer'
+                    ? 'var(--accent-gradient)'
+                    : 'var(--primary-gradient)',
               }}
             >
               <Plus size={26} strokeWidth={2.8} />

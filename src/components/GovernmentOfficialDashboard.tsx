@@ -132,17 +132,17 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             top: '24px',
             right: '24px',
             zIndex: 9999,
-            background: '#2D6A4F',
+            background: 'var(--primary)',
             color: '#FFFFFF',
             padding: '14px 22px',
             borderRadius: '16px',
-            boxShadow: '0 12px 32px rgba(45, 106, 79, 0.25)',
+            boxShadow: '0 12px 32px rgba(27, 94, 75, 0.25)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
             fontSize: '0.86rem',
             fontWeight: 700,
-            border: '1px solid #52B788',
+            border: '1px solid var(--primary-light)',
           }}
         >
           <CheckCircle2 size={18} color="#95D5B2" />
@@ -153,11 +153,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {/* Streamlined Government Navigation Bar (8 Clean Modules - Visible on mobile/tablet or as top quick-dock) */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--surface)',
           borderRadius: '24px',
           padding: '8px 12px',
-          border: '1px solid rgba(82, 183, 136, 0.25)',
-          boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+          border: '1px solid var(--border-card)',
+          boxShadow: 'var(--shadow-sm)',
           display: 'flex',
           gap: '8px',
           overflowX: 'auto',
@@ -180,15 +180,15 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 borderRadius: '16px',
                 fontSize: '0.82rem',
                 fontWeight: isActive ? 800 : 600,
-                background: isActive ? '#2D6A4F' : 'transparent',
-                color: isActive ? '#FFFFFF' : '#52796F',
+                background: isActive ? 'var(--primary)' : 'transparent',
+                color: isActive ? '#FFFFFF' : 'var(--text-muted)',
                 border: 'none',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.2s ease',
               }}
             >
-              <Icon size={16} color={isActive ? '#95D5B2' : '#52796F'} />
+              <Icon size={16} color={isActive ? '#FFFFFF' : 'var(--text-muted)'} />
               <span>{item.label}</span>
               {item.badge && (
                 <span
@@ -217,11 +217,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
           {/* SECTION 1 – Welcome Header Banner */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FFF9 100%)',
-              border: '1px solid rgba(82, 183, 136, 0.25)',
+              background: 'linear-gradient(135deg, var(--surface) 0%, var(--surface-raised) 100%)',
+              border: '1px solid var(--border-card)',
               borderRadius: '24px',
               padding: '32px 36px',
-              boxShadow: '0 4px 24px rgba(45, 106, 79, 0.05)',
+              boxShadow: 'var(--shadow-sm)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -237,13 +237,14 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(82, 183, 136, 0.15)',
-                  color: '#2D6A4F',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
                   padding: '4px 12px',
                   borderRadius: '12px',
                   fontSize: '0.74rem',
                   fontWeight: 700,
                   marginBottom: '12px',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <Shield size={13} />
@@ -254,7 +255,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 style={{
                   fontSize: 'clamp(1.5rem, 3.5vw, 1.95rem)',
                   fontWeight: 800,
-                  color: '#1B4332',
+                  color: 'var(--text-main)',
                   margin: '0 0 10px',
                   lineHeight: 1.25,
                 }}
@@ -262,7 +263,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 Government Command Center
               </h1>
 
-              <p style={{ fontSize: '0.92rem', color: '#52796F', margin: 0, lineHeight: 1.55 }}>
+              <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.55 }}>
                 Monitor livestock health, disease outbreaks, vaccination programs, and emergency response activities across your assigned region.
               </p>
             </div>
@@ -274,20 +275,20 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   width: '84px',
                   height: '84px',
                   borderRadius: '24px',
-                  background: 'linear-gradient(135deg, rgba(82, 183, 136, 0.15) 0%, rgba(45, 106, 79, 0.22) 100%)',
-                  border: '1.5px solid rgba(82, 183, 136, 0.35)',
+                  background: 'var(--primary-light)',
+                  border: '1.5px solid var(--border-card)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#2D6A4F',
-                  boxShadow: '0 8px 24px rgba(45, 106, 79, 0.08)',
+                  color: 'var(--primary)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M24 4L8 10V22C8 32.5 14.8 42.2 24 44C33.2 42.2 40 32.5 40 22V10L24 4Z" fill="#2D6A4F" fillOpacity="0.12" stroke="#2D6A4F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M24 16V30" stroke="#2D6A4F" strokeWidth="2.8" strokeLinecap="round"/>
-                  <path d="M17 23H31" stroke="#2D6A4F" strokeWidth="2.8" strokeLinecap="round"/>
-                  <circle cx="34" cy="14" r="3" fill="#52B788"/>
+                  <path d="M24 4L8 10V22C8 32.5 14.8 42.2 24 44C33.2 42.2 40 32.5 40 22V10L24 4Z" fill="var(--primary)" fillOpacity="0.12" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M24 16V30" stroke="var(--primary)" strokeWidth="2.8" strokeLinecap="round"/>
+                  <path d="M17 23H31" stroke="var(--primary)" strokeWidth="2.8" strokeLinecap="round"/>
+                  <circle cx="34" cy="14" r="3" fill="var(--accent)"/>
                 </svg>
               </div>
 
@@ -296,11 +297,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
-                  background: '#FFFFFF',
+                  background: 'var(--surface)',
                   padding: '14px 20px',
                   borderRadius: '20px',
-                  border: '1px solid rgba(82, 183, 136, 0.25)',
-                  boxShadow: '0 4px 16px rgba(45, 106, 79, 0.05)',
+                  border: '1px solid var(--border-card)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <div
@@ -308,20 +309,20 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                     width: '42px',
                     height: '42px',
                     borderRadius: '14px',
-                    background: 'rgba(45, 106, 79, 0.1)',
+                    background: 'var(--primary-light)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#2D6A4F',
+                    color: 'var(--primary)',
                   }}
                 >
                   <MapPin size={22} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jurisdiction Node</div>
-                  <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#1B4332' }}>Pune Division (14 Blocks)</div>
-                  <div style={{ fontSize: '0.72rem', color: '#2ECC71', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2ECC71', display: 'inline-block' }} />
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jurisdiction Node</div>
+                  <div style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--text-main)' }}>Pune Division (14 Blocks)</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--stable)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--stable)', display: 'inline-block' }} />
                     <span>Real-Time Surveillance Active</span>
                   </div>
                 </div>
@@ -336,11 +337,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 onClick={() => setActiveModule('disease')}
                 style={{
-                  background: '#FFFFFF',
+                  background: 'var(--surface)',
                   border: '1px solid rgba(230, 57, 70, 0.25)',
                   borderRadius: '24px',
                   padding: '24px 28px',
-                  boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
@@ -350,7 +351,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Active Outbreaks</span>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)' }}>Active Outbreaks</span>
                   <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FDE8E8', color: '#E63946', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <ShieldAlert size={18} />
                   </div>
@@ -359,7 +360,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#E63946', lineHeight: 1 }}>
                     2
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
                     Shirur & Baramati containment zones
                   </div>
                 </div>
@@ -369,11 +370,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 onClick={() => setActiveModule('disease')}
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid rgba(244, 162, 97, 0.25)',
+                  background: 'var(--surface)',
+                  border: '1px solid rgba(217, 119, 6, 0.25)',
                   borderRadius: '24px',
                   padding: '24px 28px',
-                  boxShadow: '0 4px 20px rgba(244, 162, 97, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
@@ -383,16 +384,16 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Pending Investigations</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FEF3C7', color: '#F4A261', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)' }}>Pending Investigations</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Clock size={18} />
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#1B4332', lineHeight: 1 }}>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
                     14
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
                     Awaiting laboratory test confirmation
                   </div>
                 </div>
@@ -402,11 +403,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 onClick={() => setActiveModule('vaccination')}
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border-card)',
                   borderRadius: '24px',
                   padding: '24px 28px',
-                  boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
@@ -416,16 +417,16 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Vaccination Progress</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#E8F5E9', color: '#2D6A4F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)' }}>Vaccination Progress</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Syringe size={18} />
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#2D6A4F', lineHeight: 1 }}>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--primary)', lineHeight: 1 }}>
                     81.4%
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
                     3,12,850 of 3,84,000 cattle covered
                   </div>
                 </div>
@@ -435,11 +436,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 onClick={() => setActiveModule('emergency')}
                 style={{
-                  background: '#FFFFFF',
+                  background: 'var(--surface)',
                   border: '1px solid rgba(230, 57, 70, 0.25)',
                   borderRadius: '24px',
                   padding: '24px 28px',
-                  boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
@@ -449,7 +450,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Emergency Cases (1962)</span>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)' }}>Emergency Cases (1962)</span>
                   <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FDE8E8', color: '#E63946', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <AlertTriangle size={18} />
                   </div>
@@ -458,7 +459,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#E63946', lineHeight: 1 }}>
                     3
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
                     Rapid response teams dispatched
                   </div>
                 </div>
@@ -469,19 +470,19 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
           {/* SECTION 3 – Recent Alerts (Clean alert list without cluttered charts) */}
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--surface)',
               borderRadius: '24px',
               padding: '28px',
-              border: '1px solid rgba(82, 183, 136, 0.25)',
-              boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+              border: '1px solid var(--border-card)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <div>
-                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                   Recent Priority Alerts
                 </h2>
-                <p style={{ fontSize: '0.78rem', color: '#52796F', margin: '3px 0 0' }}>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '3px 0 0' }}>
                   Live notifications requiring administrative monitoring or intervention
                 </p>
               </div>
@@ -492,7 +493,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#2D6A4F',
+                  color: 'var(--primary)',
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -541,15 +542,15 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   title: 'Monsoon Preventive Health Advisory Broadcasted',
                   desc: 'Dispatched multilingual advisory SMS to 48,920 livestock owners regarding Haemorrhagic Septicaemia.',
                   time: '6 hours ago',
-                  severity: '#2D6A4F',
-                  bg: '#E8F5E9',
+                  severity: 'var(--primary)',
+                  bg: 'var(--primary-light)',
                 },
               ].map((alert, aIdx) => (
                 <div
                   key={aIdx}
                   style={{
-                    background: '#FFFFFF',
-                    border: `1px solid rgba(82, 183, 136, 0.2)`,
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border-subtle)',
                     borderLeft: `4px solid ${alert.severity}`,
                     borderRadius: '16px',
                     padding: '16px 20px',
@@ -575,12 +576,12 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                       >
                         {alert.badge}
                       </span>
-                      <span style={{ fontSize: '0.74rem', color: '#52796F' }}>• {alert.time}</span>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>• {alert.time}</span>
                     </div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#1B4332' }}>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)' }}>
                       {alert.title}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '2px', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.45 }}>
                       {alert.desc}
                     </div>
                   </div>
@@ -595,8 +596,8 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                     }}
                     style={{
                       background: 'none',
-                      border: '1px solid rgba(82, 183, 136, 0.3)',
-                      color: '#2D6A4F',
+                      border: '1px solid var(--border-card)',
+                      color: 'var(--primary)',
                       padding: '6px 12px',
                       borderRadius: '10px',
                       fontSize: '0.76rem',
@@ -613,7 +614,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
 
           {/* SECTION 4 – Quick Actions: Large, Clean Buttons */}
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', marginBottom: '14px' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
               Quick Action Center
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
@@ -650,11 +651,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                     type="button"
                     onClick={() => setActiveModule(act.id)}
                     style={{
-                      background: '#FFFFFF',
-                      border: '1px solid rgba(82, 183, 136, 0.25)',
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border-card)',
                       borderRadius: '24px',
                       padding: '24px',
-                      boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+                      boxShadow: 'var(--shadow-sm)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '16px',
@@ -668,8 +669,8 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                         width: '48px',
                         height: '48px',
                         borderRadius: '16px',
-                        background: '#E8F5E9',
-                        color: '#2D6A4F',
+                        background: 'var(--primary-light)',
+                        color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -679,10 +680,10 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                       <Icon size={22} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.96rem', fontWeight: 800, color: '#1B4332' }}>
+                      <div style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--text-main)' }}>
                         {act.title}
                       </div>
-                      <div style={{ fontSize: '0.76rem', color: '#52796F', marginTop: '3px', lineHeight: 1.35 }}>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.35 }}>
                         {act.desc}
                       </div>
                     </div>
@@ -695,14 +696,14 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
           {/* SECTION 5 – Recent Activity Timeline */}
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--surface)',
               borderRadius: '24px',
               padding: '28px',
-              border: '1px solid rgba(82, 183, 136, 0.25)',
-              boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+              border: '1px solid var(--border-card)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px' }}>
               Operational Activity Timeline
             </h2>
 
@@ -719,18 +720,18 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                       width: '10px',
                       height: '10px',
                       borderRadius: '50%',
-                      background: '#52B788',
+                      background: 'var(--primary)',
                       marginTop: '6px',
                       flexShrink: 0,
                     }}
                   />
-                  <div style={{ flex: 1, paddingBottom: idx < 3 ? '16px' : '0', borderBottom: idx < 3 ? '1px solid #F1F5F9' : 'none' }}>
+                  <div style={{ flex: 1, paddingBottom: idx < 3 ? '16px' : '0', borderBottom: idx < 3 ? '1px solid var(--border-subtle)' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1B4332' }}>{act.action}</span>
-                      <span style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600 }}>{act.time}</span>
+                      <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)' }}>{act.action}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{act.time}</span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '2px' }}>{act.detail}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#2D6A4F', fontWeight: 700, marginTop: '3px' }}>Logged by: {act.officer}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{act.detail}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 700, marginTop: '3px' }}>Logged by: {act.officer}</div>
                   </div>
                 </div>
               ))}
@@ -745,11 +746,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'disease' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
@@ -757,10 +758,10 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                 Disease Surveillance & Outbreak Tracking
               </h2>
-              <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                 District-level telemetry, risk classification, and AI prediction insights
               </p>
             </div>
@@ -819,9 +820,9 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 onClick={async () => {
                   const alerts = await dataService.getDiseaseAlerts();
                   setDiseaseAlerts(alerts);
-                  showToast('Surveillance radar refreshed with live field reports.');
+                  showToast('Surveillance radar refreshed with live telemetric field reports.');
                 }}
-                className="btn-primary"
+                className="btn-saffron"
                 style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '0.8rem' }}
               >
                 <RefreshCw size={14} />
@@ -941,8 +942,8 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
           )}
 
           {/* Single, Highly Readable Chart (Maximum 1 per section) */}
-          <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '20px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1B4332', margin: '0 0 14px' }}>
+          <div style={{ background: 'var(--surface-raised)', borderRadius: '20px', padding: '20px', border: '1px solid var(--border-subtle)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 14px' }}>
               Pathogen Distribution in Pune Division (Current Month)
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -950,14 +951,14 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 { name: 'Foot & Mouth Disease (FMD)', cases: 47, pct: 45, color: '#E63946' },
                 { name: 'Lumpy Skin Disease (LSD)', cases: 28, pct: 27, color: '#F4A261' },
                 { name: 'Clinical Mastitis', cases: 18, pct: 17, color: '#457B9D' },
-                { name: 'Haemorrhagic Septicaemia (HS)', cases: 7, pct: 7, color: '#2D6A4F' },
+                { name: 'Haemorrhagic Septicaemia (HS)', cases: 7, pct: 7, color: 'var(--primary)' },
               ].map((item, idx) => (
                 <div key={idx}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 700, color: '#1B4332' }}>{item.name}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.name}</span>
                     <span style={{ fontWeight: 800, color: item.color }}>{item.cases} cases ({item.pct}%)</span>
                   </div>
-                  <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '10px', background: 'var(--border-subtle)', borderRadius: '5px', overflow: 'hidden' }}>
                     <div style={{ width: `${item.pct}%`, height: '100%', background: item.color, borderRadius: '5px' }} />
                   </div>
                 </div>
@@ -992,13 +993,13 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
               <thead>
-                <tr style={{ background: '#F8FFF9', borderBottom: '1.5px solid rgba(82, 183, 136, 0.25)', textAlign: 'left' }}>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Taluka / Block</th>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Risk Status</th>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Active Cases</th>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Herds Monitored</th>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Primary Disease Threat</th>
-                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Containment Protocol</th>
+                <tr style={{ background: 'var(--surface-raised)', borderBottom: '1.5px solid var(--border-subtle)', textAlign: 'left' }}>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Taluka / Block</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Risk Status</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Active Cases</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Herds Monitored</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Primary Disease Threat</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Containment Protocol</th>
                 </tr>
               </thead>
               <tbody>
@@ -1009,17 +1010,17 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   { taluka: 'Khed', risk: 'Moderate', cases: 9, herds: 3, threat: 'Black Quarter (BQ)', protocol: 'Antibiotic Buffer Dispatched', color: '#F4A261' },
                   { taluka: 'Daund', risk: 'Low', cases: 3, herds: 1, threat: 'Bovine Babesiosis', protocol: 'Acaricide Dipping Advisory', color: '#2ECC71' },
                 ].map((row, rIdx) => (
-                  <tr key={rIdx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={{ padding: '14px 12px', fontWeight: 800, color: '#1B4332' }}>{row.taluka}</td>
+                  <tr key={rIdx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '14px 12px', fontWeight: 800, color: 'var(--text-primary)' }}>{row.taluka}</td>
                     <td style={{ padding: '14px 12px' }}>
                       <span style={{ background: `${row.color}15`, color: row.color, padding: '3px 10px', borderRadius: '12px', fontWeight: 800, fontSize: '0.74rem' }}>
                         {row.risk.toUpperCase()}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 12px', fontWeight: 700 }}>{row.cases}</td>
-                    <td style={{ padding: '14px 12px', color: '#52796F' }}>{row.herds}</td>
-                    <td style={{ padding: '14px 12px', color: '#1B4332', fontWeight: 600 }}>{row.threat}</td>
-                    <td style={{ padding: '14px 12px', color: '#2D6A4F', fontWeight: 700 }}>{row.protocol}</td>
+                    <td style={{ padding: '14px 12px', fontWeight: 700, color: 'var(--text-primary)' }}>{row.cases}</td>
+                    <td style={{ padding: '14px 12px', color: 'var(--text-secondary)' }}>{row.herds}</td>
+                    <td style={{ padding: '14px 12px', color: 'var(--text-primary)', fontWeight: 600 }}>{row.threat}</td>
+                    <td style={{ padding: '14px 12px', color: 'var(--primary)', fontWeight: 700 }}>{row.protocol}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1043,21 +1044,21 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'vaccination' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               National Livestock Vaccination Management
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               NADCP campaign tracking, coverage milestones, and upcoming immunization drives
             </p>
           </div>
@@ -1072,8 +1073,8 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 key={idx}
                 style={{
-                  background: '#F8FFF9',
-                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '20px',
                   padding: '20px',
                   display: 'flex',
@@ -1082,17 +1083,17 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4332' }}>{c.campaign}</div>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 700, background: '#E8F5E9', color: '#2D6A4F', padding: '2px 8px', borderRadius: '8px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{c.campaign}</div>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '8px' }}>
                     {c.status}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#52796F', marginTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                   <span>Achieved: {c.achieved} / {c.target}</span>
-                  <span style={{ fontWeight: 800, color: '#2D6A4F' }}>{c.pct}%</span>
+                  <span style={{ fontWeight: 800, color: 'var(--primary)' }}>{c.pct}%</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${c.pct}%`, height: '100%', background: '#2D6A4F', borderRadius: '4px' }} />
+                <div style={{ width: '100%', height: '8px', background: 'var(--border-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${c.pct}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }} />
                 </div>
               </div>
             ))}
@@ -1106,11 +1107,11 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'emergency' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
             border: '1px solid rgba(230, 57, 70, 0.25)',
-            boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
@@ -1120,7 +1121,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#E63946', margin: 0 }}>
               Emergency Response & 1962 Ambulance Dispatch
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               Real-time critical incident management, rapid response unit deployment and status tracking
             </p>
           </div>
@@ -1129,13 +1130,13 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             {[
               { id: 'SOS-2026-901', animal: 'Bovine Cow (Gir)', farmer: 'Baburao Kale', village: 'Koregaon Bhima', issue: 'Acute recumbency & severe dehydration', van: 'MH-12-MV-4412', status: 'Team On-Site', color: '#2ECC71' },
               { id: 'SOS-2026-902', animal: 'Crossbred Heifer', farmer: 'Pandurang Jagtap', village: 'Nimgaon Mhalungi', issue: 'Suspected organophosphate toxicity', van: 'MH-12-MV-4418', status: 'Dispatched', color: '#F4A261' },
-              { id: 'SOS-2026-903', animal: 'Murrah Buffalo', farmer: 'Kishor Shinde', village: 'Shirapur', issue: 'High fever and mouth blisters', van: 'MH-12-MV-4412', status: 'Stabilized', color: '#2D6A4F' },
+              { id: 'SOS-2026-903', animal: 'Murrah Buffalo', farmer: 'Kishor Shinde', village: 'Shirapur', issue: 'High fever and mouth blisters', van: 'MH-12-MV-4412', status: 'Stabilized', color: 'var(--primary)' },
             ].map((sos) => (
               <div
                 key={sos.id}
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #F1F5F9',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '18px',
                   padding: '18px 22px',
                   display: 'flex',
@@ -1143,17 +1144,17 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '12px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1B4332' }}>{sos.id}</span>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: 'var(--text-primary)' }}>{sos.id}</span>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#E63946', background: '#FDE8E8', padding: '2px 8px', borderRadius: '8px' }}>
                       {sos.animal}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: '#52796F', marginTop: '3px' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
                     Farmer: <strong>{sos.farmer}</strong> • {sos.village} • Assigned Van: <strong>{sos.van}</strong>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#E63946', fontWeight: 600, marginTop: '2px' }}>
@@ -1178,36 +1179,36 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'resources' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               Workforce & Resource Inventory Allocation
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               Tracking veterinary staff, mobile vans, cold-chain freezers, and medicine supplies
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {[
-              { item: 'Registered Veterinarians on Duty', count: '342 Active', desc: '14 Taluka polyclinics staffed', color: '#2D6A4F' },
+              { item: 'Registered Veterinarians on Duty', count: '342 Active', desc: '14 Taluka polyclinics staffed', color: 'var(--primary)' },
               { item: 'Mobile Veterinary Units (1962)', count: '18 / 20 Deployed', desc: 'Active 24/7 field coverage', color: '#0284C7' },
               { item: 'FMD Vaccine Vials (Doses)', count: '3,20,000 in Cold-Chain', desc: 'Reserve buffer nominal (4°C)', color: '#2ECC71' },
               { item: 'Emergency Antibiotic & NSAID Kits', count: '4,500 Kits', desc: 'Dispatched to primary health nodes', color: '#F4A261' },
             ].map((res, idx) => (
-              <div key={idx} style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
-                <div style={{ fontSize: '0.82rem', color: '#52796F', fontWeight: 700 }}>{res.item}</div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#1B4332', margin: '6px 0 2px' }}>{res.count}</div>
-                <div style={{ fontSize: '0.74rem', color: '#2D6A4F', fontWeight: 600 }}>{res.desc}</div>
+              <div key={idx} style={{ background: 'var(--surface-raised)', borderRadius: '20px', padding: '22px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 700 }}>{res.item}</div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', margin: '6px 0 2px' }}>{res.count}</div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--primary)', fontWeight: 600 }}>{res.desc}</div>
               </div>
             ))}
           </div>
@@ -1220,21 +1221,21 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'reports' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               Official Reports & Dossier Center
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               One-click compilation of ministry-compliant epidemiological reports and monthly registers
             </p>
           </div>
@@ -1301,10 +1302,10 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 key={idx}
                 style={{
-                  background: '#F8FFF9',
+                  background: 'var(--surface-raised)',
                   borderRadius: '20px',
                   padding: '24px',
-                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -1313,7 +1314,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.96rem', color: '#1B4332' }}>{rep.title}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.96rem', color: 'var(--text-primary)' }}>{rep.title}</div>
                     <span
                       style={{
                         fontSize: '0.68rem',
@@ -1329,14 +1330,14 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                       {rep.format}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '6px', lineHeight: 1.45 }}>{rep.desc}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.45 }}>{rep.desc}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={rep.onDownload}
-                    className="btn-primary"
+                    className="btn-saffron"
                     style={{
                       padding: '8px 16px',
                       borderRadius: '12px',
@@ -1354,7 +1355,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                     <button
                       type="button"
                       onClick={rep.onSecondaryDownload}
-                      className="btn-secondary"
+                      className="btn-earth"
                       style={{
                         padding: '8px 14px',
                         borderRadius: '12px',
@@ -1381,21 +1382,21 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'users' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               User & Role-Based Access Control (RBAC)
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               Manage registered livestock farmers, veterinary doctors, and government officials
             </p>
           </div>
@@ -1410,8 +1411,8 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               <div
                 key={idx}
                 style={{
-                  background: '#F8FFF9',
-                  border: '1px solid rgba(82, 183, 136, 0.2)',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '16px',
                   padding: '16px 20px',
                   display: 'flex',
@@ -1422,13 +1423,13 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4332' }}>{user.name}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#52796F', marginTop: '2px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{user.name}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     Role: <strong>{user.role}</strong> • ID: {user.id} • {user.location}
                   </div>
                 </div>
 
-                <span style={{ background: '#E8F5E9', color: '#2D6A4F', padding: '3px 10px', borderRadius: '10px', fontWeight: 800, fontSize: '0.74rem' }}>
+                <span style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '3px 10px', borderRadius: '10px', fontWeight: 800, fontSize: '0.74rem' }}>
                   {user.status}
                 </span>
               </div>
@@ -1443,48 +1444,48 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       {activeModule === 'settings' && (
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'var(--surface)',
             borderRadius: '24px',
             padding: '32px',
-            border: '1px solid rgba(82, 183, 136, 0.25)',
-            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            border: '1px solid var(--border-card)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
               System Configuration & Preferences
             </h2>
-            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
               Security parameters, notification rules, language catalogs, and automated backups
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
-            <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B4332', marginBottom: '8px' }}>
-                <Lock size={18} color="#2D6A4F" />
+            <div style={{ background: 'var(--surface-raised)', borderRadius: '20px', padding: '22px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                <Lock size={18} color="var(--primary)" />
                 <span>Security & Two-Factor Authentication</span>
               </div>
-              <p style={{ fontSize: '0.78rem', color: '#52796F', lineHeight: 1.45, marginBottom: '14px' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '14px' }}>
                 Mandatory OTP verification for outbreak declaration and state-level directive broadcasts.
               </p>
-              <button type="button" onClick={() => showToast('2FA settings updated.')} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
+              <button type="button" onClick={() => showToast('2FA settings updated.')} className="btn-earth" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
                 Configure 2FA
               </button>
             </div>
 
-            <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B4332', marginBottom: '8px' }}>
-                <Globe size={18} color="#2D6A4F" />
+            <div style={{ background: 'var(--surface-raised)', borderRadius: '20px', padding: '22px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                <Globe size={18} color="var(--primary)" />
                 <span>Language & Regional Catalogs</span>
               </div>
-              <p style={{ fontSize: '0.78rem', color: '#52796F', lineHeight: 1.45, marginBottom: '14px' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '14px' }}>
                 Active trilingual support: English, Marathi (मराठी), and Hindi (हिन्दी) fully synchronized.
               </p>
-              <button type="button" onClick={() => showToast('Language catalog verified: 100% synchronized.')} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
+              <button type="button" onClick={() => showToast('Language catalog verified: 100% synchronized.')} className="btn-earth" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
                 Verify Catalogs
               </button>
             </div>

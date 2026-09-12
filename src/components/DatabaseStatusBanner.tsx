@@ -96,11 +96,11 @@ export const DatabaseStatusBanner: React.FC = () => {
   if (status.loading) {
     return (
       <div style={{
-        background: '#f8fafc',
-        borderBottom: '1px solid #e2e8f0',
+        background: 'var(--surface-raised)',
+        borderBottom: '1px solid var(--border-subtle)',
         padding: '6px 16px',
         fontSize: '0.78rem',
-        color: '#64748b',
+        color: 'var(--text-muted)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

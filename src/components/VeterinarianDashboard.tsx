@@ -54,7 +54,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
         </div>
         <button
           onClick={onOpenReport}
-          className="btn-primary"
+          className="btn-saffron"
           style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
         >
           Record Clinical Visit
@@ -65,7 +65,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
       <div
         className="glass-card"
         style={{
-          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+          background: 'linear-gradient(135deg, #edf6f2 0%, #fbf9f4 100%)',
           border: '1.5px solid var(--primary-border)',
           borderRadius: 'var(--radius-xl)',
           padding: '24px',
@@ -93,19 +93,19 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
         </div>
 
         <div className="status-metric-grid">
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--text-main)' }}>
               {pendingAssessments.length}
             </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>Pending Assessments</div>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: criticalCases.length > 0 ? 'var(--critical)' : 'var(--text-main)' }}>
               {criticalCases.length}
             </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>Critical Cases</div>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--warning)' }}>
               {underTreatment}
             </div>
@@ -155,11 +155,11 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
                 width: '40px',
                 height: '40px',
                 borderRadius: '10px',
-                background: '#eff6ff',
+                background: 'var(--primary-light)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#2563eb',
+                color: 'var(--primary)',
               }}
             >
               <ClipboardList size={20} />

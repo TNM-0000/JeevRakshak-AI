@@ -442,9 +442,10 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: '12px',
-                background: '#f8fafc',
+                background: 'var(--surface-raised)',
                 padding: '12px 16px',
                 borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)',
               }}
             >
               <div>
@@ -512,7 +513,7 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
                         cursor: 'pointer',
                         transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-raised)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <td style={{ padding: '12px', fontWeight: 700, color: 'var(--text-main)' }}>
@@ -889,9 +890,10 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '10px',
-                background: '#f8fafc',
+                background: 'var(--surface-raised)',
                 padding: '12px',
                 borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)',
               }}
             >
               <div>
@@ -1024,7 +1026,7 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
                     gap: '14px',
                     padding: '14px',
                     borderRadius: 'var(--radius-md)',
-                    background: item.status ? 'rgba(5, 150, 105, 0.04)' : '#fff',
+                    background: item.status ? 'rgba(27, 94, 75, 0.05)' : 'var(--surface)',
                     border: `1px solid ${item.status ? 'var(--primary-border)' : 'var(--border-card)'}`,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',

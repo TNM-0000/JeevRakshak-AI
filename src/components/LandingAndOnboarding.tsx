@@ -664,15 +664,15 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
+    <div className="ambient-hero-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Top Navbar */}
       <header
         style={{
-          background: 'transparent',
+          background: 'rgba(244, 240, 230, 0.94)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
-          padding: '12px 16px',
+          borderBottom: '1px solid var(--border-subtle)',
+          padding: '12px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -681,29 +681,27 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
           zIndex: 40,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
               flexShrink: 0,
             }}
           >
-            <Shield size={20} strokeWidth={2.4} />
+            <Shield size={22} strokeWidth={2.4} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
-                JeevRakshak AI
-              </span>
-            </div>
+            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
+              JeevRakshak AI
+            </span>
           </div>
         </div>
 
@@ -718,7 +716,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               fontSize: '0.78rem',
               fontWeight: 600,
               borderRadius: '20px',
-              background: '#f1f5f9',
+              background: 'var(--surface-raised)',
               border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               appearance: 'none',
@@ -739,55 +737,70 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
       {/* VIEW 1: HERO LANDING PAGE */}
       {viewMode === 'hero' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 16px 40px' }}>
-          <div style={{ maxWidth: '860px', width: '100%', textAlign: 'center', margin: '0 auto' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '40px 16px 32px' }}>
+          {/* Main Hero Body */}
+          <div style={{ maxWidth: '860px', width: '100%', textAlign: 'center', margin: 'auto 0' }}>
             {/* Govt Initiative Badge */}
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'rgba(5, 150, 105, 0.1)',
-                color: 'var(--primary)',
-                padding: '6px 14px',
+                background: 'rgba(217, 119, 6, 0.1)',
+                color: '#b45309',
+                padding: '6px 16px',
                 borderRadius: 'var(--radius-full)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                marginBottom: '18px',
-                border: '1px solid var(--primary-border)',
+                marginBottom: '22px',
+                border: '1px solid rgba(217, 119, 6, 0.3)',
+                boxShadow: '0 2px 10px rgba(217, 119, 6, 0.12)',
               }}
+              className="animate-pulse-amber"
             >
-              <Radio size={14} className="animate-pulse" />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c', display: 'inline-block' }} />
               <span>{copy.govtBadge}</span>
             </div>
 
             {/* Main Headline */}
             <h1
               style={{
-                fontSize: 'clamp(1.8rem, 5vw, 3.1rem)',
+                fontSize: 'clamp(2.1rem, 5.5vw, 3.5rem)',
                 fontWeight: 800,
                 lineHeight: 1.15,
                 color: 'var(--text-main)',
-                marginBottom: '40px',
-                letterSpacing: '-0.02em',
+                marginBottom: '18px',
+                letterSpacing: '-0.025em',
               }}
             >
               {copy.heroTitle1} <br />
-              <span style={{ color: 'var(--primary)' }}>{copy.heroTitle2}</span>
+              <span className="text-gradient-saffron">{copy.heroTitle2}</span>
             </h1>
 
-
+            {/* Subtitle */}
+            <p
+              style={{
+                fontSize: 'clamp(0.95rem, 2vw, 1.12rem)',
+                color: 'var(--text-muted)',
+                maxWidth: '700px',
+                margin: '0 auto 36px',
+                lineHeight: 1.6,
+                fontWeight: 500,
+              }}
+            >
+              {copy.heroSub}
+            </p>
 
             {/* Primary Action Buttons */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={() => {
                   setViewMode('onboarding');
                   setOnboardingStep(1);
                   setErrorMsg(null);
                 }}
-                className="btn-primary"
-                style={{ padding: '14px 30px', fontSize: '1rem', borderRadius: 'var(--radius-full)', gap: '8px' }}
+                className="btn-saffron"
+                style={{ padding: '14px 34px', fontSize: '1.02rem', borderRadius: 'var(--radius-full)' }}
               >
                 <span>{copy.getStarted}</span>
                 <ArrowRight size={18} />
@@ -798,31 +811,33 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setViewMode('signin');
                   setErrorMsg(null);
                 }}
-                className="btn-secondary"
-                style={{ padding: '14px 26px', fontSize: '0.95rem', borderRadius: 'var(--radius-full)' }}
+                className="btn-earth"
+                style={{ padding: '14px 28px', fontSize: '0.98rem', borderRadius: 'var(--radius-full)' }}
               >
                 <span>{copy.signIn}</span>
               </button>
             </div>
+          </div>
 
-
-            {/* Quick Demo Bypass */}
-            <div style={{ marginTop: '32px' }}>
-              <button
-                onClick={handleGuestDemo}
-                style={{
-                  fontSize: '0.82rem',
-                  color: 'var(--text-muted)',
-                  textDecoration: 'underline',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '8px',
-                }}
-              >
-                {copy.skipGuest}
-              </button>
-            </div>
+          {/* Bottom Clean Link: Skip demo */}
+          <div style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center' }}>
+            <button
+              onClick={handleGuestDemo}
+              style={{
+                fontSize: '0.84rem',
+                color: 'var(--text-muted)',
+                textDecoration: 'underline',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px 16px',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+            >
+              {copy.skipGuest}
+            </button>
           </div>
         </div>
       )}
@@ -866,7 +881,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       width: s === onboardingStep ? '20px' : '8px',
                       height: '8px',
                       borderRadius: '4px',
-                      background: s <= onboardingStep ? 'var(--primary)' : '#e2e8f0',
+                      background: s <= onboardingStep ? 'var(--primary)' : 'var(--border-subtle)',
                       transition: 'all 0.25s ease',
                     }}
                   />
@@ -914,7 +929,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         padding: '14px',
                         borderRadius: 'var(--radius-md)',
                         border: language === lang.id ? '2px solid var(--primary)' : '1px solid var(--border-card)',
-                        background: language === lang.id ? 'var(--primary-light)' : '#fff',
+                        background: language === lang.id ? 'var(--primary-light)' : 'var(--surface)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -933,7 +948,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           width: '20px',
                           height: '20px',
                           borderRadius: '50%',
-                          border: `2px solid ${language === lang.id ? 'var(--primary)' : '#cbd5e1'}`,
+                          border: `2px solid ${language === lang.id ? 'var(--primary)' : 'var(--border-subtle)'}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -948,7 +963,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 <button
                   onClick={() => setOnboardingStep(2)}
-                  className="btn-primary"
+                  className="btn-saffron"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
                   <span>{copy.continue}</span>
@@ -998,7 +1013,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           padding: '12px 14px',
                           borderRadius: 'var(--radius-md)',
                           border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border-card)',
-                          background: isSelected ? 'var(--primary-light)' : '#fff',
+                          background: isSelected ? 'var(--primary-light)' : 'var(--surface)',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -1011,7 +1026,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                             width: '36px',
                             height: '36px',
                             borderRadius: '8px',
-                            background: isSelected ? 'var(--primary)' : '#f1f5f9',
+                            background: isSelected ? 'var(--primary)' : 'var(--surface-raised)',
                             color: isSelected ? '#fff' : 'var(--text-muted)',
                             display: 'flex',
                             alignItems: 'center',
@@ -1034,7 +1049,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                             width: '18px',
                             height: '18px',
                             borderRadius: '50%',
-                            border: `2px solid ${isSelected ? 'var(--primary)' : '#cbd5e1'}`,
+                            border: `2px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1051,7 +1066,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 <button
                   onClick={() => setOnboardingStep(4)}
-                  className="btn-primary"
+                  className="btn-saffron"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
                   <span>{copy.continue}</span>
@@ -1089,12 +1104,12 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
       {/* VIEW 2 (STEP 4): FULL WEB PAGE REGISTRATION & PROFILE CREATION */}
       {viewMode === 'onboarding' && onboardingStep === 4 && (
-        <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: '#F8FFF9', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
           {/* 1. TOP SUB-HEADER APPLICATION BAR */}
           <div
             style={{
-              background: '#ffffff',
-              borderBottom: '1px solid #e2e8f0',
+              background: 'var(--surface)',
+              borderBottom: '1px solid var(--border-card)',
               padding: '12px 24px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -1115,8 +1130,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
+                background: 'var(--surface-raised)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '10px',
                 padding: '8px 14px',
                 fontSize: '0.82rem',
@@ -1141,7 +1156,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                     width: '22px',
                     height: '22px',
                     borderRadius: '50%',
-                    background: '#2D6A4F',
+                    background: 'var(--primary)',
                     color: '#ffffff',
                     fontSize: '0.7rem',
                     fontWeight: 800,
@@ -1154,7 +1169,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 </span>
               </div>
 
-              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+              <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span
@@ -1165,7 +1180,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                     width: '22px',
                     height: '22px',
                     borderRadius: '50%',
-                    background: '#2D6A4F',
+                    background: 'var(--primary)',
                     color: '#ffffff',
                     fontSize: '0.7rem',
                     fontWeight: 800,
@@ -1178,17 +1193,17 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 </span>
               </div>
 
-              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+              <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
 
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(45, 106, 79, 0.1)',
+                  background: 'var(--primary-light)',
                   padding: '4px 12px',
                   borderRadius: '20px',
-                  border: '1.5px solid rgba(45, 106, 79, 0.35)',
+                  border: '1.5px solid var(--primary)',
                 }}
               >
                 <span
@@ -1199,7 +1214,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                     width: '20px',
                     height: '20px',
                     borderRadius: '50%',
-                    background: '#2D6A4F',
+                    background: 'var(--primary)',
                     color: '#ffffff',
                     fontSize: '0.7rem',
                     fontWeight: 800,
@@ -1207,7 +1222,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 >
                   3
                 </span>
-                <span style={{ fontSize: '0.8rem', color: '#2D6A4F', fontWeight: 800 }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 800 }}>
                   {copy.stepperAccount || 'Create Account'}
                 </span>
               </div>
@@ -1219,9 +1234,9 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#ecfdf5',
-                color: '#065f46',
-                border: '1px solid #a7f3d0',
+                background: 'var(--primary-light)',
+                color: 'var(--primary)',
+                border: '1px solid var(--primary)',
                 padding: '5px 14px',
                 borderRadius: '20px',
                 fontSize: '0.8rem',
@@ -1242,14 +1257,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'rgba(45, 106, 79, 0.08)',
-                color: '#2D6A4F',
+                background: 'var(--primary-light)',
+                color: 'var(--primary)',
                 padding: '5px 14px',
                 borderRadius: '20px',
                 fontSize: '0.78rem',
                 fontWeight: 800,
                 marginBottom: '10px',
-                border: '1px solid rgba(45, 106, 79, 0.25)',
+                border: '1px solid var(--border-subtle)',
                 letterSpacing: '0.04em',
               }}
             >
@@ -1285,11 +1300,11 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             <div
               style={{
                 width: '100%',
-                background: '#ffffff',
+                background: 'var(--surface)',
                 borderRadius: '24px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--border-card)',
                 padding: '36px 32px',
-                boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
               {errorMsg && (
@@ -1316,14 +1331,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
                 {/* SECTION 1: PERSONAL & CONTACT INFORMATION */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div
                       style={{
                         width: '32px',
                         height: '32px',
                         borderRadius: '8px',
-                        background: 'rgba(45, 106, 79, 0.1)',
-                        color: '#2D6A4F',
+                        background: 'var(--primary-light)',
+                        color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1374,8 +1389,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           style={{
                             fontSize: '0.68rem',
                             fontWeight: 700,
-                            background: 'rgba(45, 106, 79, 0.1)',
-                            color: '#2D6A4F',
+                            background: 'var(--primary-light)',
+                            color: 'var(--primary)',
                             padding: '1px 8px',
                             borderRadius: '4px',
                           }}
@@ -1422,7 +1437,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         style={{
                           fontSize: '0.68rem',
                           fontWeight: 600,
-                          background: '#f1f5f9',
+                          background: 'var(--surface-raised)',
                           color: 'var(--text-muted)',
                           padding: '1px 8px',
                           borderRadius: '4px',
@@ -1461,14 +1476,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 {/* SECTION 2: ROLE-SPECIFIC CREDENTIALS */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div
                       style={{
                         width: '32px',
                         height: '32px',
                         borderRadius: '8px',
-                        background: 'rgba(45, 106, 79, 0.1)',
-                        color: '#2D6A4F',
+                        background: 'var(--primary-light)',
+                        color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1487,30 +1502,59 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   </div>
 
                   {selectedRole === 'farmer' && (
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 600,
-                            background: '#f1f5f9',
-                            color: 'var(--text-muted)',
-                            padding: '1px 8px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {copy.optionalBadge}
-                        </span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              background: 'var(--surface-raised)',
+                              color: 'var(--text-muted)',
+                              padding: '1px 8px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {copy.optionalBadge}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder={copy.farmNamePlaceholder}
+                          value={farmName}
+                          onChange={(e) => setFarmName(e.target.value)}
+                          className="form-input"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        />
                       </div>
-                      <input
-                        type="text"
-                        placeholder={copy.farmNamePlaceholder}
-                        value={farmName}
-                        onChange={(e) => setFarmName(e.target.value)}
-                        className="form-input"
-                        style={{ height: '44px', borderRadius: '10px' }}
-                      />
+
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.livestockCount}</label>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              background: 'var(--surface-raised)',
+                              color: 'var(--text-muted)',
+                              padding: '1px 8px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {copy.optionalBadge}
+                          </span>
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder={copy.livestockPlaceholder}
+                          value={herdSize}
+                          onChange={(e) => setHerdSize(e.target.value)}
+                          className="form-input"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -1587,14 +1631,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 {/* SECTION 3: ACCOUNT SECURITY & PASSWORD */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div
                       style={{
                         width: '32px',
                         height: '32px',
                         borderRadius: '8px',
-                        background: 'rgba(45, 106, 79, 0.1)',
-                        color: '#2D6A4F',
+                        background: 'var(--primary-light)',
+                        color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1621,8 +1665,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         style={{
                           fontSize: '0.68rem',
                           fontWeight: 700,
-                          background: 'rgba(45, 106, 79, 0.1)',
-                          color: '#2D6A4F',
+                          background: 'var(--primary-light)',
+                          color: 'var(--primary)',
                           padding: '1px 8px',
                           borderRadius: '4px',
                         }}
@@ -1669,7 +1713,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         style={{
                           marginTop: '12px',
                           padding: '14px 16px',
-                          background: '#f8fafc',
+                          background: 'var(--surface-raised)',
                           borderRadius: '12px',
                           border: '1px solid var(--border-subtle)',
                         }}
@@ -1692,7 +1736,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                           style={{
                             width: '100%',
                             height: '6px',
-                            background: '#e2e8f0',
+                            background: 'var(--border-subtle)',
                             borderRadius: '3px',
                             overflow: 'hidden',
                             marginBottom: '12px',
@@ -1731,7 +1775,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                                   width: '15px',
                                   height: '15px',
                                   borderRadius: '50%',
-                                  background: item.met ? 'var(--stable)' : '#cbd5e1',
+                                  background: item.met ? 'var(--stable)' : 'var(--border-subtle)',
                                   color: '#fff',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -1756,7 +1800,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-primary"
+                    className="btn-saffron"
                     style={{
                       width: '100%',
                       borderRadius: '12px',
@@ -1786,7 +1830,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--primary)',
+                        color: 'var(--accent)',
                         fontWeight: 700,
                         cursor: 'pointer',
                         textDecoration: 'underline',
@@ -1813,9 +1857,9 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               width: '100%',
               padding: '32px 28px',
               borderRadius: '24px',
-              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04)',
-              border: '1px solid #e2e8f0',
-              background: '#ffffff',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-card)',
+              background: 'var(--surface)',
             }}
           >
             {/* Top Navigation */}
@@ -1847,11 +1891,11 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 style={{
                   fontSize: '0.72rem',
                   fontWeight: 700,
-                  color: '#065f46',
-                  background: '#ecfdf5',
+                  color: 'var(--primary)',
+                  background: 'var(--primary-light)',
                   padding: '3px 10px',
                   borderRadius: '20px',
-                  border: '1px solid #a7f3d0',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 🔒 SECURE PORTAL AUTH
@@ -1865,9 +1909,31 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               {copy.signInRoleSelectTitle || 'Select your role and enter your registered credentials to access your dedicated workspace.'}
             </p>
 
-            {/* 3-ROLE SELECTOR CARDS */}
-            <div style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            {/* UNIFIED ROLE SELECTION CONSOLE */}
+            <div
+              style={{
+                background: 'var(--surface-raised)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '14px',
+                padding: '10px 12px',
+                marginBottom: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              {/* Segmented Switcher */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '6px',
+                  background: 'var(--surface)',
+                  padding: '4px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
                 {[
                   {
                     id: 'farmer' as UserRole,
@@ -1877,13 +1943,13 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   },
                   {
                     id: 'veterinarian' as UserRole,
-                    label: copy.signInRoleVet || 'Doctor',
+                    label: copy.signInRoleVet || 'Vet Doctor',
                     sub: 'पशुवैद्यक',
                     badge: '🩺',
                   },
                   {
                     id: 'government' as UserRole,
-                    label: copy.signInRoleGov || 'Official',
+                    label: copy.signInRoleGov || 'Govt Official',
                     sub: 'शासकीय',
                     badge: '🏛️',
                   },
@@ -1899,112 +1965,75 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       }}
                       style={{
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '4px',
-                        padding: '12px 8px',
-                        borderRadius: '14px',
-                        border: isSel ? '2px solid #2D6A4F' : '1.5px solid #e2e8f0',
-                        background: isSel ? '#ecfdf5' : '#ffffff',
+                        gap: '6px',
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: isSel ? 'var(--primary)' : 'transparent',
+                        color: isSel ? '#ffffff' : 'var(--text-main)',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
-                        boxShadow: isSel ? '0 4px 12px rgba(45, 106, 79, 0.12)' : 'none',
-                        position: 'relative',
+                        fontWeight: isSel ? 800 : 600,
+                        fontSize: '0.8rem',
+                        boxShadow: isSel ? '0 2px 8px rgba(27, 94, 75, 0.2)' : 'none',
                       }}
                     >
-                      <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{r.badge}</span>
-                      <span
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: isSel ? 800 : 700,
-                          color: isSel ? '#065f46' : 'var(--text-main)',
-                          textAlign: 'center',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {r.id === 'farmer' ? 'Farmer' : r.id === 'veterinarian' ? 'Vet Doctor' : 'Govt Official'}
-                      </span>
-                      <span style={{ fontSize: '0.68rem', color: isSel ? '#047857' : 'var(--text-muted)' }}>{r.sub}</span>
-                      {isSel && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: '-6px',
-                            right: '-6px',
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            background: '#2D6A4F',
-                            color: '#ffffff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '10px',
-                            fontWeight: 800,
-                          }}
-                        >
-                          ✓
-                        </span>
-                      )}
+                      <span style={{ fontSize: '1rem', lineHeight: 1 }}>{r.badge}</span>
+                      <span>{r.label}</span>
                     </button>
                   );
                 })}
               </div>
-            </div>
 
-            {/* ROLE SUMMARY BANNER */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                padding: '9px 12px',
-                marginBottom: '18px',
-                fontSize: '0.76rem',
-              }}
-            >
-              <div style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
-                  {signInRole === 'farmer'
-                    ? '👨‍🌾 Farmer Portal: '
-                    : signInRole === 'veterinarian'
-                    ? '🩺 Veterinary Portal: '
-                    : '🏛️ Government Portal: '}
-                </span>
-                <span>
-                  {signInRole === 'farmer'
-                    ? (copy.signInRoleFarmerSub || 'AI Triage, Vaccination Ledger & Outbreak Alerts')
-                    : signInRole === 'veterinarian'
-                    ? (copy.signInRoleVetSub || 'Clinical Cases, Prescriptions & Lab Requisitions')
-                    : (copy.signInRoleGovSub || 'State Surveillance, Heatmaps & Containment SOPs')}
-                </span>
-              </div>
-
-              {/* Quick Fill Demo Button */}
-              <button
-                type="button"
-                onClick={() => handleQuickFillDemo(signInRole)}
+              {/* Role Meta & Demo Fill Bar */}
+              <div
                 style={{
-                  background: 'rgba(45, 106, 79, 0.08)',
-                  border: '1px solid rgba(45, 106, 79, 0.25)',
-                  color: '#2D6A4F',
-                  borderRadius: '8px',
-                  padding: '4px 8px',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  marginLeft: '8px',
-                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.74rem',
+                  padding: '2px 4px',
+                  gap: '8px',
                 }}
-                title="Fill demo credentials for instant testing"
               >
-                ⚡ {copy.quickFillDemo || 'Demo Fill'}
-              </button>
+                <div style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                    {signInRole === 'farmer'
+                      ? '👨‍🌾 Farmer Portal: '
+                      : signInRole === 'veterinarian'
+                      ? '🩺 MSVC Veterinary Portal: '
+                      : '🏛️ Government Portal: '}
+                  </span>
+                  <span>
+                    {signInRole === 'farmer'
+                      ? (copy.signInRoleFarmerSub || 'AI Triage, Vaccination Ledger & Alerts')
+                      : signInRole === 'veterinarian'
+                      ? (copy.signInRoleVetSub || 'Clinical Cases, Prescriptions & EMR')
+                      : (copy.signInRoleGovSub || 'Surveillance Heatmaps & DAHO SOPs')}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickFillDemo(signInRole)}
+                  className="btn-saffron"
+                  style={{
+                    padding: '4px 9px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    borderRadius: '7px',
+                    flexShrink: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                  title="Auto-fill demo credentials for instant testing"
+                >
+                  <span>⚡ {copy.quickFillDemo || 'Demo Fill'}</span>
+                </button>
+              </div>
             </div>
 
             {errorMsg && (
@@ -2113,7 +2142,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary"
+                className="btn-saffron"
                 style={{
                   width: '100%',
                   borderRadius: '12px',
@@ -2153,7 +2182,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                 }}
                 style={{
-                  color: 'var(--primary)',
+                  color: 'var(--accent)',
                   fontWeight: 700,
                   background: 'none',
                   border: 'none',
@@ -2178,8 +2207,9 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               maxWidth: '500px',
               width: '100%',
               padding: '34px 26px',
-              boxShadow: '0 20px 45px -12px rgba(220, 38, 38, 0.18), var(--shadow-lg)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-card)',
+              background: 'var(--surface)',
               borderRadius: 'var(--radius-xl)',
               textAlign: 'center',
             }}
@@ -2197,7 +2227,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 justifyContent: 'center',
                 margin: '0 auto 18px',
                 border: '4px solid #fecaca',
-                boxShadow: '0 8px 20px rgba(220, 38, 38, 0.2)',
+                boxShadow: '0 8px 20px rgba(220, 38, 38, 0.15)',
               }}
             >
               <AlertOctagon size={34} strokeWidth={2.4} />
@@ -2253,7 +2283,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             {/* Detail snippet box showing entered details */}
             <div
               style={{
-                background: '#f8fafc',
+                background: 'var(--surface-raised)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px 14px',
@@ -2291,8 +2321,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             {/* Tips / Checklist */}
             <div
               style={{
-                background: 'rgba(245, 158, 11, 0.06)',
-                border: '1px dashed #fcd34d',
+                background: 'rgba(217, 119, 6, 0.08)',
+                border: '1px dashed var(--accent)',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px 14px',
                 textAlign: 'left',
@@ -2318,7 +2348,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                   setSignInPassword('');
                 }}
-                className="btn-primary"
+                className="btn-earth"
                 style={{
                   width: '100%',
                   padding: '13px 20px',
@@ -2329,7 +2359,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   justifyContent: 'center',
                   gap: '8px',
                   borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
                   cursor: 'pointer',
                 }}
               >
@@ -2344,12 +2373,12 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                   setSignInPassword('');
                 }}
-                className="btn-outline"
+                className="btn-saffron"
                 style={{
                   width: '100%',
                   padding: '11px 18px',
                   fontSize: '0.88rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

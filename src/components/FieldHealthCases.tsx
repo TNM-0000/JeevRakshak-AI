@@ -257,7 +257,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
               </div>
 
               {/* Symptoms snippet */}
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: '#f8fafc', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: 'var(--surface-raised)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                 <strong>{language === 'mr' ? 'लक्षणे:' : language === 'hi' ? 'लक्षण:' : 'Symptoms:'}</strong> {localizeSymptoms(report.symptoms, language)}
               </div>
 
@@ -319,7 +319,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
 
             {/* Case Details: Animal & Symptoms */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '16px' }}>
-              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ background: 'var(--surface-raised)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   {language === 'mr' ? 'जनावर टॅग क्रमांक' : language === 'hi' ? 'पशु टैग संख्या' : 'Animal Tag'}
                 </div>
@@ -336,7 +336,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 </button>
               </div>
 
-              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ background: 'var(--surface-raised)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   {language === 'mr' ? 'स्थान आणि अंतर' : language === 'hi' ? 'स्थान और दूरी' : 'Location Distance'}
                 </div>
@@ -376,7 +376,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
 
             {/* Differential Diagnosis / Disease Catalog Associations */}
             {selectedCase.diseases && selectedCase.diseases.length > 0 && (
-              <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ marginBottom: '16px', background: 'var(--surface-raised)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px' }}>
                   {language === 'mr'
                     ? 'संभाव्य आजार निदान (रोग सूचीवरून)'
@@ -480,7 +480,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--surface-raised)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   {language === 'mr'
                     ? 'या अहवालासाठी अद्याप नमुने गोळा केलेले नाहीत.'
                     : language === 'hi'
@@ -606,7 +606,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   readOnly
                   value={language === 'mr' ? 'जिल्हा पशुवैद्यकीय पॉलीक्लिनिक आणि प्रयोगशाळा (पुणे)' : language === 'hi' ? 'जिला पशु चिकित्सा पॉलीक्लिनिक एवं प्रयोगशाला (पुणे)' : 'District Veterinary Polyclinic & Laboratory (Pune)'}
                   className="form-input"
-                  style={{ background: '#f8fafc', color: 'var(--text-muted)' }}
+                  style={{ background: 'var(--surface-raised)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}
                 />
               </div>
 
