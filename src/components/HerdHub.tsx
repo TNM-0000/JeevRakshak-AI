@@ -77,7 +77,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
       const currentUser = dataService.getCurrentUser();
       const newHerd = await dataService.createHerd({
         name: currentUser?.full_name ? `${currentUser.full_name}'s Herd` : 'Livestock Herd',
-        owner_profile_id: currentUser?.id || '00000000-0000-0000-0000-000000000000',
+        owner_profile_id: currentUser?.id || 'prof-local-farmer',
         location_id: '',
       });
       targetHerdId = newHerd.id;

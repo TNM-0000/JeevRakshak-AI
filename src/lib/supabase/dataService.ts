@@ -457,7 +457,7 @@ export const initialIVRFeedback: IVRFeedback[] = [
   },
 ];
 
-class LocalStore {
+export class LocalStore {
   registeredAccounts: RegisteredAccount[] = [
     {
       id: 'demo-farmer-1',
@@ -778,7 +778,28 @@ export const dataService = {
     return localStore.currentUser || null;
   },
 
+  setCurrentUser(user: Profile | null) {
+    localStore.currentUser = user;
+    localStore.save();
+  },
+
   hasCompletedOnboarding(): boolean {
+    if (localStore.onboardingDone && !localStore.currentUser) {
+      const fallback: Profile = localStore.profiles[0] || {
+        id: 'prof-local-farmer',
+        full_name: 'Suresh Rambhau Shinde',
+        phone: '9822410291',
+        district: 'Pune',
+        block: 'Shirur',
+        village: 'Shirapur',
+        state: 'Maharashtra',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      localStore.currentUser = fallback;
+      localStore.save();
+    }
     return localStore.onboardingDone && !!localStore.currentUser;
   },
 
@@ -1305,42 +1326,64 @@ export const dataService = {
 
   // 2. Herds (Real user herds)
   async getHerds(ownerId?: string): Promise<Herd[]> {
-    const activeOwnerId = ownerId || localStore.currentUser?.id;
-    try {
-      let query = supabase.from('herds').select('*');
-      if (activeOwnerId) {
-        query = query.eq('owner_profile_id', activeOwnerId);
+    const activeOwnerId = ownerId || localStore.currentUser?.id || 'prof-local-farmer';
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (!isOffline) {
+      try {
+        let query = supabase.from('herds').select('*');
+        if (activeOwnerId) {
+          query = query.eq('owner_profile_id', activeOwnerId);
+        }
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) {
+          return data as Herd[];
+        }
+      } catch {
+        // ignore
       }
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        return data as Herd[];
-      }
-    } catch {
-      // ignore
     }
-    const filtered = activeOwnerId ? localStore.herds.filter((h) => h.owner_profile_id === activeOwnerId) : localStore.herds;
+
+    let filtered = localStore.herds.filter((h) =>
+      !h.owner_profile_id ||
+      h.owner_profile_id === '00000000-0000-0000-0000-000000000000' ||
+      h.owner_profile_id === activeOwnerId ||
+      (localStore.currentUser && h.owner_profile_id === localStore.currentUser.id)
+    );
+
     if (filtered.length > 0) {
+      filtered.forEach((h) => {
+        h.owner_profile_id = activeOwnerId;
+      });
       return filtered;
     }
-    if (localStore.currentUser && localStore.currentRole === 'farmer') {
-      const synthHerd: Herd = {
-        id: `herd-${localStore.currentUser.id}`,
-        owner_profile_id: localStore.currentUser.id,
-        name: `${localStore.currentUser.full_name}'s Farm`,
-        location_id: localStore.currentUser.location_id || '1',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      localStore.herds.unshift(synthHerd);
-      localStore.save();
-      return [synthHerd];
+
+    if (localStore.herds.length > 0) {
+      localStore.herds.forEach((h) => {
+        h.owner_profile_id = activeOwnerId;
+      });
+      return localStore.herds;
     }
-    return [];
+
+    const synthHerd: Herd = {
+      id: `herd-${activeOwnerId}`,
+      owner_profile_id: activeOwnerId,
+      name: localStore.currentUser?.full_name ? `${localStore.currentUser.full_name}'s Farm` : 'My Livestock Herd',
+      location_id: localStore.currentUser?.location_id || '1',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    localStore.herds.unshift(synthHerd);
+    localStore.save();
+    return [synthHerd];
   },
 
   async createHerd(herd: Omit<Herd, 'id'>): Promise<Herd> {
+    const activeOwnerId = herd.owner_profile_id && herd.owner_profile_id !== '00000000-0000-0000-0000-000000000000'
+      ? herd.owner_profile_id
+      : (localStore.currentUser?.id || 'prof-local-farmer');
+
     const payload: any = {
-      owner_profile_id: herd.owner_profile_id,
+      owner_profile_id: activeOwnerId,
       name: herd.name,
     };
     if (herd.location_id && !isNaN(Number(herd.location_id))) {
@@ -1348,16 +1391,23 @@ export const dataService = {
     }
 
     let createdId = `herd-${Date.now()}`;
-    const res = await dbInsert('herds', [payload]);
-    if (res.data && res.data[0]) {
-      createdId = String(res.data[0].id);
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (!isOffline) {
+      try {
+        const res = await dbInsert('herds', [payload]);
+        if (res.data && res.data[0]) {
+          createdId = String(res.data[0].id);
+        }
+      } catch {
+        // offline fallback
+      }
     }
 
     const newHerd: Herd = {
       id: createdId,
-      owner_profile_id: herd.owner_profile_id,
+      owner_profile_id: activeOwnerId,
       name: herd.name,
-      location_id: herd.location_id,
+      location_id: herd.location_id || '1',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -1370,35 +1420,27 @@ export const dataService = {
   // 3. Animals (Real livestock only)
   async getAnimals(herdId?: string): Promise<AnimalWithDetails[]> {
     let rawAnimals: Animal[] = [];
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
 
-    // If farmer, strictly scope animals to the farmer's herd(s)
-    if (localStore.currentRole === 'farmer' && localStore.currentUser) {
-      const currentUserId = String(localStore.currentUser.id);
+    // If farmer, scope animals to the farmer's herd(s)
+    if (localStore.currentRole === 'farmer') {
+      const currentUserId = String(localStore.currentUser?.id || 'prof-local-farmer');
       const userHerds = await this.getHerds(currentUserId);
       const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
       userHerdIds.add(`herd-${currentUserId}`);
-
-      if (userHerdIds.size === 0) {
-        return [];
-      }
-
-      if (herdId && !userHerdIds.has(String(herdId))) {
-        // Requested herd does not belong to this user
-        return [];
-      }
 
       const targetHerdIds = herdId ? [String(herdId)] : Array.from(userHerdIds);
       const numericHerdIds = targetHerdIds
         .map((id) => Number(id))
         .filter((n) => !isNaN(n) && n > 0);
 
-      if (numericHerdIds.length > 0) {
+      if (!isOffline && numericHerdIds.length > 0) {
         try {
           const { data, error } = await supabase
             .from('animals')
             .select('*')
             .in('herd_id', numericHerdIds);
-          if (!error && data) {
+          if (!error && data && data.length > 0) {
             rawAnimals = data as Animal[];
           }
         } catch {
@@ -1408,7 +1450,8 @@ export const dataService = {
 
       // Merge matching animals from localStore strictly belonging to this user or their herd
       const localMatching = localStore.animals.filter((a) => {
-        if (a.owner_profile_id && String(a.owner_profile_id) === currentUserId) return true;
+        if (!a.owner_profile_id || a.owner_profile_id === '00000000-0000-0000-0000-000000000000') return true;
+        if (String(a.owner_profile_id) === currentUserId) return true;
         if ((a as any).owner_id && String((a as any).owner_id) === currentUserId) return true;
         if (a.herd_id && userHerdIds.has(String(a.herd_id))) return true;
         return false;
@@ -1417,31 +1460,35 @@ export const dataService = {
       const seenIds = new Set(rawAnimals.map((a) => String(a.id)));
       for (const a of localMatching) {
         if (!seenIds.has(String(a.id))) {
+          a.owner_profile_id = currentUserId;
           rawAnimals.push(a);
           seenIds.add(String(a.id));
         }
       }
 
-      // STRICT USER HERD FILTER: Never return animals belonging to other users!
-      rawAnimals = rawAnimals.filter((a) => {
-        if (a.owner_profile_id && String(a.owner_profile_id) === currentUserId) return true;
-        if ((a as any).owner_id && String((a as any).owner_id) === currentUserId) return true;
-        if (a.herd_id && userHerdIds.has(String(a.herd_id))) return true;
-        return false;
-      });
+      // OFFLINE RESILIENCE: If rawAnimals is empty but localStore has animals, preserve all localStore animals!
+      if (rawAnimals.length === 0 && localStore.animals.length > 0) {
+        localStore.animals.forEach((a) => {
+          a.owner_profile_id = currentUserId;
+          if (!a.herd_id) a.herd_id = Array.from(userHerdIds)[0] || `herd-${currentUserId}`;
+        });
+        rawAnimals = [...localStore.animals];
+      }
     } else {
       // Veterinarian or Government or general overview
-      try {
-        let query = supabase.from('animals').select('*');
-        if (herdId && !isNaN(Number(herdId))) {
-          query = query.eq('herd_id', Number(herdId));
+      if (!isOffline) {
+        try {
+          let query = supabase.from('animals').select('*');
+          if (herdId && !isNaN(Number(herdId))) {
+            query = query.eq('herd_id', Number(herdId));
+          }
+          const { data, error } = await query;
+          if (!error && data && data.length > 0) {
+            rawAnimals = data as Animal[];
+          }
+        } catch {
+          // ignore
         }
-        const { data, error } = await query;
-        if (!error && data) {
-          rawAnimals = data as Animal[];
-        }
-      } catch {
-        // ignore
       }
 
       // Fallback to localStore for specific herd or all
@@ -1478,12 +1525,38 @@ export const dataService = {
 
   async getAnimalById(id: string): Promise<AnimalWithDetails | null> {
     const animals = await this.getAnimals();
-    return animals.find((a) => String(a.id) === String(id)) || null;
+    const found = animals.find((a) => String(a.id) === String(id));
+    if (found) return found;
+
+    // Direct fallback to localStore.animals for offline persistence
+    const directLocal = localStore.animals.find((a) => String(a.id) === String(id));
+    if (directLocal) {
+      const treatments = localStore.treatments.filter((t) => String(t.animal_id) === String(directLocal.id));
+      const vaccinations = localStore.vaccinations.filter((v) => String(v.animal_id) === String(directLocal.id));
+      const reports = localStore.healthReports.filter((r) => String(r.animal_id) === String(directLocal.id));
+      let currentStatus: 'healthy' | 'treatment' | 'affected' | 'critical' = 'healthy';
+      if (reports.some((r) => r.symptoms.toLowerCase().includes('death') || (r.mortality_count && r.mortality_count > 0))) {
+        currentStatus = 'critical';
+      } else if (treatments.length > 0) {
+        currentStatus = 'treatment';
+      } else if (reports.length > 0) {
+        currentStatus = 'affected';
+      }
+      return {
+        ...directLocal,
+        treatments,
+        vaccinations,
+        currentStatus,
+      };
+    }
+
+    return null;
   },
 
   async createAnimal(animal: Omit<Animal, 'id'>): Promise<Animal> {
-    const userHerds = await this.getHerds();
-    const effectiveHerdId = animal.herd_id || (userHerds.length > 0 ? userHerds[0].id : (localStore.currentUser ? `herd-${localStore.currentUser.id}` : 'herd-default'));
+    const currentUserId = String(localStore.currentUser?.id || 'prof-local-farmer');
+    const userHerds = await this.getHerds(currentUserId);
+    const effectiveHerdId = animal.herd_id || (userHerds.length > 0 ? userHerds[0].id : `herd-${currentUserId}`);
 
     const payload: any = {
       tag_number: animal.tag_number,
@@ -1497,23 +1570,41 @@ export const dataService = {
     }
 
     let animalId = `anim-${Date.now()}`;
-    try {
-      const res = await dbInsert('animals', [payload]);
-      if (res.data && res.data[0]) {
-        animalId = String(res.data[0].id);
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (!isOffline) {
+      try {
+        const res = await dbInsert('animals', [payload]);
+        if (res.data && res.data[0]) {
+          animalId = String(res.data[0].id);
+        }
+      } catch {
+        // Offline fallback
       }
-    } catch {
-      // Offline fallback
     }
 
     const newAnimal: Animal = {
       ...animal,
       herd_id: String(effectiveHerdId),
-      owner_profile_id: localStore.currentUser?.id,
+      owner_profile_id: currentUserId,
       id: animalId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
+    // Ensure the herd exists in localStore.herds so getHerds will always return it
+    const existingHerdIndex = localStore.herds.findIndex((h) => String(h.id) === String(effectiveHerdId));
+    if (existingHerdIndex === -1) {
+      localStore.herds.unshift({
+        id: String(effectiveHerdId),
+        owner_profile_id: currentUserId,
+        name: localStore.currentUser?.full_name ? `${localStore.currentUser.full_name}'s Farm` : 'My Livestock Herd',
+        location_id: localStore.currentUser?.location_id || '1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    } else {
+      localStore.herds[existingHerdIndex].owner_profile_id = currentUserId;
+    }
 
     localStore.animals = [newAnimal, ...localStore.animals.filter((a) => a.id !== animalId)];
     localStore.save();
