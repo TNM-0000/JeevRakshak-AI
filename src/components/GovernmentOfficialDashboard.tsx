@@ -1,49 +1,31 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import {
-  OutbreakEvent,
-  AdministrativeLocation,
-  DiseaseCatalogItem,
-  EmergencyCaseRecord,
-  ResourceAllocationRecord,
-  VaccinationCampaignRecord,
-} from '@/types/database';
-import {
-  Building2,
   Shield,
   ShieldAlert,
-  ShieldCheck,
   AlertTriangle,
   Activity,
   CheckCircle2,
   Users,
   Layers,
   Search,
-  Filter,
-  ArrowUpRight,
+  ArrowRight,
   Radio,
-  FileSpreadsheet,
-  Megaphone,
   Truck,
   Syringe,
-  Eye,
-  X,
   ChevronRight,
   TrendingUp,
   MapPin,
-  Compass,
   Download,
   Printer,
   Sparkles,
-  CloudRain,
   PhoneCall,
   UserCheck,
   Server,
-  Database,
-  Lock,
+  Settings as SettingsIcon,
   Calendar,
   Clock,
   ExternalLink,
@@ -52,26 +34,25 @@ import {
   Check,
   Plus,
   Stethoscope,
+  Building2,
+  FileText,
+  Filter,
+  Eye,
+  Lock,
+  Globe,
+  Bell,
+  RefreshCw,
 } from 'lucide-react';
 
-export type GovModuleTab =
-  | 'overview'
-  | 'surveillance'
-  | 'outbreaks'
-  | 'ai_prediction'
+export type GovCleanModule =
+  | 'dashboard'
+  | 'disease'
   | 'vaccination'
-  | 'resources'
   | 'emergency'
-  | 'vet_monitoring'
-  | 'farmer_monitoring'
-  | 'census'
-  | 'gis_heatmap'
-  | 'alerts_broadcast'
-  | 'awareness'
-  | 'complaints'
+  | 'resources'
   | 'reports'
-  | 'user_management'
-  | 'system_admin';
+  | 'users'
+  | 'settings';
 
 interface GovernmentOfficialDashboardProps {
   onSelectCase?: (caseId: string) => void;
@@ -83,246 +64,112 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
   onOpenReport,
 }) => {
   const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState<GovModuleTab>('overview');
-
-  // Interactive filters
-  const [selectedState, setSelectedState] = useState('Maharashtra');
-  const [selectedDistrict, setSelectedDistrict] = useState('Pune');
-  const [selectedSpecies, setSelectedSpecies] = useState('all');
-  const [selectedDisease, setSelectedDisease] = useState('all');
-  const [timeRange, setTimeRange] = useState('30d');
-
-  // Data states
-  const [outbreaks, setOutbreaks] = useState<OutbreakEvent[]>([]);
-  const [diseases, setDiseases] = useState<DiseaseCatalogItem[]>([]);
+  const [activeModule, setActiveModule] = useState<GovCleanModule>('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Containment Protocol checklist state
-  const [containmentChecklist, setContainmentChecklist] = useState<{ [key: string]: boolean }>({
-    quarantineRing: true,
-    ringVaccination: true,
-    cattleMarketClosure: true,
-    movementCheckpost: true,
-    biosecurityDisinfection: true,
-    rapidResponseDeployed: true,
-  });
+  // Filter states for detailed modules
+  const [searchFilter, setSearchFilter] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('Pune');
+  const [selectedTaluka, setSelectedTaluka] = useState('All');
+  const [selectedRiskFilter, setSelectedRiskFilter] = useState('all');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  useEffect(() => {
-    dataService.getOutbreaks(language).then(setOutbreaks);
-    dataService.getDiseases(language).then(setDiseases);
-  }, [language]);
-
-  // Government Official Key KPI Totals (Executive Dashboard)
-  const stats = useMemo(() => {
-    return {
-      totalFarmers: '48,920',
-      totalVets: '342',
-      totalAnimals: '3,84,190',
-      reportedCases: '1,248',
-      activeOutbreaks: outbreaks.filter((o) => o.status === 'active').length || 2,
-      vaccinatedAnimals: '3,12,850',
-      pendingCases: '47',
-      recoveredAnimals: '1,162',
-      diseaseAlerts: '6',
-      emergencyCases: '14',
-      districtsCovered: '36',
-      villagesCovered: '1,840',
-      vaccinationCoveragePct: 81.4,
-    };
-  }, [outbreaks]);
-
-  // 18 Modules Tabs configuration
-  const navHubs: { id: GovModuleTab; label: string; icon: React.FC<any>; badge?: string }[] = [
-    { id: 'overview', label: language === 'mr' ? 'कमांड केंद्र' : language === 'hi' ? 'कमांड केंद्र' : 'Executive Command', icon: Building2 },
-    { id: 'surveillance', label: language === 'mr' ? 'रोग पाळत केंद्र' : language === 'hi' ? 'रोग निगरानी केंद्र' : 'Disease Surveillance', icon: Activity, badge: 'Live' },
-    { id: 'outbreaks', label: language === 'mr' ? 'प्रकोप व्यवस्थापन' : language === 'hi' ? 'प्रकोप प्रबंधन' : 'Outbreak Management', icon: ShieldAlert, badge: `${stats.activeOutbreaks}` },
-    { id: 'ai_prediction', label: language === 'mr' ? 'एआय अंदाज केंद्र' : language === 'hi' ? 'एआई पूर्वानुमान' : 'AI Predictions', icon: Sparkles },
-    { id: 'gis_heatmap', label: language === 'mr' ? 'जीआयएस उष्णता नकाशा' : language === 'hi' ? 'जीआईएस हीटमैप' : 'GIS Disease Heatmap', icon: MapPin },
-    { id: 'vaccination', label: language === 'mr' ? 'राष्ट्रीय लसीकरण पोर्टल' : language === 'hi' ? 'टीकाकरण प्रबंधन' : 'Vaccination Hub', icon: Syringe },
-    { id: 'resources', label: language === 'mr' ? 'संसाधन वाटप' : language === 'hi' ? 'संसाधन आवंटन' : 'Resource Allocation', icon: Truck },
-    { id: 'emergency', label: language === 'mr' ? 'आणीबाणी १९६२ डॅशबोर्ड' : language === 'hi' ? 'आपातकालीन प्रतिक्रिया' : 'Emergency 1962 SOS', icon: AlertTriangle, badge: '14' },
-    { id: 'vet_monitoring', label: language === 'mr' ? 'पशुवैद्यक निरीक्षण' : language === 'hi' ? 'पशु चिकित्सक निगरानी' : 'Veterinary Monitoring', icon: Stethoscope },
-    { id: 'farmer_monitoring', label: language === 'mr' ? 'शेतकरी सहभाग पोर्टल' : language === 'hi' ? 'किसान निगरानी' : 'Farmer Monitoring', icon: Users },
-    { id: 'census', label: language === 'mr' ? 'पशुधन जनगणना' : language === 'hi' ? 'पशुधन जनगणना' : 'Livestock Census', icon: Layers },
-    { id: 'alerts_broadcast', label: language === 'mr' ? 'सूचना प्रसारण' : language === 'hi' ? 'चेतावनी प्रसारण' : 'Alerts Broadcast', icon: Radio },
-    { id: 'awareness', label: language === 'mr' ? 'शेतकरी जनजागृती' : language === 'hi' ? 'जागरूकता अभियान' : 'Awareness Campaigns', icon: Megaphone },
-    { id: 'complaints', label: language === 'mr' ? 'तक्रार निवारण' : language === 'hi' ? 'शिकायत निवारण' : 'Complaint Redressal', icon: MessageSquare },
-    { id: 'reports', label: language === 'mr' ? 'शासकीय अहवाल' : language === 'hi' ? 'रिपोर्ट्स एवं विश्लेषण' : 'Reports & Analytics', icon: Download },
-    { id: 'user_management', label: language === 'mr' ? 'वापरकर्ता व्यवस्थापन' : language === 'hi' ? 'उपयोगकर्ता प्रबंधन' : 'User Management', icon: UserCheck },
-    { id: 'system_admin', label: language === 'mr' ? 'प्रणाली प्रशासन' : language === 'hi' ? 'सिस्टम प्रशासन' : 'System Administration', icon: Server },
+  // 8 Clean Modules Navigation
+  const navItems: { id: GovCleanModule; label: string; icon: React.FC<any>; badge?: string }[] = [
+    { id: 'dashboard', label: language === 'mr' ? 'डॅशबोर्ड' : language === 'hi' ? 'डैशबोर्ड' : 'Dashboard', icon: Building2 },
+    { id: 'disease', label: language === 'mr' ? 'रोग पाळत व निरीक्षण' : language === 'hi' ? 'रोग निगरानी' : 'Disease Monitoring', icon: Activity, badge: 'Active' },
+    { id: 'vaccination', label: language === 'mr' ? 'लसीकरण' : language === 'hi' ? 'टीकाकरण' : 'Vaccination', icon: Syringe },
+    { id: 'emergency', label: language === 'mr' ? 'आणीबाणी १९६२' : language === 'hi' ? 'आपातकालीन सेवा' : 'Emergency Response', icon: AlertTriangle, badge: '3' },
+    { id: 'resources', label: language === 'mr' ? 'संसाधने' : language === 'hi' ? 'संसाधन' : 'Resources', icon: Truck },
+    { id: 'reports', label: language === 'mr' ? 'अहवाल' : language === 'hi' ? 'रिपोर्ट्स' : 'Reports', icon: FileText },
+    { id: 'users', label: language === 'mr' ? 'वापरकर्ते' : language === 'hi' ? 'उपयोगकर्ता' : 'User Management', icon: UserCheck },
+    { id: 'settings', label: language === 'mr' ? 'सेटिंग्ज' : language === 'hi' ? 'सेटिंग्स' : 'Settings', icon: SettingsIcon },
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Toast Feedback */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+      {/* Toast Feedback Notification */}
       {toastMessage && (
         <div
           style={{
             position: 'fixed',
-            top: '20px',
-            right: '20px',
+            top: '24px',
+            right: '24px',
             zIndex: 9999,
-            background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
-            color: '#fff',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            background: '#2D6A4F',
+            color: '#FFFFFF',
+            padding: '14px 22px',
+            borderRadius: '16px',
+            boxShadow: '0 12px 32px rgba(45, 106, 79, 0.25)',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            fontSize: '0.85rem',
+            gap: '12px',
+            fontSize: '0.86rem',
             fontWeight: 700,
-            border: '1.5px solid #52b788',
+            border: '1px solid #52B788',
           }}
         >
-          <CheckCircle2 size={18} color="#52b788" />
+          <CheckCircle2 size={18} color="#95D5B2" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* National Government Official Banner */}
+      {/* Streamlined Government Navigation Bar (8 Clean Modules Only) */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '24px 28px',
-          color: '#ffffff',
-          boxShadow: 'var(--shadow-md)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', padding: '4px 14px', borderRadius: '20px', fontSize: '0.74rem', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
-              <Shield size={14} color="#95d5b2" />
-              <span>
-                {language === 'mr'
-                  ? 'महाराष्ट्र शासन • पशुसंवर्धन विभाग • राज्यस्तरीय नियंत्रण कक्ष'
-                  : 'GOVERNMENT OF MAHARASHTRA • DEPARTMENT OF ANIMAL HUSBANDRY • STATE COMMAND CENTER'}
-              </span>
-            </div>
-
-            <h1 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.85rem)', fontWeight: 800, margin: '4px 0 6px', color: '#ffffff' }}>
-              {language === 'mr' ? 'पुणे विभाग राष्ट्रीय पशुधन रोग पाळत प्रणाली' : 'National Livestock Disease Surveillance & Epidemic Command'}
-            </h1>
-
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px', fontSize: '0.82rem', color: '#d8f3dc' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <MapPin size={14} /> Pune Division (Jurisdiction: 14 Talukas, 1,840 Villages)
-              </span>
-              <span>•</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <UserCheck size={14} /> Authorized Officer: Rajesh Patil, DAHO Pune
-              </span>
-              <span>•</span>
-              <span style={{ background: 'rgba(239,68,68,0.25)', color: '#fca5a5', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(239,68,68,0.3)' }}>
-                SURVEILLANCE LEVEL: HIGH
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => showToast('Dispatched High-Priority Advisory SMS to 48,920 farmers in Shirur & Baramati.')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#e63946',
-                color: '#fff',
-                padding: '10px 18px',
-                borderRadius: '10px',
-                fontSize: '0.84rem',
-                fontWeight: 800,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(230, 57, 70, 0.4)',
-              }}
-            >
-              <Radio size={16} />
-              <span>{language === 'mr' ? 'तातडीचे अलर्ट प्रक्षेपण' : 'Broadcast Flash Alert'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => showToast('Generating official Ministerial Dossier (PDF/Excel)... Download ready.')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(255,255,255,0.15)',
-                color: '#ffffff',
-                padding: '10px 16px',
-                borderRadius: '10px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                border: '1px solid rgba(255,255,255,0.3)',
-                cursor: 'pointer',
-              }}
-            >
-              <Download size={15} />
-              <span>Export Dossier</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 18 Modules Navigation Pill Bar */}
-      <div
-        style={{
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          padding: '8px 12px',
+          border: '1px solid rgba(82, 183, 136, 0.25)',
+          boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
           display: 'flex',
           gap: '8px',
           overflowX: 'auto',
-          paddingBottom: '4px',
-          scrollbarWidth: 'thin',
+          scrollbarWidth: 'none',
         }}
       >
-        {navHubs.map((hub) => {
-          const Icon = hub.icon;
-          const isActive = activeTab === hub.id;
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeModule === item.id;
           return (
             <button
-              key={hub.id}
+              key={item.id}
               type="button"
-              onClick={() => setActiveTab(hub.id)}
+              onClick={() => setActiveModule(item.id)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '10px',
-                fontSize: '0.8rem',
+                padding: '10px 18px',
+                borderRadius: '16px',
+                fontSize: '0.82rem',
                 fontWeight: isActive ? 800 : 600,
-                background: isActive ? '#2d6a4f' : '#ffffff',
-                color: isActive ? '#ffffff' : 'var(--text-main)',
-                border: isActive ? '1.5px solid #2d6a4f' : '1px solid var(--border-subtle)',
+                background: isActive ? '#2D6A4F' : 'transparent',
+                color: isActive ? '#FFFFFF' : '#52796F',
+                border: 'none',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                boxShadow: isActive ? '0 4px 12px rgba(45, 106, 79, 0.25)' : 'none',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.2s ease',
               }}
             >
-              <Icon size={15} color={isActive ? '#95d5b2' : '#52796f'} />
-              <span>{hub.label}</span>
-              {hub.badge && (
+              <Icon size={16} color={isActive ? '#95D5B2' : '#52796F'} />
+              <span>{item.label}</span>
+              {item.badge && (
                 <span
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '10px',
+                    padding: '2px 7px',
+                    borderRadius: '12px',
                     fontSize: '0.68rem',
-                    fontWeight: 800,
-                    background: isActive ? 'rgba(255,255,255,0.25)' : '#fee2e2',
-                    color: isActive ? '#ffffff' : '#dc2626',
+                    fontWeight: 700,
+                    background: isActive ? 'rgba(255,255,255,0.25)' : '#FDE8E8',
+                    color: isActive ? '#FFFFFF' : '#E63946',
                   }}
                 >
-                  {hub.badge}
+                  {item.badge}
                 </span>
               )}
             </button>
@@ -331,259 +178,621 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       </div>
 
       {/* ========================================================================= */}
-      {/* MODULE 1 & 2: EXECUTIVE COMMAND HOME                                      */}
+      {/* 1. HOMEPAGE: CLEAN COMMAND CENTER                                         */}
       {/* ========================================================================= */}
-      {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* 12 Key Official Statistics Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-            {[
-              { title: 'Registered Farmers', val: stats.totalFarmers, icon: Users, color: '#2d6a4f', bg: '#f0fdf4' },
-              { title: 'Registered Veterinarians', val: stats.totalVets, icon: Stethoscope, color: '#0284c7', bg: '#f0f9ff' },
-              { title: 'Total Livestock Registered', val: stats.totalAnimals, icon: Layers, color: '#059669', bg: '#ecfdf5' },
-              { title: 'Reported Field Cases', val: stats.reportedCases, icon: Activity, color: '#f59e0b', bg: '#fffbeb' },
-              { title: 'Active Outbreak Epicenters', val: stats.activeOutbreaks, icon: ShieldAlert, color: '#dc2626', bg: '#fef2f2' },
-              { title: 'Vaccinated Animals', val: stats.vaccinatedAnimals, icon: Syringe, color: '#10b981', bg: '#ecfdf5' },
-              { title: 'Pending Case Reviews', val: stats.pendingCases, icon: Clock, color: '#d97706', bg: '#fffbeb' },
-              { title: 'Cured & Recovered', val: stats.recoveredAnimals, icon: CheckCircle2, color: '#166534', bg: '#f0fdf4' },
-              { title: 'Active Disease Alerts', val: stats.diseaseAlerts, icon: BadgeAlert, color: '#e11d48', bg: '#fff1f2' },
-              { title: '1962 Emergency Cases', val: stats.emergencyCases, icon: AlertTriangle, color: '#b91c1c', bg: '#fef2f2' },
-              { title: 'Districts Monitored', val: stats.districtsCovered, icon: MapPin, color: '#4f46e5', bg: '#eef2ff' },
-              { title: 'Villages Connected', val: stats.villagesCovered, icon: Compass, color: '#0891b2', bg: '#ecfeff' },
-            ].map((c, i) => {
-              const Icon = c.icon;
-              return (
-                <div
-                  key={i}
-                  style={{
-                    background: c.bg,
-                    border: `1px solid ${c.color}35`,
-                    borderRadius: '12px',
-                    padding: '14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '94px',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>{c.title}</span>
-                    <Icon size={16} color={c.color} />
-                  </div>
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '6px' }}>
-                    {c.val}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Outbreak Containment Protocol Status Card */}
+      {activeModule === 'dashboard' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {/* SECTION 1 – Welcome Header Banner */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
-              border: '1.5px solid #fca5a5',
-              borderRadius: '14px',
-              padding: '18px 22px',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FFF9 100%)',
+              border: '1px solid rgba(82, 183, 136, 0.25)',
+              borderRadius: '24px',
+              padding: '32px 36px',
+              boxShadow: '0 4px 24px rgba(45, 106, 79, 0.05)',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '20px',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ maxWidth: '680px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(82, 183, 136, 0.15)',
+                  color: '#2D6A4F',
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                }}
+              >
+                <Shield size={13} />
+                <span>OFFICIAL GOVERNMENT PORTAL</span>
+              </div>
+
+              <h1
+                style={{
+                  fontSize: 'clamp(1.5rem, 3.5vw, 1.95rem)',
+                  fontWeight: 800,
+                  color: '#1B4332',
+                  margin: '0 0 10px',
+                  lineHeight: 1.25,
+                }}
+              >
+                Government Command Center
+              </h1>
+
+              <p style={{ fontSize: '0.92rem', color: '#52796F', margin: 0, lineHeight: 1.55 }}>
+                Monitor livestock health, disease outbreaks, vaccination programs, and emergency response activities across your assigned region.
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                background: '#FFFFFF',
+                padding: '12px 18px',
+                borderRadius: '18px',
+                border: '1px solid rgba(82, 183, 136, 0.2)',
+                boxShadow: '0 2px 10px rgba(45, 106, 79, 0.04)',
+              }}
+            >
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'rgba(45, 106, 79, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#2D6A4F',
+                }}
+              >
+                <MapPin size={20} />
+              </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldAlert size={18} color="#dc2626" />
-                  <span style={{ fontWeight: 800, fontSize: '1.02rem', color: '#991b1b' }}>
-                    Active Containment Ring: Foot & Mouth Disease (FMD) — Shirur Taluka (5km Zone)
-                  </span>
+                <div style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600 }}>Jurisdiction Node</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#1B4332' }}>Pune Division (14 Blocks)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2 – Key Overview: Exactly 4 Clean, Large Summary Cards */}
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
+              {/* Card 1: Active Outbreaks */}
+              <div
+                onClick={() => setActiveModule('disease')}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(230, 57, 70, 0.25)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Active Outbreaks</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FDE8E8', color: '#E63946', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShieldAlert size={18} />
+                  </div>
                 </div>
-                <p style={{ fontSize: '0.78rem', color: '#b91c1c', margin: '3px 0 0' }}>
-                  Epicenter: Shirapur Village (Lat: 18.8120° N, Lng: 74.3910° E) • 47 Cattle in Quarantine • Zero Mortalities in last 24h
+                <div>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#E63946', lineHeight: 1 }}>
+                    2
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                    Shirur & Baramati containment zones
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Pending Investigations */}
+              <div
+                onClick={() => setActiveModule('disease')}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(244, 162, 97, 0.25)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 4px 20px rgba(244, 162, 97, 0.05)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Pending Investigations</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FEF3C7', color: '#F4A261', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Clock size={18} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#1B4332', lineHeight: 1 }}>
+                    14
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                    Awaiting laboratory test confirmation
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Vaccination Progress */}
+              <div
+                onClick={() => setActiveModule('vaccination')}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Vaccination Progress</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#E8F5E9', color: '#2D6A4F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Syringe size={18} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#2D6A4F', lineHeight: 1 }}>
+                    81.4%
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                    3,12,850 of 3,84,000 cattle covered
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Emergency Cases */}
+              <div
+                onClick={() => setActiveModule('emergency')}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(230, 57, 70, 0.25)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#52796F' }}>Emergency Cases (1962)</span>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#FDE8E8', color: '#E63946', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <AlertTriangle size={18} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#E63946', lineHeight: 1 }}>
+                    3
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#52796F', marginTop: '6px' }}>
+                    Rapid response teams dispatched
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3 – Recent Alerts (Clean alert list without cluttered charts) */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              padding: '28px',
+              border: '1px solid rgba(82, 183, 136, 0.25)',
+              boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+                  Recent Priority Alerts
+                </h2>
+                <p style={{ fontSize: '0.78rem', color: '#52796F', margin: '3px 0 0' }}>
+                  Live notifications requiring administrative monitoring or intervention
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={() => setActiveTab('outbreaks')}
+                onClick={() => setActiveModule('disease')}
                 style={{
-                  background: '#dc2626',
-                  color: '#fff',
+                  background: 'none',
                   border: 'none',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '0.78rem',
+                  color: '#2D6A4F',
+                  fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                Inspect Containment Protocols
+                <span>View Full Alert Feed</span>
+                <ChevronRight size={14} />
               </button>
             </div>
 
-            {/* Quick checklist pills */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { label: '5km Quarantine Ring Enforced', active: true },
-                { label: 'Ring Vaccination (10,000 Doses Active)', active: true },
-                { label: 'Animal Market Ban (APMC Shirur)', active: true },
-                { label: 'RRT Mobile Van #1962 Deployed', active: true },
-              ].map((pill, pIdx) => (
+                {
+                  type: 'outbreak',
+                  badge: 'Critical Disease Report',
+                  title: 'Suspected Foot & Mouth Disease (FMD) in Shirapur Cluster',
+                  desc: 'Dr. Priya Kulkarni reported 4 cattle exhibiting oral vesicles and high fever. 5km buffer ring activated.',
+                  time: '35 mins ago',
+                  severity: '#E63946',
+                  bg: '#FDE8E8',
+                },
+                {
+                  type: 'vaccine',
+                  badge: 'Coverage Warning',
+                  title: 'Vaccine Inventory Running Low in Haveli Taluka',
+                  desc: 'Current stock of FMD Trivalent Oil Adjuvant doses fallen below 1,500 units reserve threshold.',
+                  time: '2 hours ago',
+                  severity: '#F4A261',
+                  bg: '#FEF3C7',
+                },
+                {
+                  type: 'emergency',
+                  badge: 'Emergency Response #1962',
+                  title: 'Mobile Vet Van MH-12-MV-4412 Deployed to Koregaon Bhima',
+                  desc: 'Attending acute bovine recumbency report from farmer Baburao Kale. Response team on-site.',
+                  time: '4 hours ago',
+                  severity: '#457B9D',
+                  bg: '#E0F2FE',
+                },
+                {
+                  type: 'monitoring',
+                  badge: 'Surveillance Update',
+                  title: 'Monsoon Preventive Health Advisory Broadcasted',
+                  desc: 'Dispatched multilingual advisory SMS to 48,920 livestock owners regarding Haemorrhagic Septicaemia.',
+                  time: '6 hours ago',
+                  severity: '#2D6A4F',
+                  bg: '#E8F5E9',
+                },
+              ].map((alert, aIdx) => (
                 <div
-                  key={pIdx}
+                  key={aIdx}
                   style={{
-                    background: '#fff',
-                    border: '1px solid #f87171',
-                    borderRadius: '20px',
-                    padding: '4px 12px',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    color: '#991b1b',
+                    background: '#FFFFFF',
+                    border: `1px solid rgba(82, 183, 136, 0.2)`,
+                    borderLeft: `4px solid ${alert.severity}`,
+                    borderRadius: '16px',
+                    padding: '16px 20px',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    flexWrap: 'wrap',
+                    gap: '12px',
                   }}
                 >
-                  <Check size={12} color="#dc2626" strokeWidth={3} />
-                  <span>{pill.label}</span>
+                  <div style={{ maxWidth: '820px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          background: alert.bg,
+                          color: alert.severity,
+                          padding: '2px 8px',
+                          borderRadius: '8px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {alert.badge}
+                      </span>
+                      <span style={{ fontSize: '0.74rem', color: '#52796F' }}>• {alert.time}</span>
+                    </div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#1B4332' }}>
+                      {alert.title}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '2px', lineHeight: 1.45 }}>
+                      {alert.desc}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (alert.type === 'outbreak') setActiveModule('disease');
+                      else if (alert.type === 'vaccine') setActiveModule('resources');
+                      else if (alert.type === 'emergency') setActiveModule('emergency');
+                      else setActiveModule('reports');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: '1px solid rgba(82, 183, 136, 0.3)',
+                      color: '#2D6A4F',
+                      padding: '6px 12px',
+                      borderRadius: '10px',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Details
+                  </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Interactive Surveillance Feed & Charts Section */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
-            {/* Chart 1: Disease Distribution */}
-            <div className="card-glass" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '0.94rem', fontWeight: 800, margin: '0 0 12px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Activity size={16} color="#0284c7" />
-                <span>Pan-District Pathogen Distribution (Current Month)</span>
-              </h3>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { name: 'Foot & Mouth Disease (FMD)', cases: 47, pct: 45, color: '#dc2626' },
-                  { name: 'Lumpy Skin Disease (LSD)', cases: 28, pct: 27, color: '#f59e0b' },
-                  { name: 'Clinical Mastitis', cases: 18, pct: 17, color: '#0284c7' },
-                  { name: 'Haemorrhagic Septicaemia (HS)', cases: 7, pct: 7, color: '#8b5cf6' },
-                  { name: 'Black Quarter (BQ)', cases: 4, pct: 4, color: '#10b981' },
-                ].map((item, idx) => (
-                  <div key={idx}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '3px' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.name}</span>
-                      <span style={{ fontWeight: 700, color: item.color }}>{item.cases} cases ({item.pct}%)</span>
+          {/* SECTION 4 – Quick Actions: Large, Clean Buttons */}
+          <div>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', marginBottom: '14px' }}>
+              Quick Action Center
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              {[
+                {
+                  id: 'disease' as GovCleanModule,
+                  title: 'Disease Monitoring',
+                  desc: 'Open spatial surveillance & outbreak tracking',
+                  icon: Activity,
+                },
+                {
+                  id: 'vaccination' as GovCleanModule,
+                  title: 'Vaccination Hub',
+                  desc: 'Manage national campaigns & district targets',
+                  icon: Syringe,
+                },
+                {
+                  id: 'emergency' as GovCleanModule,
+                  title: 'Emergency Response',
+                  desc: 'Coordinate 1962 mobile ambulance teams',
+                  icon: AlertTriangle,
+                },
+                {
+                  id: 'reports' as GovCleanModule,
+                  title: 'Reports Center',
+                  desc: 'Generate & export PDF / Excel dossiers',
+                  icon: Download,
+                },
+              ].map((act) => {
+                const Icon = act.icon;
+                return (
+                  <button
+                    key={act.id}
+                    type="button"
+                    onClick={() => setActiveModule(act.id)}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(82, 183, 136, 0.25)',
+                      borderRadius: '24px',
+                      padding: '24px',
+                      boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '16px',
+                        background: '#E8F5E9',
+                        color: '#2D6A4F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Icon size={22} />
                     </div>
-                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${item.pct}%`, height: '100%', background: item.color, borderRadius: '4px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Chart 2: Species Population & Health Status */}
-            <div className="card-glass" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '0.94rem', fontWeight: 800, margin: '0 0 12px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Layers size={16} color="#166534" />
-                <span>Species-Wise Livestock Census in Division</span>
-              </h3>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { species: 'Cattle (Cow / Bull)', count: '2,14,500', healthy: '98.8%', color: '#2d6a4f' },
-                  { species: 'Buffalo', count: '1,02,300', healthy: '99.1%', color: '#1b4332' },
-                  { species: 'Goat & Sheep', count: '54,200', healthy: '99.4%', color: '#52b788' },
-                  { species: 'Poultry & Others', count: '13,190', healthy: '99.6%', color: '#0284c7' },
-                ].map((s, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderRadius: '8px' }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>{s.species}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Registered Population: {s.count}</div>
+                      <div style={{ fontSize: '0.96rem', fontWeight: 800, color: '#1B4332' }}>
+                        {act.title}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#52796F', marginTop: '3px', lineHeight: 1.35 }}>
+                        {act.desc}
+                      </div>
                     </div>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#166534', background: '#dcfce7', padding: '2px 8px', borderRadius: '6px' }}>
-                      {s.healthy} Healthy
-                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* SECTION 5 – Recent Activity Timeline */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              padding: '28px',
+              border: '1px solid rgba(82, 183, 136, 0.25)',
+              boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            }}
+          >
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1B4332', margin: '0 0 16px' }}>
+              Operational Activity Timeline
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[
+                { time: '10:45 AM', action: 'Disease Report Submitted', detail: 'Shirur Taluka veterinary officer logged 4 suspected FMD cases with oral lesions.', officer: 'Dr. Priya Kulkarni' },
+                { time: '09:20 AM', action: 'Investigation Completed', detail: 'Lab test results received from VIDL Pune confirming Foot & Mouth Disease Type O.', officer: 'VIDL Diagnostic Team' },
+                { time: 'Yesterday', action: 'Vaccination Campaign Launched', detail: 'Phase 4 NADCP FMD ring immunization launched for 10,000 bovines in Shirur buffer.', officer: 'State Vaccination Directorate' },
+                { time: '2 Days Ago', action: 'Emergency Case Resolved', detail: 'Mobile Vet Clinic Van #1962 stabilized acute respiratory distress in Daund herd.', officer: 'Rapid Response Team B' },
+              ].map((act, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                  <div
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: '#52B788',
+                      marginTop: '6px',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1, paddingBottom: idx < 3 ? '16px' : '0', borderBottom: idx < 3 ? '1px solid #F1F5F9' : 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1B4332' }}>{act.action}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#52796F', fontWeight: 600 }}>{act.time}</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '2px' }}>{act.detail}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#2D6A4F', fontWeight: 700, marginTop: '3px' }}>Logged by: {act.officer}</div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* MODULE 3: DISEASE SURVEILLANCE CENTER                                     */}
+      {/* 2. DEDICATED MODULE: DISEASE MONITORING                                    */}
       {/* ========================================================================= */}
-      {activeTab === 'surveillance' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
+      {activeModule === 'disease' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                Pan-District Disease Surveillance Center
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+                Disease Surveillance & Outbreak Tracking
               </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Real-time spatial monitoring of active pathogen transmission across talukas and village clusters
+              <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+                District-level telemetry, risk classification, and AI prediction insights
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => showToast('Surveillance radar refreshed with latest field telemetric reports.')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  background: '#f0fdf4',
-                  border: '1px solid #86efac',
-                  color: '#15803d',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                <Activity size={14} />
-                <span>Live Refresh</span>
-              </button>
+            <button
+              type="button"
+              onClick={() => showToast('Surveillance radar refreshed with live telemetric field reports.')}
+              className="btn-primary"
+              style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '0.8rem' }}
+            >
+              <RefreshCw size={14} />
+              <span>Refresh Radar</span>
+            </button>
+          </div>
+
+          {/* Single, Highly Readable Chart (Maximum 1 per section) */}
+          <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '20px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1B4332', margin: '0 0 14px' }}>
+              Pathogen Distribution in Pune Division (Current Month)
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { name: 'Foot & Mouth Disease (FMD)', cases: 47, pct: 45, color: '#E63946' },
+                { name: 'Lumpy Skin Disease (LSD)', cases: 28, pct: 27, color: '#F4A261' },
+                { name: 'Clinical Mastitis', cases: 18, pct: 17, color: '#457B9D' },
+                { name: 'Haemorrhagic Septicaemia (HS)', cases: 7, pct: 7, color: '#2D6A4F' },
+              ].map((item, idx) => (
+                <div key={idx}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 700, color: '#1B4332' }}>{item.name}</span>
+                    <span style={{ fontWeight: 800, color: item.color }}>{item.cases} cases ({item.pct}%)</span>
+                  </div>
+                  <div style={{ width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '5px', overflow: 'hidden' }}>
+                    <div style={{ width: `${item.pct}%`, height: '100%', background: item.color, borderRadius: '5px' }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Taluka surveillance table */}
+          {/* Search & Filter Bar */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Search taluka, village, or disease..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="form-input"
+              style={{ flex: 1, minWidth: '240px', fontSize: '0.84rem' }}
+            />
+            <select
+              value={selectedRiskFilter}
+              onChange={(e) => setSelectedRiskFilter(e.target.value)}
+              className="form-select"
+              style={{ width: 'auto', fontSize: '0.84rem' }}
+            >
+              <option value="all">All Risk Levels</option>
+              <option value="critical">Critical</option>
+              <option value="moderate">Moderate</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          {/* District & Taluka Surveillance Table */}
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid var(--border)', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Taluka / Block</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Risk Status</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Active Cases</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Herds Affected</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Primary Threat</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Containment Action</th>
+                <tr style={{ background: '#F8FFF9', borderBottom: '1.5px solid rgba(82, 183, 136, 0.25)', textAlign: 'left' }}>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Taluka / Block</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Risk Status</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Active Cases</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Herds Monitored</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Primary Disease Threat</th>
+                  <th style={{ padding: '12px', fontWeight: 800, color: '#1B4332' }}>Containment Protocol</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { taluka: 'Shirur', risk: 'Critical', cases: 47, herds: 11, threat: 'Foot & Mouth Disease (FMD)', action: '5km Quarantine Zone Active', color: '#dc2626' },
-                  { taluka: 'Baramati', risk: 'Elevated', cases: 14, herds: 4, threat: 'Clinical Mastitis', action: 'Polyclinic RRT Deployed', color: '#f59e0b' },
-                  { taluka: 'Haveli', risk: 'Low', cases: 5, herds: 2, threat: 'Lumpy Skin (Isolated)', action: 'Booster Drive in Progress', color: '#10b981' },
-                  { taluka: 'Daund', risk: 'Low', cases: 3, herds: 1, threat: 'Bovine Babesiosis', action: 'Acaricide Dipping Advisory', color: '#10b981' },
-                  { taluka: 'Khed', risk: 'Moderate', cases: 9, herds: 3, threat: 'Black Quarter (BQ)', action: 'Antibiotic Buffer Stock Dispatched', color: '#3b82f6' },
-                  { taluka: 'Junnar', risk: 'Low', cases: 2, herds: 1, threat: 'Nutritional Deficiency', action: 'Mineral Mixture Distributed', color: '#10b981' },
-                ].map((row, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', fontWeight: 800 }}>{row.taluka}</td>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{ background: `${row.color}18`, color: row.color, padding: '2px 8px', borderRadius: '10px', fontWeight: 800, fontSize: '0.72rem' }}>
+                  { taluka: 'Shirur', risk: 'Critical', cases: 47, herds: 11, threat: 'Foot & Mouth Disease (FMD)', protocol: '5km Quarantine Ring Active', color: '#E63946' },
+                  { taluka: 'Baramati', risk: 'Moderate', cases: 14, herds: 4, threat: 'Clinical Mastitis', protocol: 'Veterinary RRT Mobile Deployed', color: '#F4A261' },
+                  { taluka: 'Haveli', risk: 'Low', cases: 5, herds: 2, threat: 'Lumpy Skin (Isolated)', protocol: 'Booster Vaccination Drive', color: '#2ECC71' },
+                  { taluka: 'Khed', risk: 'Moderate', cases: 9, herds: 3, threat: 'Black Quarter (BQ)', protocol: 'Antibiotic Buffer Dispatched', color: '#F4A261' },
+                  { taluka: 'Daund', risk: 'Low', cases: 3, herds: 1, threat: 'Bovine Babesiosis', protocol: 'Acaricide Dipping Advisory', color: '#2ECC71' },
+                ].map((row, rIdx) => (
+                  <tr key={rIdx} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: '14px 12px', fontWeight: 800, color: '#1B4332' }}>{row.taluka}</td>
+                    <td style={{ padding: '14px 12px' }}>
+                      <span style={{ background: `${row.color}15`, color: row.color, padding: '3px 10px', borderRadius: '12px', fontWeight: 800, fontSize: '0.74rem' }}>
                         {row.risk.toUpperCase()}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', fontWeight: 700 }}>{row.cases}</td>
-                    <td style={{ padding: '12px' }}>{row.herds}</td>
-                    <td style={{ padding: '12px', color: 'var(--text-main)' }}>{row.threat}</td>
-                    <td style={{ padding: '12px', color: '#166534', fontWeight: 600 }}>{row.action}</td>
+                    <td style={{ padding: '14px 12px', fontWeight: 700 }}>{row.cases}</td>
+                    <td style={{ padding: '14px 12px', color: '#52796F' }}>{row.herds}</td>
+                    <td style={{ padding: '14px 12px', color: '#1B4332', fontWeight: 600 }}>{row.threat}</td>
+                    <td style={{ padding: '14px 12px', color: '#2D6A4F', fontWeight: 700 }}>{row.protocol}</td>
                   </tr>
                 ))}
               </tbody>
@@ -593,194 +802,61 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       )}
 
       {/* ========================================================================= */}
-      {/* MODULE 4: OUTBREAK MANAGEMENT SYSTEM                                      */}
+      {/* 3. DEDICATED MODULE: VACCINATION                                          */}
       {/* ========================================================================= */}
-      {activeTab === 'outbreaks' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#dc2626', margin: 0 }}>
-                Outbreak Containment & Emergency Protocols
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Legal containment actions under Section 6 of Prevention and Control of Infectious Diseases in Animals Act
-              </p>
-            </div>
+      {activeModule === 'vaccination' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              National Livestock Vaccination Management
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              NADCP campaign tracking, coverage milestones, and upcoming immunization drives
+            </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ background: '#fff', border: '1.5px solid #f87171', borderRadius: '12px', padding: '18px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontWeight: 800, fontSize: '1rem', color: '#991b1b' }}>
-                  Protocol Checklist: FMD Containment — Shirapur Cluster (Pune)
-                </span>
-                <span style={{ background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 800 }}>
-                  Active Enforcement
-                </span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-                {[
-                  { key: 'quarantineRing', label: 'Enforce 5km Strict Quarantine Perimeter' },
-                  { key: 'ringVaccination', label: 'Ring Vaccination of 10,000 Bovines in Buffer Zone' },
-                  { key: 'cattleMarketClosure', label: 'Mandatory Closure of Live Cattle Markets (APMC)' },
-                  { key: 'movementCheckpost', label: 'Fodder & Livestock Movement Highway Checkposts' },
-                  { key: 'biosecurityDisinfection', label: 'Disinfection of Milk Vans with Sodium Carbonate 4%' },
-                  { key: 'rapidResponseDeployed', label: 'Deploy Veterinary Rapid Response Team (RRT 1962)' },
-                ].map((item) => (
-                  <div
-                    key={item.key}
-                    onClick={() => {
-                      setContainmentChecklist((prev) => ({ ...prev, [item.key]: !prev[item.key] }));
-                      showToast(`Containment protocol "${item.label}" updated.`);
-                    }}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      background: containmentChecklist[item.key] ? '#ecfdf5' : '#f8fafc',
-                      border: containmentChecklist[item.key] ? '1.5px solid #86efac' : '1px solid #cbd5e1',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: containmentChecklist[item.key] ? '#166534' : 'var(--text-muted)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '4px',
-                        background: containmentChecklist[item.key] ? '#166534' : '#fff',
-                        border: '1px solid #94a3b8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {containmentChecklist[item.key] && <Check size={13} color="#fff" strokeWidth={3} />}
-                    </div>
-                    <span>{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODULE 5: AI PREDICTION CENTER                                            */}
-      {/* ========================================================================= */}
-      {activeTab === 'ai_prediction' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={20} color="#0284c7" />
-                <span>AI Outbreak Forecasting & Contagion Prediction Engine</span>
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Multimodal machine learning model analyzing rainfall, humidity, livestock density, and clinical report velocity
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
             {[
-              {
-                region: 'Shirur - Khed Border',
-                disease: 'Foot and Mouth Disease (FMD)',
-                risk: '94% HIGH RISK',
-                color: '#dc2626',
-                factors: 'Rainfall 42mm, High Humidity (88%), Fodder Trade Movement',
-                recommendation: 'Initiate preventive ring vaccination in adjacent 8 villages immediately.',
-              },
-              {
-                region: 'Baramati Canal Belt',
-                disease: 'Haemorrhagic Septicaemia (HS)',
-                risk: '78% MODERATE RISK',
-                color: '#f59e0b',
-                factors: 'Waterlogging in grazing lands, low-lying pastures',
-                recommendation: 'Pre-monsoon oil adjuvant HS vaccine booster drive recommended.',
-              },
-              {
-                region: 'Purandar Taluka',
-                disease: 'Peste des Petits Ruminants (PPR)',
-                risk: '42% LOW RISK',
-                color: '#10b981',
-                factors: 'Controlled goat herds, high vaccination adherence (91%)',
-                recommendation: 'Maintain routine surveillance and deworming schedule.',
-              },
-            ].map((card, idx) => (
+              { campaign: 'National FMD Control Programme (Phase 4)', target: '3,84,000', achieved: '3,12,850', pct: 81.4, status: 'In Progress' },
+              { campaign: 'Lumpy Skin Ring Immunization', target: '1,50,000', achieved: '1,38,000', pct: 92.0, status: 'Near Target' },
+              { campaign: 'Brucellosis Calf-Hood Drive', target: '65,000', achieved: '48,200', pct: 74.1, status: 'In Progress' },
+              { campaign: 'Peste des Petits Ruminants (PPR)', target: '55,000', achieved: '51,400', pct: 93.4, status: 'Near Target' },
+            ].map((c, idx) => (
               <div
                 key={idx}
                 style={{
-                  background: '#ffffff',
-                  border: `1.5px solid ${card.color}40`,
-                  borderRadius: '12px',
-                  padding: '16px',
+                  background: '#F8FFF9',
+                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  borderRadius: '20px',
+                  padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 800, fontSize: '0.94rem' }}>{card.region}</span>
-                  <span style={{ background: `${card.color}15`, color: card.color, padding: '2px 8px', borderRadius: '10px', fontWeight: 800, fontSize: '0.72rem' }}>
-                    {card.risk}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4332' }}>{c.campaign}</div>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, background: '#E8F5E9', color: '#2D6A4F', padding: '2px 8px', borderRadius: '8px' }}>
+                    {c.status}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Target Threat: {card.disease}
-                </div>
-                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                  <strong>Environmental Drivers:</strong> {card.factors}
-                </div>
-                <div style={{ fontSize: '0.76rem', background: '#f0fdf4', padding: '8px', borderRadius: '6px', color: '#166534', marginTop: '4px' }}>
-                  <strong>AI Recommended Action:</strong> {card.recommendation}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODULE 6: VACCINATION HUB                                                 */}
-      {/* ========================================================================= */}
-      {activeTab === 'vaccination' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                National Livestock Vaccination Campaign Tracking (NADCP)
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                District-wise target allocation, cold-chain temperature verification & missed animal follow-up
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-            {[
-              { campaign: 'National FMD Control Programme (Phase 4)', target: '3,84,000', achieved: '3,12,850', pct: 81.4, color: '#166534' },
-              { campaign: 'Lumpy Skin Disease Ring Immunization', target: '1,50,000', achieved: '1,38,000', pct: 92.0, color: '#0284c7' },
-              { campaign: 'Brucellosis Calf-Hood Vaccination', target: '65,000', achieved: '48,200', pct: 74.1, color: '#f59e0b' },
-              { campaign: 'PPR Eradication Drive (Goat/Sheep)', target: '55,000', achieved: '51,400', pct: 93.4, color: '#8b5cf6' },
-            ].map((c, i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)', marginBottom: '8px' }}>
-                  {c.campaign}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#52796F', marginTop: '4px' }}>
                   <span>Achieved: {c.achieved} / {c.target}</span>
-                  <span style={{ fontWeight: 800, color: c.color }}>{c.pct}%</span>
+                  <span style={{ fontWeight: 800, color: '#2D6A4F' }}>{c.pct}%</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${c.pct}%`, height: '100%', background: c.color, borderRadius: '4px' }} />
+                <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${c.pct}%`, height: '100%', background: '#2D6A4F', borderRadius: '4px' }} />
                 </div>
               </div>
             ))}
@@ -789,31 +865,70 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       )}
 
       {/* ========================================================================= */}
-      {/* MODULE 7: RESOURCE ALLOCATION & MOBILE VANS                                */}
+      {/* 4. DEDICATED MODULE: EMERGENCY RESPONSE (1962 SOS)                         */}
       {/* ========================================================================= */}
-      {activeTab === 'resources' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, marginBottom: '6px' }}>
-            Resource Allocation & Mobile Veterinary Clinic (1962) Tracking
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Fleet management of emergency mobile veterinary ambulances, cold-chain freezers and antibiotic inventories
-          </p>
+      {activeModule === 'emergency' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(230, 57, 70, 0.25)',
+            boxShadow: '0 4px 20px rgba(230, 57, 70, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#E63946', margin: 0 }}>
+              Emergency Response & 1962 Ambulance Dispatch
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              Real-time critical incident management, rapid response unit deployment and status tracking
+            </p>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {[
-              { resource: 'Mobile Veterinary Clinic Vans (1962)', deployed: 18, total: 20, status: 'Active Field Duty', color: '#166534' },
-              { resource: 'FMD Trivalent Vaccine Vials (Doses)', deployed: '3,20,000', total: '4,00,000', status: 'Adequate Reserve', color: '#0284c7' },
-              { resource: 'Emergency Ceftiofur Antibiotic Kits', deployed: '4,500', total: '5,000', status: 'Adequate Reserve', color: '#166534' },
-              { resource: 'Liquid Nitrogen Semen / Vaccine Tanks', deployed: 42, total: 45, status: 'Cold-Chain Nominal', color: '#0284c7' },
-            ].map((r, idx) => (
-              <div key={idx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)' }}>{r.resource}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1b4332', marginTop: '6px' }}>
-                  {r.deployed} / {r.total}
+              { id: 'SOS-2026-901', animal: 'Bovine Cow (Gir)', farmer: 'Baburao Kale', village: 'Koregaon Bhima', issue: 'Acute recumbency & severe dehydration', van: 'MH-12-MV-4412', status: 'Team On-Site', color: '#2ECC71' },
+              { id: 'SOS-2026-902', animal: 'Crossbred Heifer', farmer: 'Pandurang Jagtap', village: 'Nimgaon Mhalungi', issue: 'Suspected organophosphate toxicity', van: 'MH-12-MV-4418', status: 'Dispatched', color: '#F4A261' },
+              { id: 'SOS-2026-903', animal: 'Murrah Buffalo', farmer: 'Kishor Shinde', village: 'Shirapur', issue: 'High fever and mouth blisters', van: 'MH-12-MV-4412', status: 'Stabilized', color: '#2D6A4F' },
+            ].map((sos) => (
+              <div
+                key={sos.id}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #F1F5F9',
+                  borderRadius: '18px',
+                  padding: '18px 22px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1B4332' }}>{sos.id}</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#E63946', background: '#FDE8E8', padding: '2px 8px', borderRadius: '8px' }}>
+                      {sos.animal}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: '#52796F', marginTop: '3px' }}>
+                    Farmer: <strong>{sos.farmer}</strong> • {sos.village} • Assigned Van: <strong>{sos.van}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#E63946', fontWeight: 600, marginTop: '2px' }}>
+                    Issue: {sos.issue}
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: r.color, fontWeight: 700, marginTop: '2px' }}>
-                  ● {r.status}
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ background: `${sos.color}15`, color: sos.color, padding: '4px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '0.78rem' }}>
+                    {sos.status}
+                  </span>
                 </div>
               </div>
             ))}
@@ -822,161 +937,212 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
       )}
 
       {/* ========================================================================= */}
-      {/* MODULE 11: GIS DISEASE HEATMAP                                            */}
+      {/* 5. DEDICATED MODULE: RESOURCES                                            */}
       {/* ========================================================================= */}
-      {activeTab === 'gis_heatmap' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                Interactive GIS Disease Heatmap (Pan-India & Maharashtra View)
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Spatial risk density mapping, quarantine boundaries, and active disease cluster centroids
+      {activeModule === 'resources' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              Workforce & Resource Inventory Allocation
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              Tracking veterinary staff, mobile vans, cold-chain freezers, and medicine supplies
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+            {[
+              { item: 'Registered Veterinarians on Duty', count: '342 Active', desc: '14 Taluka polyclinics staffed', color: '#2D6A4F' },
+              { item: 'Mobile Veterinary Units (1962)', count: '18 / 20 Deployed', desc: 'Active 24/7 field coverage', color: '#0284C7' },
+              { item: 'FMD Vaccine Vials (Doses)', count: '3,20,000 in Cold-Chain', desc: 'Reserve buffer nominal (4°C)', color: '#2ECC71' },
+              { item: 'Emergency Antibiotic & NSAID Kits', count: '4,500 Kits', desc: 'Dispatched to primary health nodes', color: '#F4A261' },
+            ].map((res, idx) => (
+              <div key={idx} style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
+                <div style={{ fontSize: '0.82rem', color: '#52796F', fontWeight: 700 }}>{res.item}</div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#1B4332', margin: '6px 0 2px' }}>{res.count}</div>
+                <div style={{ fontSize: '0.74rem', color: '#2D6A4F', fontWeight: 600 }}>{res.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. DEDICATED MODULE: REPORTS                                              */}
+      {/* ========================================================================= */}
+      {activeModule === 'reports' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              Official Reports & Dossier Center
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              One-click compilation of ministry-compliant epidemiological reports and monthly registers
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+            {[
+              { title: 'Monthly District Epidemiological Bulletin', desc: 'Comprehensive incidence report covering all 14 blocks with outbreak maps.', format: 'PDF' },
+              { title: 'NADCP Vaccination Target & Coverage Log', desc: 'Complete breakdown of animal vaccinations by species, breed, and village.', format: 'Excel' },
+              { title: '1962 Ambulatory Response & Case Audit', desc: 'Response times, team assignments, and resolution success rates.', format: 'PDF' },
+              { title: 'Livestock Census & Disease Registry', desc: 'Aggregated health records linked with national animal identification tags.', format: 'Excel' },
+            ].map((rep, idx) => (
+              <div key={idx} style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.25)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '14px' }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1B4332' }}>{rep.title}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#52796F', marginTop: '4px', lineHeight: 1.4 }}>{rep.desc}</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => showToast(`Generating ${rep.title} (${rep.format})... Download complete.`)}
+                  className="btn-primary"
+                  style={{ alignSelf: 'flex-start', padding: '8px 16px', borderRadius: '12px', fontSize: '0.78rem' }}
+                >
+                  <Download size={14} />
+                  <span>Download {rep.format}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 7. DEDICATED MODULE: USER MANAGEMENT                                      */}
+      {/* ========================================================================= */}
+      {activeModule === 'users' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              User & Role-Based Access Control (RBAC)
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              Manage registered livestock farmers, veterinary doctors, and government officials
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[
+              { name: 'Dr. Priya Kulkarni, B.V.Sc & A.H.', role: 'Taluka Polyclinic Veterinarian', id: 'MSVC-18492', location: 'Baramati, Pune', status: 'Active' },
+              { name: 'Dr. Amit Deshmukh, M.V.Sc', role: 'Disease Monitoring Officer', id: 'MSVC-16210', location: 'Shirur, Pune', status: 'Active' },
+              { name: 'Rajesh Patil', role: 'District Animal Husbandry Officer (DAHO)', id: 'MH-DAHD-0412', location: 'Pune Division', status: 'Admin' },
+              { name: 'Suresh Rambhau Shinde', role: 'Livestock Owner / Farmer', id: 'FARM-PUN-091', location: 'Shirapur, Shirur', status: 'Verified' },
+            ].map((user, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: '#F8FFF9',
+                  border: '1px solid rgba(82, 183, 136, 0.2)',
+                  borderRadius: '16px',
+                  padding: '16px 20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4332' }}>{user.name}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#52796F', marginTop: '2px' }}>
+                    Role: <strong>{user.role}</strong> • ID: {user.id} • {user.location}
+                  </div>
+                </div>
+
+                <span style={{ background: '#E8F5E9', color: '#2D6A4F', padding: '3px 10px', borderRadius: '10px', fontWeight: 800, fontSize: '0.74rem' }}>
+                  {user.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 8. DEDICATED MODULE: SETTINGS                                             */}
+      {/* ========================================================================= */}
+      {activeModule === 'settings' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1B4332', margin: 0 }}>
+              System Configuration & Preferences
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#52796F', margin: '4px 0 0' }}>
+              Security parameters, notification rules, language catalogs, and automated backups
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+            <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B4332', marginBottom: '8px' }}>
+                <Lock size={18} color="#2D6A4F" />
+                <span>Security & Two-Factor Authentication</span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#52796F', lineHeight: 1.45, marginBottom: '14px' }}>
+                Mandatory OTP verification for outbreak declaration and state-level directive broadcasts.
               </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => showToast('Switched to High-Resolution Satellite View with NDVI Crop Overlay.')}
-                className="btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                Satellite Layer
-              </button>
-              <button
-                type="button"
-                onClick={() => showToast('Epidemiological Heatmap Density recalculated.')}
-                className="btn-primary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                Recalculate Heatmap
+              <button type="button" onClick={() => showToast('2FA settings updated.')} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
+                Configure 2FA
               </button>
             </div>
-          </div>
 
-          <div
-            style={{
-              position: 'relative',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              border: '1.5px solid var(--border)',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
-            }}
-          >
-            <iframe
-              title="GIS Disease Surveillance Live Map"
-              width="100%"
-              height="380"
-              style={{ border: 0, display: 'block' }}
-              loading="lazy"
-              src="https://maps.google.com/maps?q=18.8120,74.3910&t=&z=11&ie=UTF8&iwloc=&output=embed"
-            />
-            {/* Overlay Status Badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '12px',
-                left: '12px',
-                background: 'rgba(255,255,255,0.96)',
-                backdropFilter: 'blur(6px)',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                fontSize: '0.76rem',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <div style={{ fontWeight: 800, color: '#dc2626' }}>● RED ZONE: Shirur Cluster (FMD)</div>
-              <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>Radius: 5.0 km • Buffer: 10.0 km</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* OTHER MODULES: COMPLAINTS, AWARENESS, USER MANAGEMENT, SYSTEM ADMIN       */}
-      {/* ========================================================================= */}
-      {activeTab === 'complaints' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Farmer & Veterinarian Grievance Redressal Portal
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Official tracking of medicine shortages, doctor availability requests, and emergency escalation tickets
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              { id: 'TKT-2026-881', from: 'Koregaon Bhima Dairy Co-op', issue: 'Shortage of intramammary mastitis tubes in local polyclinic', priority: 'High', status: 'Resolved' },
-              { id: 'TKT-2026-882', from: 'Farmer Suresh Shinde', issue: 'Request for rapid response van inspection for lame cow', priority: 'Urgent', status: 'In Progress' },
-              { id: 'TKT-2026-883', from: 'Taluka Polyclinic Baramati', issue: 'Request for 2,000 additional FMD vaccine doses for buffer ring', priority: 'High', status: 'Dispatched' },
-            ].map((t) => (
-              <div key={t.id} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>{t.id}: {t.from}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.issue}</div>
-                </div>
-                <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
-                  {t.status}
-                </span>
+            <div style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B4332', marginBottom: '8px' }}>
+                <Globe size={18} color="#2D6A4F" />
+                <span>Language & Regional Catalogs</span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'user_management' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            User & Official RBAC Management
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Authorize veterinarians, verify MSVC licenses, and assign jurisdictional districts to officers
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              { name: 'Dr. Priya Kulkarni, B.V.Sc', role: 'Taluka Veterinary Officer', license: 'MSVC-18492', status: 'Verified & Active' },
-              { name: 'Dr. Amit Deshmukh, M.V.Sc', role: 'Disease Monitoring Officer', license: 'MSVC-16210', status: 'Verified & Active' },
-              { name: 'Shri Rajesh Patil', role: 'District Animal Husbandry Officer (DAHO)', license: 'GOVT-PUN-01', status: 'Super Admin' },
-            ].map((u, idx) => (
-              <div key={idx} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>{u.name}</div>
-                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Role: {u.role} • Credential: {u.license}</div>
-                </div>
-                <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#15803d', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
-                  {u.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'system_admin' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Platform Infrastructure & Database Health Monitoring
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            PostgreSQL Supabase connection latency, multilingual sync status, and automated backup logs
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>PostgreSQL Database</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#166534', marginTop: '4px' }}>Connected (14ms)</div>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Multilingual Localization</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0284c7', marginTop: '4px' }}>EN • HI • MR Synced</div>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Audit Log Verification</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#8b5cf6', marginTop: '4px' }}>100% Tamper-Proof</div>
+              <p style={{ fontSize: '0.78rem', color: '#52796F', lineHeight: 1.45, marginBottom: '14px' }}>
+                Active trilingual support: English, Marathi (मराठी), and Hindi (हिन्दी) fully synchronized.
+              </p>
+              <button type="button" onClick={() => showToast('Language catalog verified: 100% synchronized.')} className="btn-secondary" style={{ fontSize: '0.78rem', padding: '6px 14px' }}>
+                Verify Catalogs
+              </button>
             </div>
           </div>
         </div>
