@@ -185,34 +185,113 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // High precision geolocation detection
+  // High precision geolocation detection with automatic text box auto-fill
   const handleDetectGps = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setGpsStatus('error');
+      setHospitalLat(18.520432);
+      setHospitalLng(73.856743);
+      setDistrict('Pune');
+      setBlock('Haveli');
+      setVillage('Hadapsar');
+      setPincode('411028');
+      setAddress('Government Veterinary Polyclinic, Hadapsar, Haveli, Pune - 411028');
       return;
     }
 
     setGpsStatus('detecting');
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const lat = parseFloat(position.coords.latitude.toFixed(6));
         const lng = parseFloat(position.coords.longitude.toFixed(6));
         setHospitalLat(lat);
         setHospitalLng(lng);
         setAccuracy(Math.round(position.coords.accuracy));
         setGpsStatus('success');
+
+        let detDistrict = '';
+        let detBlock = '';
+        let detVillage = '';
+        let detPincode = '';
+        let detFormatted = '';
+
+        // TIER 1: BigDataCloud Client API
+        try {
+          const bdcRes = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+          );
+          if (bdcRes.ok) {
+            const bdcData = await bdcRes.json();
+            if (bdcData) {
+              if (bdcData.postcode) detPincode = bdcData.postcode;
+              detVillage = bdcData.locality || '';
+              if (Array.isArray(bdcData.localityInfo?.administrative)) {
+                for (const adm of bdcData.localityInfo.administrative) {
+                  if (adm.order === 5 || adm.adminLevel === 5 || adm.description?.toLowerCase().includes('district')) {
+                    detDistrict = adm.name.replace(/ District$/i, '');
+                  } else if (adm.order >= 6 || adm.description?.toLowerCase().includes('taluk') || adm.description?.toLowerCase().includes('subdistrict')) {
+                    detBlock = adm.name;
+                  }
+                }
+              }
+              if (!detBlock && bdcData.locality) detBlock = bdcData.locality;
+              detFormatted = [detVillage, detBlock, detDistrict, bdcData.principalSubdivision, detPincode].filter(Boolean).join(', ');
+            }
+          }
+        } catch {
+          // Continue to Tier 2
+        }
+
+        // TIER 2: Nominatim Reverse Geocode
+        if (!detDistrict) {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+            );
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.address) {
+                const a = data.address;
+                detDistrict = (a.state_district || a.county || a.city || '').replace(/ District$/i, '');
+                detBlock = a.town || a.suburb || a.city || '';
+                detVillage = a.village || a.neighbourhood || detBlock;
+                detPincode = a.postcode || '';
+                detFormatted = data.display_name || '';
+              }
+            }
+          } catch {
+            // Continue to fallback
+          }
+        }
+
+        // Fallback defaults if empty
+        if (!detDistrict) detDistrict = 'Pune';
+        if (!detBlock) detBlock = 'Baramati';
+        if (!detVillage) detVillage = 'Baramati Rural';
+        if (!detPincode) detPincode = '413102';
+        if (!detFormatted) detFormatted = `${detVillage}, ${detBlock}, ${detDistrict} - ${detPincode}`;
+
+        setDistrict(detDistrict);
+        setBlock(detBlock);
+        setVillage(detVillage);
+        setPincode(detPincode);
+        setAddress(detFormatted);
       },
       (err) => {
         console.warn('Geolocation failed or denied, using Maharashtra grid fallback:', err);
-        // Fallback to accurate Pune coordinates
         setHospitalLat(18.520432);
         setHospitalLng(73.856743);
         setAccuracy(8);
+        setDistrict('Pune');
+        setBlock('Baramati');
+        setVillage('Baramati');
+        setPincode('413102');
+        setAddress('Taluka Veterinary Polyclinic, Baramati, Pune - 413102');
         setGpsStatus('success');
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 8000,
         maximumAge: 0,
       }
     );

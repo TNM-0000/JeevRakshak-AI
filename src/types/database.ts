@@ -388,3 +388,183 @@ export interface OutbreakWithDetails extends OutbreakEvent {
   disease?: DiseaseCatalogItem;
   location?: AdministrativeLocation;
 }
+
+// ==========================================
+// 4. VETERINARY DOCTOR MEDICAL WORKSPACE TYPES
+// ==========================================
+
+export interface DoctorCase {
+  id: string;
+  doctor_id: string;
+  case_number: string;
+  animal_id: string;
+  animal_tag: string;
+  animal_species: string;
+  farmer_name: string;
+  farmer_phone: string;
+  village: string;
+  district: string;
+  symptoms: string;
+  priority: 'routine' | 'urgent' | 'critical';
+  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'resolved' | 'rejected' | 'closed';
+  reported_at: string;
+  accepted_at?: string;
+  closed_at?: string;
+  diagnosis?: string;
+  treatment_notes?: string;
+}
+
+export interface DoctorDiagnosis {
+  id: string;
+  doctor_id: string;
+  case_id: string;
+  animal_tag: string;
+  disease_name: string;
+  confidence: number;
+  symptoms_analyzed: string;
+  recommended_tests: string;
+  recommended_treatment: string;
+  diagnosed_at: string;
+}
+
+export interface DoctorTreatmentRecord {
+  id: string;
+  doctor_id: string;
+  case_id: string;
+  animal_id: string;
+  animal_tag: string;
+  farmer_name: string;
+  treatment_plan: string;
+  medicines: string;
+  dosage: string;
+  instructions: string;
+  follow_up_date: string;
+  status: 'ongoing' | 'completed' | 'recovered';
+  recovery_notes?: string;
+  created_at: string;
+}
+
+export interface DoctorPrescriptionRecord {
+  id: string;
+  doctor_id: string;
+  doctor_name: string;
+  license_number: string;
+  hospital_name: string;
+  animal_tag: string;
+  animal_species: string;
+  farmer_name: string;
+  farmer_phone: string;
+  medicines: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+  }>;
+  clinical_instructions: string;
+  created_at: string;
+}
+
+export interface DoctorVaccinationRecord {
+  id: string;
+  doctor_id: string;
+  animal_id: string;
+  animal_tag: string;
+  farmer_name: string;
+  vaccine_name: string;
+  batch_number: string;
+  date: string;
+  booster_date: string;
+  certificate_no: string;
+}
+
+export interface DoctorFieldVisitRecord {
+  id: string;
+  doctor_id: string;
+  farmer_name: string;
+  village: string;
+  visit_date: string;
+  purpose: string;
+  status: 'scheduled' | 'in_progress' | 'completed';
+  notes: string;
+  distance_km: number;
+}
+
+export interface DoctorDiseaseReportRecord {
+  id: string;
+  doctor_id: string;
+  disease_name: string;
+  species: string;
+  district: string;
+  village: string;
+  cases_observed: number;
+  mortalities: number;
+  is_outbreak_risk: boolean;
+  reported_to_daho: boolean;
+  clinical_summary: string;
+  created_at: string;
+}
+
+export interface DoctorStats {
+  assignedCases: number;
+  pendingCases: number;
+  completedCases: number;
+  emergencyCases: number;
+  animalsTreated: number;
+  vaccinationsDone: number;
+  todayAppointments: number;
+  monthlyVisits: number;
+  recoveryRate: number;
+  reportsSubmitted: number;
+}
+
+// ==========================================
+// 5. GOVERNMENT OFFICIAL PORTAL TYPES
+// ==========================================
+
+export type GovOfficialRole =
+  | 'super_admin'
+  | 'state_officer'
+  | 'district_officer'
+  | 'block_officer'
+  | 'disease_monitoring_officer'
+  | 'vaccination_officer'
+  | 'emergency_response_officer';
+
+export interface EmergencyCaseRecord {
+  id: string;
+  code: string;
+  caller_name: string;
+  caller_phone: string;
+  village: string;
+  district: string;
+  incident_type: string;
+  severity: 'critical' | 'high' | 'moderate';
+  status: 'alert_triggered' | 'team_dispatched' | 'on_site' | 'stabilized' | 'resolved';
+  dispatched_team?: string;
+  dispatched_van?: string;
+  reported_at: string;
+}
+
+export interface ResourceAllocationRecord {
+  id: string;
+  district: string;
+  resource_type: string;
+  allocated: number;
+  available: number;
+  shortage_detected: boolean;
+  last_updated: string;
+}
+
+export interface VaccinationCampaignRecord {
+  id: string;
+  campaign_code: string;
+  title: string;
+  disease: string;
+  target_count: number;
+  achieved_count: number;
+  districts: string[];
+  start_date: string;
+  end_date: string;
+  status: 'active' | 'scheduled' | 'completed';
+}
+

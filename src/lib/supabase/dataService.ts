@@ -27,6 +27,14 @@ import {
   SampleStatus,
   CaseStatus,
   TriageMethod,
+  DoctorCase,
+  DoctorDiagnosis,
+  DoctorTreatmentRecord,
+  DoctorPrescriptionRecord,
+  DoctorVaccinationRecord,
+  DoctorFieldVisitRecord,
+  DoctorDiseaseReportRecord,
+  DoctorStats,
 } from '@/types/database';
 
 import {
@@ -644,6 +652,8 @@ export const dataService = {
     village?: string;
     state?: string;
     herd_size?: number;
+    hospital_name?: string;
+    license_number?: string;
   }): Promise<{ profile: Profile; error?: string }> {
     let profileId = generateUUID();
     const cleanPhone = params.phone.replace(/[^0-9]/g, '');
@@ -681,6 +691,8 @@ export const dataService = {
       village: params.village,
       state: params.state || 'Maharashtra',
       farm_name: farmerFarmName,
+      hospital_name: params.hospital_name,
+      license_number: params.license_number,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -1823,4 +1835,520 @@ export const dataService = {
       return { success: false, message: err.message || 'Sync failed due to permissions.' };
     }
   },
+
+  // =========================================================================
+  // 16. VETERINARY DOCTOR SPECIFIC DATA ENGINE & ZERO-STATE ISOLATION
+  // =========================================================================
+
+  // Internal helper to read a doctor's isolated workspace store
+  _getDoctorStore(doctorId: string): {
+    cases: DoctorCase[];
+    diagnoses: DoctorDiagnosis[];
+    treatments: DoctorTreatmentRecord[];
+    prescriptions: DoctorPrescriptionRecord[];
+    vaccinations: DoctorVaccinationRecord[];
+    visits: DoctorFieldVisitRecord[];
+    diseaseReports: DoctorDiseaseReportRecord[];
+  } {
+    if (typeof window === 'undefined') {
+      return { cases: [], diagnoses: [], treatments: [], prescriptions: [], vaccinations: [], visits: [], diseaseReports: [] };
+    }
+
+    const key = `jr_doctor_data_${doctorId}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // continue
+      }
+    }
+
+    // STRICT USER REQUIREMENT:
+    // If this is a newly registered doctor (any doctor ID other than the demo doctor),
+    // they start with strictly 0 cases, 0 treatments, 0 reports, 0 visits, 0 records!
+    if (doctorId !== 'demo-vet-1') {
+      const emptyStore = {
+        cases: [],
+        diagnoses: [],
+        treatments: [],
+        prescriptions: [],
+        vaccinations: [],
+        visits: [],
+        diseaseReports: [],
+      };
+      localStorage.setItem(key, JSON.stringify(emptyStore));
+      return emptyStore;
+    }
+
+    // Starter dataset ONLY for demo doctor ('demo-vet-1' Dr. Priya Kulkarni)
+    const demoStore = {
+      cases: [
+        {
+          id: 'case-demo-101',
+          doctor_id: 'demo-vet-1',
+          case_number: 'JR-CASE-261',
+          animal_id: 'anim-1',
+          animal_tag: 'MH-12-0042',
+          animal_species: 'Cattle (Gir Cow)',
+          farmer_name: 'Suresh Rambhau Shinde',
+          farmer_phone: '9823012345',
+          village: 'Shirapur',
+          district: 'Pune',
+          symptoms: 'High fever, excessive frothy salivation, oral vesicles & foot lesions',
+          priority: 'urgent' as const,
+          status: 'accepted' as const,
+          reported_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+          accepted_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        },
+        {
+          id: 'case-demo-102',
+          doctor_id: 'demo-vet-1',
+          case_number: 'JR-CASE-262',
+          animal_id: 'anim-2',
+          animal_tag: 'MH-12-0089',
+          animal_species: 'Buffalo (Murrah)',
+          farmer_name: 'Baburao Kale',
+          farmer_phone: '9822456789',
+          village: 'Koregaon Bhima',
+          district: 'Pune',
+          symptoms: 'Swollen quarter, reduced milk yield, clots in milk',
+          priority: 'routine' as const,
+          status: 'treatment_ongoing' as const,
+          reported_at: new Date(Date.now() - 86400000).toISOString(),
+          accepted_at: new Date(Date.now() - 43200000).toISOString(),
+          diagnosis: 'Acute Clinical Mastitis (Staphylococcus aureus)',
+        },
+      ],
+      diagnoses: [
+        {
+          id: 'diag-demo-1',
+          doctor_id: 'demo-vet-1',
+          case_id: 'case-demo-102',
+          animal_tag: 'MH-12-0089',
+          disease_name: 'Clinical Mastitis',
+          confidence: 94,
+          symptoms_analyzed: 'Swollen udder, fever 103.5°F, milk discolouration',
+          recommended_tests: 'California Mastitis Test (CMT), Milk Culture',
+          recommended_treatment: 'Intramammary Ceftiofur, Meloxicam injection, frequent milking',
+          diagnosed_at: new Date(Date.now() - 43200000).toISOString(),
+        },
+      ],
+      treatments: [
+        {
+          id: 'treat-demo-1',
+          doctor_id: 'demo-vet-1',
+          case_id: 'case-demo-102',
+          animal_id: 'anim-2',
+          animal_tag: 'MH-12-0089',
+          farmer_name: 'Baburao Kale',
+          treatment_plan: 'Course of 3rd generation cephalosporin + NSAID anti-inflammatory support',
+          medicines: 'Ceftiofur Sodium 1g + Meloxicam 100mg',
+          dosage: '1g Ceftiofur IM daily + 15ml Meloxicam IM',
+          instructions: 'Strip affected quarter 4 times daily. Maintain strict teat-dip hygiene.',
+          follow_up_date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+          status: 'ongoing' as const,
+          created_at: new Date(Date.now() - 40000000).toISOString(),
+        },
+      ],
+      prescriptions: [
+        {
+          id: 'rx-demo-1',
+          doctor_id: 'demo-vet-1',
+          doctor_name: 'Dr. Priya Kulkarni, B.V.Sc & A.H.',
+          license_number: 'MSVC-18492',
+          hospital_name: 'Taluka Veterinary Polyclinic, Baramati',
+          animal_tag: 'MH-12-0089',
+          animal_species: 'Buffalo (Murrah)',
+          farmer_name: 'Baburao Kale',
+          farmer_phone: '9822456789',
+          medicines: [
+            { name: 'Inj. Ceftiofur Sodium 1g', dosage: '1 vial IM', frequency: 'OD', duration: '3 Days' },
+            { name: 'Inj. Melonex (Meloxicam)', dosage: '15 ml IM', frequency: 'OD', duration: '3 Days' },
+            { name: 'Intramammary Infusion Cloxacillin', dosage: '1 tube per teat', frequency: 'BD', duration: '3 Days' },
+          ],
+          clinical_instructions: 'Keep cow bed clean and dry. Avoid calf suckling from infected quarter.',
+          created_at: new Date(Date.now() - 40000000).toISOString(),
+        },
+      ],
+      vaccinations: [
+        {
+          id: 'vac-demo-1',
+          doctor_id: 'demo-vet-1',
+          animal_id: 'anim-1',
+          animal_tag: 'MH-12-0042',
+          farmer_name: 'Suresh Rambhau Shinde',
+          vaccine_name: 'Raksha-Ovac (FMD Trivalent Oil Adjuvant)',
+          batch_number: 'RO-2026-B84',
+          date: new Date(Date.now() - 86400000 * 20).toISOString().split('T')[0],
+          booster_date: new Date(Date.now() + 86400000 * 160).toISOString().split('T')[0],
+          certificate_no: 'VAC-MH-PUN-2026-9912',
+        },
+      ],
+      visits: [
+        {
+          id: 'visit-demo-1',
+          doctor_id: 'demo-vet-1',
+          farmer_name: 'Suresh Rambhau Shinde',
+          village: 'Shirapur',
+          visit_date: new Date().toISOString().split('T')[0],
+          purpose: 'Emergency quarantine inspection for suspected FMD vesicular lesions',
+          status: 'completed' as const,
+          notes: 'Quarantine barrier established. Ring vaccination advisory given to neighbor farmers.',
+          distance_km: 18.4,
+        },
+      ],
+      diseaseReports: [
+        {
+          id: 'dis-rep-demo-1',
+          doctor_id: 'demo-vet-1',
+          disease_name: 'Foot and Mouth Disease (FMD)',
+          species: 'Cattle',
+          district: 'Pune',
+          village: 'Shirapur',
+          cases_observed: 4,
+          mortalities: 0,
+          is_outbreak_risk: true,
+          reported_to_daho: true,
+          clinical_summary: '4 cattle showing vesicular eruptions on tongue and interdigital cleft. Ring vaccination initiated.',
+          created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+        },
+      ],
+    };
+
+    localStorage.setItem(key, JSON.stringify(demoStore));
+    return demoStore;
+  },
+
+  // Save changes to doctor's permanent isolated store
+  _saveDoctorStore(doctorId: string, store: any) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`jr_doctor_data_${doctorId}`, JSON.stringify(store));
+    }
+  },
+
+  // 1. Get Doctor Summary Statistics (Strictly dynamic & 0 for new doctors)
+  async getDoctorStats(doctorId: string): Promise<DoctorStats> {
+    const store = this._getDoctorStore(doctorId);
+    const totalCases = store.cases.length;
+    const completedCases = store.cases.filter((c) => c.status === 'resolved' || c.status === 'closed').length;
+    const pendingCases = store.cases.filter((c) => c.status === 'assigned' || c.status === 'accepted' || c.status === 'in_diagnosis' || c.status === 'treatment_ongoing').length;
+    const emergencyCases = store.cases.filter((c) => c.priority === 'urgent' || c.priority === 'critical').length;
+    const animalsTreated = store.treatments.length;
+    const vaccinationsDone = store.vaccinations.length;
+    const monthlyVisits = store.visits.length;
+    const reportsSubmitted = store.diseaseReports.length;
+    const recoveryRate = totalCases > 0 ? Math.round((completedCases / totalCases) * 100) : 0;
+
+    return {
+      assignedCases: totalCases,
+      pendingCases,
+      completedCases,
+      emergencyCases,
+      animalsTreated,
+      vaccinationsDone,
+      todayAppointments: pendingCases > 0 ? 1 : 0,
+      monthlyVisits,
+      recoveryRate,
+      reportsSubmitted,
+    };
+  },
+
+  // 2. Doctor Cases Management
+  async getDoctorCases(doctorId: string): Promise<DoctorCase[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.cases];
+  },
+
+  // Accept a case
+  async acceptCase(doctorId: string, caseId: string): Promise<DoctorCase | null> {
+    const store = this._getDoctorStore(doctorId);
+    const item = store.cases.find((c) => c.id === caseId);
+    if (item) {
+      item.status = 'accepted';
+      item.accepted_at = new Date().toISOString();
+      this._saveDoctorStore(doctorId, store);
+      return item;
+    }
+    return null;
+  },
+
+  // Reject a case
+  async rejectCase(doctorId: string, caseId: string): Promise<boolean> {
+    const store = this._getDoctorStore(doctorId);
+    const idx = store.cases.findIndex((c) => c.id === caseId);
+    if (idx !== -1) {
+      store.cases[idx].status = 'rejected';
+      this._saveDoctorStore(doctorId, store);
+      return true;
+    }
+    return false;
+  },
+
+  // Update case status
+  async updateDoctorCaseStatus(
+    doctorId: string,
+    caseId: string,
+    status: DoctorCase['status'],
+    treatmentNotes?: string
+  ): Promise<DoctorCase | null> {
+    const store = this._getDoctorStore(doctorId);
+    const item = store.cases.find((c) => c.id === caseId);
+    if (item) {
+      item.status = status;
+      if (treatmentNotes) item.treatment_notes = treatmentNotes;
+      if (status === 'resolved' || status === 'closed') {
+        item.closed_at = new Date().toISOString();
+      }
+      this._saveDoctorStore(doctorId, store);
+      return item;
+    }
+    return null;
+  },
+
+  // 3. Diagnosis Center
+  async getDoctorDiagnoses(doctorId: string): Promise<DoctorDiagnosis[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.diagnoses];
+  },
+
+  async createDoctorDiagnosis(
+    doctorId: string,
+    diag: Omit<DoctorDiagnosis, 'id' | 'diagnosed_at'>
+  ): Promise<DoctorDiagnosis> {
+    const store = this._getDoctorStore(doctorId);
+    const newDiag: DoctorDiagnosis = {
+      ...diag,
+      id: `diag-${Date.now()}`,
+      diagnosed_at: new Date().toISOString(),
+    };
+    store.diagnoses.unshift(newDiag);
+
+    // Update case if linked
+    const linkedCase = store.cases.find((c) => c.id === diag.case_id);
+    if (linkedCase) {
+      linkedCase.diagnosis = diag.disease_name;
+      linkedCase.status = 'in_diagnosis';
+    }
+
+    this._saveDoctorStore(doctorId, store);
+    return newDiag;
+  },
+
+  // 4. Treatment Management
+  async getDoctorTreatments(doctorId: string): Promise<DoctorTreatmentRecord[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.treatments];
+  },
+
+  async createDoctorTreatment(
+    doctorId: string,
+    treat: Omit<DoctorTreatmentRecord, 'id' | 'created_at'>
+  ): Promise<DoctorTreatmentRecord> {
+    const store = this._getDoctorStore(doctorId);
+    const newTreat: DoctorTreatmentRecord = {
+      ...treat,
+      id: `treat-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+    store.treatments.unshift(newTreat);
+
+    // Update linked case status to treatment_ongoing
+    const linkedCase = store.cases.find((c) => c.id === treat.case_id);
+    if (linkedCase) {
+      linkedCase.status = 'treatment_ongoing';
+      linkedCase.treatment_notes = treat.treatment_plan;
+    }
+
+    // Ripple into localStore.treatments so the farmer sees the treatment on their animal record!
+    localStore.treatments.unshift({
+      id: newTreat.id,
+      animal_id: treat.animal_id || 'anim-1',
+      treatment_name: treat.medicines || 'Prescribed Veterinary Regimen',
+      treatment_date: new Date().toISOString().split('T')[0],
+      dosage: treat.dosage,
+      notes: `${treat.medicines}: ${treat.treatment_plan}`,
+      prescribed_by: doctorId,
+      created_at: newTreat.created_at,
+    });
+    localStore.save();
+
+    this._saveDoctorStore(doctorId, store);
+    return newTreat;
+  },
+
+  // 5. Prescription Management
+  async getDoctorPrescriptions(doctorId: string): Promise<DoctorPrescriptionRecord[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.prescriptions];
+  },
+
+  async createDoctorPrescription(
+    doctorId: string,
+    rx: Omit<DoctorPrescriptionRecord, 'id' | 'created_at'>
+  ): Promise<DoctorPrescriptionRecord> {
+    const store = this._getDoctorStore(doctorId);
+    const newRx: DoctorPrescriptionRecord = {
+      ...rx,
+      id: `rx-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+    store.prescriptions.unshift(newRx);
+    this._saveDoctorStore(doctorId, store);
+    return newRx;
+  },
+
+  // 6. Vaccination Management
+  async getDoctorVaccinations(doctorId: string): Promise<DoctorVaccinationRecord[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.vaccinations];
+  },
+
+  async createDoctorVaccination(
+    doctorId: string,
+    vac: Omit<DoctorVaccinationRecord, 'id'>
+  ): Promise<DoctorVaccinationRecord> {
+    const store = this._getDoctorStore(doctorId);
+    const newVac: DoctorVaccinationRecord = {
+      ...vac,
+      id: `vac-${Date.now()}`,
+    };
+    store.vaccinations.unshift(newVac);
+
+    // Ripple into localStore.vaccinations so farmer animal record is marked vaccinated!
+    localStore.vaccinations.unshift({
+      id: newVac.id,
+      animal_id: vac.animal_id,
+      vaccine_name: vac.vaccine_name,
+      vaccination_date: vac.date,
+      next_due_date: vac.booster_date,
+      administered_by: doctorId,
+      notes: `Batch: ${vac.batch_number} • Certificate: ${vac.certificate_no}`,
+      created_at: new Date().toISOString(),
+    });
+    localStore.save();
+
+    this._saveDoctorStore(doctorId, store);
+    return newVac;
+  },
+
+  // 7. Field Visit Management
+  async getDoctorVisits(doctorId: string): Promise<DoctorFieldVisitRecord[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.visits];
+  },
+
+  async createDoctorFieldVisit(
+    doctorId: string,
+    visit: Omit<DoctorFieldVisitRecord, 'id'>
+  ): Promise<DoctorFieldVisitRecord> {
+    const store = this._getDoctorStore(doctorId);
+    const newVisit: DoctorFieldVisitRecord = {
+      ...visit,
+      id: `visit-${Date.now()}`,
+    };
+    store.visits.unshift(newVisit);
+    this._saveDoctorStore(doctorId, store);
+    return newVisit;
+  },
+
+  // 8. Disease Reporting Center (Ripples into Government Surveillance!)
+  async getDoctorDiseaseReports(doctorId: string): Promise<DoctorDiseaseReportRecord[]> {
+    const store = this._getDoctorStore(doctorId);
+    return [...store.diseaseReports];
+  },
+
+  async createDoctorDiseaseReport(
+    doctorId: string,
+    rep: Omit<DoctorDiseaseReportRecord, 'id' | 'created_at'>
+  ): Promise<DoctorDiseaseReportRecord> {
+    const store = this._getDoctorStore(doctorId);
+    const newReport: DoctorDiseaseReportRecord = {
+      ...rep,
+      id: `dis-rep-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+    store.diseaseReports.unshift(newReport);
+
+    // Ripple to Outbreaks and Advisories so Government Official Surveillance catches it immediately!
+    if (rep.is_outbreak_risk) {
+      localStore.outbreaks.unshift({
+        id: `ob-auto-${Date.now()}`,
+        disease_id: 'dis-1',
+        location_id: 'loc-1',
+        title: `Outbreak Alert: ${rep.disease_name} in ${rep.village}, ${rep.district}`,
+        title_en: `Outbreak Alert: ${rep.disease_name} in ${rep.village}, ${rep.district}`,
+        title_hi: `प्रकोप चेतावनी: ${rep.village}, ${rep.district} में ${rep.disease_name}`,
+        title_mr: `प्रकोप सतर्कता: ${rep.village}, ${rep.district} येथे ${rep.disease_name}`,
+        description: rep.clinical_summary,
+        description_en: rep.clinical_summary,
+        description_hi: rep.clinical_summary,
+        description_mr: rep.clinical_summary,
+        severity: 'critical',
+        affected_herds: 2,
+        affected_animals: rep.cases_observed,
+        mortality_count: rep.mortalities,
+        started_at: new Date().toISOString(),
+        ended_at: null,
+        status: 'active',
+        created_by: doctorId,
+      });
+
+      localStore.advisories.unshift({
+        id: `adv-auto-${Date.now()}`,
+        health_report_id: null,
+        title: `Urgent Veterinary Advisory: ${rep.disease_name}`,
+        title_en: `Urgent Veterinary Advisory: ${rep.disease_name}`,
+        title_hi: `महत्वपूर्ण पशु चिकित्सा परामर्श: ${rep.disease_name}`,
+        title_mr: `तातडीचा पशुवैद्यकीय सल्ला: ${rep.disease_name}`,
+        message: rep.clinical_summary,
+        message_en: rep.clinical_summary,
+        message_hi: rep.clinical_summary,
+        message_mr: rep.clinical_summary,
+        language: 'en',
+        created_by: doctorId,
+      });
+      localStore.save();
+    }
+
+    this._saveDoctorStore(doctorId, store);
+    return newReport;
+  },
+
+  // 9. Incoming Farmer Reports that a doctor can claim / accept
+  async getIncomingFarmerReports(): Promise<DoctorCase[]> {
+    const rawReports = await this.getHealthReports();
+    return rawReports.map((r, idx) => ({
+      id: `case-inc-${r.id}`,
+      doctor_id: '',
+      case_number: `JR-INC-${200 + idx}`,
+      animal_id: String(r.animal_id || 'anim-1'),
+      animal_tag: r.animal?.tag_number || `MH-12-${String(1000 + idx).slice(1)}`,
+      animal_species: r.animal?.species ? `${r.animal.species.toUpperCase()} (${r.animal.breed || 'Indigenous'})` : 'Cattle (Gir)',
+      farmer_name: r.reporter?.full_name || 'Shri Rameshwar Shinde',
+      farmer_phone: r.reporter?.phone || '9822100200',
+      village: r.location?.name || 'Shirapur',
+      district: 'Pune',
+      symptoms: r.symptoms || 'High fever, loss of appetite',
+      priority: r.mortality_count > 0 ? 'critical' : r.symptoms.toLowerCase().includes('mouth') || r.symptoms.toLowerCase().includes('blister') ? 'urgent' : 'routine',
+      status: 'assigned',
+      reported_at: r.reported_at,
+    }));
+  },
+
+  // Claim an incoming case into doctor's assigned cases
+  async claimIncomingCase(doctorId: string, incomingCase: DoctorCase): Promise<DoctorCase> {
+    const store = this._getDoctorStore(doctorId);
+    const claimed: DoctorCase = {
+      ...incomingCase,
+      id: `case-${Date.now()}`,
+      doctor_id: doctorId,
+      status: 'accepted',
+      accepted_at: new Date().toISOString(),
+    };
+    store.cases.unshift(claimed);
+    this._saveDoctorStore(doctorId, store);
+    return claimed;
+  },
 };
+

@@ -18,6 +18,7 @@ import { LandingAndOnboarding } from '@/components/LandingAndOnboarding';
 import { FarmerHerdSetup } from '@/components/FarmerHerdSetup';
 import { VetHospitalSetup } from '@/components/VetHospitalSetup';
 import { VetDashboard } from '@/components/VetDashboard';
+import { GovernmentOfficialDashboard } from '@/components/GovernmentOfficialDashboard';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -165,8 +166,8 @@ export default function Home() {
           {/* ======================================================== */}
           {/* B. GOVERNMENT OFFICIAL DEDICATED SURVEILLANCE INTERFACE   */}
           {/* ======================================================== */}
-          {currentRole === 'government' && activeTab === 'surveillance' && (
-            <DistrictSurveillance
+          {currentRole === 'government' && (activeTab === 'surveillance' || activeTab === 'home') && (
+            <GovernmentOfficialDashboard
               onSelectCase={() => setActiveTab('cases')}
               onOpenReport={() => setActiveTab('report')}
             />

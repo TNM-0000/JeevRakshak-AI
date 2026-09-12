@@ -374,6 +374,10 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [herdSize, setHerdSize] = useState('');
+  const [vetLicense, setVetLicense] = useState('');
+  const [vetHospitalName, setVetHospitalName] = useState('');
+  const [govtEmployeeId, setGovtEmployeeId] = useState('');
+  const [govtDesignation, setGovtDesignation] = useState('District Animal Husbandry Officer (DAHO)');
 
   // Field touched states for inline validation warnings
   const [phoneTouched, setPhoneTouched] = useState(false);
@@ -452,6 +456,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       village: locationData.village || selectedVillage || 'Shirapur',
       state: locationData.state || 'Maharashtra',
       herd_size: herdSize ? parseInt(herdSize, 10) : undefined,
+      hospital_name: selectedRole === 'veterinarian' ? (vetHospitalName.trim() || 'Taluka Veterinary Polyclinic') : undefined,
+      license_number: selectedRole === 'veterinarian' ? (vetLicense.trim() || 'MSVC-18492') : undefined,
     });
 
     setLoading(false);
@@ -1023,6 +1029,74 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                         className="form-input"
                       />
                     </div>
+                  )}
+
+                  {selectedRole === 'veterinarian' && (
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">
+                          MSVC Veterinary Council License Number <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. MSVC-18492"
+                          value={vetLicense}
+                          onChange={(e) => setVetLicense(e.target.value)}
+                          className="form-input"
+                          style={{ textTransform: 'uppercase', fontWeight: 600 }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Assigned Veterinary Hospital / Polyclinic <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Taluka Veterinary Polyclinic, Baramati"
+                          value={vetHospitalName}
+                          onChange={(e) => setVetHospitalName(e.target.value)}
+                          className="form-input"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {selectedRole === 'government' && (
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">
+                          Department Official Employee ID <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. MH-DAHD-0412"
+                          value={govtEmployeeId}
+                          onChange={(e) => setGovtEmployeeId(e.target.value)}
+                          className="form-input"
+                          style={{ textTransform: 'uppercase', fontWeight: 600 }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Government Official Designation</label>
+                        <select
+                          value={govtDesignation}
+                          onChange={(e) => setGovtDesignation(e.target.value)}
+                          className="form-select"
+                        >
+                          <option value="District Animal Husbandry Officer (DAHO)">District Animal Husbandry Officer (DAHO)</option>
+                          <option value="State Animal Husbandry Officer">State Animal Husbandry Officer</option>
+                          <option value="Taluka / Block Veterinary Officer">Taluka / Block Veterinary Officer</option>
+                          <option value="Disease Monitoring & Surveillance Officer">Disease Monitoring & Surveillance Officer</option>
+                          <option value="National Vaccination Program Officer">National Vaccination Program Officer</option>
+                          <option value="Emergency 1962 Response Commander">Emergency 1962 Response Commander</option>
+                        </select>
+                      </div>
+                    </>
                   )}
 
                   <div className="form-group">
