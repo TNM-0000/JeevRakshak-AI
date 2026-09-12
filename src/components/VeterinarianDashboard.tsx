@@ -175,7 +175,7 @@ export const VeterinarianDashboard: React.FC<VeterinarianDashboardProps> = ({
             className="btn-secondary"
             style={{ padding: '6px 12px', fontSize: '0.78rem' }}
           >
-            Review Queue
+            {language === 'mr' ? 'केसेस यादी' : language === 'hi' ? 'केस कतार' : 'Cases Queue'}
           </button>
         </div>
       </div>

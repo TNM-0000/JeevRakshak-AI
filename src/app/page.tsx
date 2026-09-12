@@ -55,7 +55,16 @@ export default function Home() {
       return;
     }
 
-    // 2. Navigate to immediate previous page in history
+    const defaultRootTab: ActiveTab =
+      currentRole === 'veterinarian' ? 'vet_desk' : currentRole === 'government' ? 'surveillance' : 'home';
+
+    // 2. If on the root dashboard page, move directly to the landing page of our website
+    if (activeTab === defaultRootTab) {
+      setIsOnboarded(false);
+      return;
+    }
+
+    // 3. Navigate to immediate previous page in history
     if (tabHistory.length > 0) {
       const prev = tabHistory[tabHistory.length - 1];
       setTabHistory((history) => history.slice(0, -1));
@@ -63,23 +72,20 @@ export default function Home() {
       return;
     }
 
-    // 3. Navigate to immediate sudden parent page
-    const defaultRootTab: ActiveTab =
-      currentRole === 'veterinarian' ? 'vet_desk' : currentRole === 'government' ? 'surveillance' : 'home';
-
+    // 4. If government sub-module is active, reset to main government dashboard
     if (currentRole === 'government' && activeTab === 'surveillance' && govModule !== 'dashboard') {
       setGovModule('dashboard');
       return;
     }
 
+    // 5. If on another tab with empty history, move to root dashboard or landing page
     if (activeTab !== defaultRootTab) {
       setActiveTab(defaultRootTab);
       return;
     }
 
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      window.history.back();
-    }
+    // 6. Otherwise return to the landing page
+    setIsOnboarded(false);
   };
 
   // Global Register Livestock Animal Modal State

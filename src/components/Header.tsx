@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, ChevronDown, User, LogOut, Phone, Plus, ArrowLeft } from 'lucide-react';
-import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
+import { Shield, Bell, ChevronDown, User, LogOut, Plus, ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
@@ -19,7 +18,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onRegisterAnimal, onBack, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [showIVRSimulator, setShowIVRSimulator] = useState(false);
   const currentUser = dataService.getCurrentUser();
 
   useEffect(() => {
@@ -88,65 +86,8 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
           </div>
         </div>
 
-        {/* Actions: Language, Sync, Notification Bell */}
+        {/* Actions: Register Animal, Sign Out Profile, Language Dropdown (Right-Most) */}
         <div className="header-actions">
-          {/* Language Selector */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as AppLanguage)}
-              className="form-select"
-              style={{
-                padding: '4px 22px 4px 8px',
-                fontSize: '0.76rem',
-                fontWeight: 600,
-                borderRadius: '20px',
-                background: '#f1f5f9',
-                border: '1px solid var(--border-subtle)',
-                cursor: 'pointer',
-                appearance: 'none',
-                width: 'auto',
-                minHeight: '34px',
-                height: '34px',
-              }}
-            >
-              <option value="en">EN</option>
-              <option value="hi">हिन्दी</option>
-              <option value="mr">मराठी</option>
-            </select>
-            <ChevronDown
-              size={12}
-              style={{ position: 'absolute', right: '8px', pointerEvents: 'none', color: 'var(--text-muted)' }}
-            />
-          </div>
-
-          {/* Toll-Free 1800-120-JEEV IVR Hotline Button */}
-          <button
-            type="button"
-            onClick={() => setShowIVRSimulator(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
-              color: '#ffffff',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(45, 106, 79, 0.25)',
-              whiteSpace: 'nowrap',
-              height: '34px',
-            }}
-            title="Toll-Free 1800-120-JEEV IVR Hotline (No internet required)"
-          >
-            <Phone size={13} color="#95d5b2" />
-            <span>1800-120-JEEV</span>
-          </button>
-
-
           {/* Top Register Animal Button */}
           {currentRole === 'farmer' && onRegisterAnimal && (
             <button
@@ -218,22 +159,44 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               >
                 {t.roles[currentRole]}
               </span>
-              <LogOut size={12} style={{ color: 'var(--text-muted)' }} />
+              <LogOut size={12} color="var(--text-muted)" style={{ marginLeft: '2px' }} />
             </button>
           )}
+
+          {/* Language Selector (Positioned at the Right-Most Corner) */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as AppLanguage)}
+              className="form-select"
+              style={{
+                padding: '4px 22px 4px 8px',
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                borderRadius: '20px',
+                background: '#f1f5f9',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                appearance: 'none',
+                width: 'auto',
+                minHeight: '34px',
+                height: '34px',
+              }}
+              title={language === 'mr' ? 'भाषा निवडा' : language === 'hi' ? 'भाषा चुनें' : 'Select Language'}
+            >
+              <option value="en">EN</option>
+              <option value="hi">हिन्दी</option>
+              <option value="mr">मराठी</option>
+            </select>
+            <ChevronDown
+              size={12}
+              style={{ position: 'absolute', right: '8px', pointerEvents: 'none', color: 'var(--text-muted)' }}
+            />
+          </div>
         </div>
       </div>
 
       </header>
-
-      {/* Toll-Free IVR Phone Simulator Modal */}
-      {showIVRSimulator && (
-        <IVRPhoneSimulator
-          isOpen={showIVRSimulator}
-          onClose={() => setShowIVRSimulator(false)}
-          autoDial={true}
-        />
-      )}
     </>
   );
 };

@@ -38,7 +38,7 @@ interface FieldHealthCasesProps {
 export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnimal }) => {
   const { t, language } = useLanguage();
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'review' | 'pending' | 'confirmed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'pending' | 'confirmed'>('all');
   const [selectedCase, setSelectedCase] = useState<HealthReportWithDetails | null>(null);
 
   const loadCases = () => {
@@ -52,7 +52,6 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
   const filteredReports = reports.filter((r) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'new') return !r.assessment || r.assessment.status === 'suspected';
-    if (activeFilter === 'review') return r.assessment?.status === 'probable';
     if (activeFilter === 'pending') return !r.assessment || r.assessment.status === 'suspected';
     if (activeFilter === 'confirmed') return r.assessment?.status === 'confirmed';
     return true;
@@ -119,7 +118,6 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
         {[
           { id: 'all', label: language === 'mr' ? 'सर्व केसेस' : language === 'hi' ? 'सभी मामले' : 'All Cases' },
           { id: 'new', label: t.fieldHealth.new },
-          { id: 'review', label: t.fieldHealth.review },
           { id: 'pending', label: t.fieldHealth.pending },
           { id: 'confirmed', label: t.fieldHealth.confirmed },
         ].map((tab) => (
