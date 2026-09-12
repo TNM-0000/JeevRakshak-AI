@@ -41,21 +41,43 @@ export default function Home() {
   };
 
   const handleBack = () => {
+    // 1. Close open modals first (parent is the current page)
+    if (showGlobalRegisterModal) {
+      setShowGlobalRegisterModal(false);
+      return;
+    }
     if (selectedAnimalId) {
       setSelectedAnimalId(null);
       return;
     }
+    if (isEditingHospital) {
+      setIsEditingHospital(false);
+      return;
+    }
+
+    // 2. Navigate to immediate previous page in history
     if (tabHistory.length > 0) {
       const prev = tabHistory[tabHistory.length - 1];
       setTabHistory((history) => history.slice(0, -1));
       setActiveTab(prev);
       return;
     }
-    const defaultTab: ActiveTab =
+
+    // 3. Navigate to immediate sudden parent page
+    const defaultRootTab: ActiveTab =
       currentRole === 'veterinarian' ? 'vet_desk' : currentRole === 'government' ? 'surveillance' : 'home';
-    if (activeTab !== defaultTab) {
-      setActiveTab(defaultTab);
-    } else if (typeof window !== 'undefined' && window.history.length > 1) {
+
+    if (currentRole === 'government' && activeTab === 'surveillance' && govModule !== 'dashboard') {
+      setGovModule('dashboard');
+      return;
+    }
+
+    if (activeTab !== defaultRootTab) {
+      setActiveTab(defaultRootTab);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back();
     }
   };
@@ -212,9 +234,9 @@ export default function Home() {
           {/* ======================================================== */}
           {currentRole === 'veterinarian' && (activeTab === 'vet_desk' || activeTab === 'home') && (
             <VetDashboard
-              onOpenCases={() => setActiveTab('cases')}
-              onOpenReport={() => setActiveTab('report')}
-              onOpenAdvisories={() => setActiveTab('alerts')}
+              onOpenCases={() => handleTabChange('cases')}
+              onOpenReport={() => handleTabChange('report')}
+              onOpenAdvisories={() => handleTabChange('alerts')}
               onEditHospitalSetup={() => setIsEditingHospital(true)}
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
             />
@@ -227,8 +249,8 @@ export default function Home() {
             <GovernmentOfficialDashboard
               activeModule={govModule}
               onSelectModule={setGovModule}
-              onSelectCase={() => setActiveTab('cases')}
-              onOpenReport={() => setActiveTab('report')}
+              onSelectCase={() => handleTabChange('cases')}
+              onOpenReport={() => handleTabChange('report')}
             />
           )}
 
@@ -238,17 +260,17 @@ export default function Home() {
           {currentRole === 'farmer' && activeTab === 'home' && (
             <FarmerDashboard
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
-              onOpenReport={() => setActiveTab('report')}
-              onOpenAdvisory={() => setActiveTab('alerts')}
-              onOpenCases={() => setActiveTab('cases')}
-              onOpenPrescriptions={() => setActiveTab('prescriptions')}
+              onOpenReport={() => handleTabChange('report')}
+              onOpenAdvisory={() => handleTabChange('alerts')}
+              onOpenCases={() => handleTabChange('cases')}
+              onOpenPrescriptions={() => handleTabChange('prescriptions')}
             />
           )}
 
           {/* Farmer Doctor Prescriptions & Vet Care Plans Hub */}
           {activeTab === 'prescriptions' && (
             <FarmerPrescriptions
-              onOpenReport={() => setActiveTab('report')}
+              onOpenReport={() => handleTabChange('report')}
             />
           )}
 
@@ -256,7 +278,7 @@ export default function Home() {
           {activeTab === 'herd' && (
             <HerdHub
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
-              onOpenReport={() => setActiveTab('report')}
+              onOpenReport={() => handleTabChange('report')}
             />
           )}
 
@@ -264,12 +286,10 @@ export default function Home() {
           {activeTab === 'report' && (
             <ReportFlow
               onReportComplete={() => {
-                setActiveTab('cases');
+                handleTabChange('cases');
               }}
               onCancel={() => {
-                if (currentRole === 'veterinarian') setActiveTab('vet_desk');
-                else if (currentRole === 'government') setActiveTab('surveillance');
-                else setActiveTab('home');
+                handleBack();
               }}
             />
           )}
@@ -284,16 +304,16 @@ export default function Home() {
           {/* District Surveillance (when navigated to from tabs) */}
           {activeTab === 'surveillance' && currentRole !== 'government' && (
             <DistrictSurveillance
-              onSelectCase={() => setActiveTab('cases')}
-              onOpenReport={() => setActiveTab('report')}
+              onSelectCase={() => handleTabChange('cases')}
+              onOpenReport={() => handleTabChange('report')}
             />
           )}
 
           {/* Alerts & Advisories Center */}
           {activeTab === 'alerts' && (
             <AdvisoriesAlerts
-              onOpenReport={() => setActiveTab('report')}
-              onOpenSurveillance={() => setActiveTab('surveillance')}
+              onOpenReport={() => handleTabChange('report')}
+              onOpenSurveillance={() => handleTabChange('surveillance')}
             />
           )}
         </main>

@@ -285,7 +285,7 @@ export const initialIVRCalls: IVRCall[] = [
 export const initialIVRReports: IVRReport[] = [
   {
     id: 'ivr-rep-1',
-    case_id: 'JRK-2026-00125',
+    case_id: 'Case #1',
     call_id: 'call-1',
     farmer_phone: '9822410291',
     farmer_name: 'Babanrao Babar',
@@ -312,7 +312,7 @@ export const initialIVRReports: IVRReport[] = [
   },
   {
     id: 'ivr-rep-2',
-    case_id: 'JRK-2026-00128',
+    case_id: 'Case #2',
     call_id: 'call-4',
     farmer_phone: '9890123490',
     farmer_name: 'Santosh Thorat',
@@ -651,7 +651,7 @@ export class LocalStore {
               farmer_phone: '9822410291',
               diagnosis: 'Foot and Mouth Disease (FMD) & Secondary Pododermatitis',
               case_id: 'case-demo-101',
-              case_number: 'JR-CASE-261',
+              case_number: 'Case #1',
               follow_up_date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
               status: 'active',
               medicines: [
@@ -675,7 +675,7 @@ export class LocalStore {
               farmer_phone: '9822456789',
               diagnosis: 'Acute Clinical Mastitis (Staphylococcus aureus)',
               case_id: 'case-demo-102',
-              case_number: 'JR-CASE-262',
+              case_number: 'Case #2',
               follow_up_date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
               status: 'active',
               medicines: [
@@ -2474,7 +2474,7 @@ export const dataService = {
         {
           id: 'case-demo-101',
           doctor_id: 'demo-vet-1',
-          case_number: 'JR-CASE-261',
+          case_number: 'Case #1',
           animal_id: 'anim-1',
           animal_tag: 'MH-12-0042',
           animal_species: 'Cattle (Gir Cow)',
@@ -2491,7 +2491,7 @@ export const dataService = {
         {
           id: 'case-demo-102',
           doctor_id: 'demo-vet-1',
-          case_number: 'JR-CASE-262',
+          case_number: 'Case #2',
           animal_id: 'anim-2',
           animal_tag: 'MH-12-0089',
           animal_species: 'Buffalo (Murrah)',
@@ -2973,31 +2973,40 @@ export const dataService = {
   // 9. Incoming Farmer Reports that a doctor can claim / accept
   async getIncomingFarmerReports(): Promise<DoctorCase[]> {
     const rawReports = await this.getHealthReports();
-    return rawReports.map((r, idx) => ({
-      id: `case-inc-${r.id}`,
-      doctor_id: '',
-      case_number: `JR-INC-${200 + idx}`,
-      animal_id: String(r.animal_id || 'anim-1'),
-      animal_tag: r.animal?.tag_number || `MH-12-${String(1000 + idx).slice(1)}`,
-      animal_species: r.animal?.species ? `${r.animal.species.toUpperCase()} (${r.animal.breed || 'Indigenous'})` : 'Cattle (Gir)',
-      farmer_name: r.reporter?.full_name || 'Shri Rameshwar Shinde',
-      farmer_phone: r.reporter?.phone || '9822100200',
-      village: r.location?.name || 'Shirapur',
-      district: 'Pune',
-      symptoms: r.symptoms || 'High fever, loss of appetite',
-      priority: r.mortality_count > 0 ? 'critical' : r.symptoms.toLowerCase().includes('mouth') || r.symptoms.toLowerCase().includes('blister') ? 'urgent' : 'routine',
-      status: 'assigned',
-      reported_at: r.reported_at,
-    }));
+    const dayCounter: Record<string, number> = {};
+    return rawReports.map((r) => {
+      const day = (r.reported_at || r.created_at || new Date().toISOString()).slice(0, 10);
+      dayCounter[day] = (dayCounter[day] || 0) + 1;
+      const dailySeq = dayCounter[day];
+      return {
+        id: `case-inc-${r.id}`,
+        doctor_id: '',
+        case_number: `Case #${dailySeq}`,
+        animal_id: String(r.animal_id || 'anim-1'),
+        animal_tag: r.animal?.tag_number || `MH-12-PUN`,
+        animal_species: r.animal?.species ? `${r.animal.species} (${r.animal.breed || 'Indigenous'})` : 'Cattle (Gir)',
+        farmer_name: r.reporter?.full_name || 'Shri Rameshwar Shinde',
+        farmer_phone: r.reporter?.phone || '9822100200',
+        village: r.location?.name || 'Shirapur',
+        district: 'Pune',
+        symptoms: r.symptoms || 'High fever, loss of appetite',
+        priority: r.mortality_count > 0 ? 'critical' : r.symptoms.toLowerCase().includes('mouth') || r.symptoms.toLowerCase().includes('blister') ? 'urgent' : 'routine',
+        status: 'assigned',
+        reported_at: r.reported_at,
+      };
+    });
   },
 
   // Claim an incoming case into doctor's assigned cases
   async claimIncomingCase(doctorId: string, incomingCase: DoctorCase): Promise<DoctorCase> {
     const store = this._getDoctorStore(doctorId);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayCount = store.cases.filter((c: DoctorCase) => (c.reported_at || '').slice(0, 10) === todayStr).length;
     const claimed: DoctorCase = {
       ...incomingCase,
       id: `case-${Date.now()}`,
       doctor_id: doctorId,
+      case_number: `Case #${todayCount + 1}`,
       status: 'accepted',
       accepted_at: new Date().toISOString(),
     };
@@ -3057,8 +3066,9 @@ export const dataService = {
     taluka?: string;
     village?: string;
   }): Promise<IVRReport> {
-    const caseNum = String(100 + localStore.ivrReports.length + 1).padStart(5, '0');
-    const caseId = `JRK-2026-${caseNum}`;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayReports = localStore.ivrReports.filter(r => (r.created_at || '').slice(0, 10) === todayStr);
+    const caseId = `Case #${todayReports.length + 1}`;
 
     // AI Disease Triage Logic based on symptoms & speech
     let suspectedDisease = 'Undifferentiated Pyrexia / Bovine Viral Infection';
