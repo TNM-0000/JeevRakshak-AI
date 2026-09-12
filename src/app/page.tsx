@@ -25,12 +25,40 @@ export default function Home() {
   const { t, language } = useLanguage();
   const [currentRole, setCurrentRole] = useState<UserRole>('farmer');
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [tabHistory, setTabHistory] = useState<ActiveTab[]>([]);
   const [govModule, setGovModule] = useState<GovCleanModule>('dashboard');
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
   const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
   const [vetHospitalSetupDone, setVetHospitalSetupDone] = useState<boolean>(false);
   const [isEditingHospital, setIsEditingHospital] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
+
+  const handleTabChange = (newTab: ActiveTab) => {
+    if (newTab !== activeTab) {
+      setTabHistory((prev) => [...prev, activeTab]);
+      setActiveTab(newTab);
+    }
+  };
+
+  const handleBack = () => {
+    if (selectedAnimalId) {
+      setSelectedAnimalId(null);
+      return;
+    }
+    if (tabHistory.length > 0) {
+      const prev = tabHistory[tabHistory.length - 1];
+      setTabHistory((history) => history.slice(0, -1));
+      setActiveTab(prev);
+      return;
+    }
+    const defaultTab: ActiveTab =
+      currentRole === 'veterinarian' ? 'vet_desk' : currentRole === 'government' ? 'surveillance' : 'home';
+    if (activeTab !== defaultTab) {
+      setActiveTab(defaultTab);
+    } else if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    }
+  };
 
   // Global Register Livestock Animal Modal State
   const [showGlobalRegisterModal, setShowGlobalRegisterModal] = useState<boolean>(false);
@@ -162,7 +190,7 @@ export default function Home() {
       {/* Desktop Navigation Sidebar */}
       <Navigation
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleTabChange}
         currentRole={currentRole}
         govModule={govModule}
         onSelectGovModule={setGovModule}
@@ -172,8 +200,9 @@ export default function Home() {
       <div className="app-main">
         <Header
           currentRole={currentRole}
-          onOpenNotifications={() => setActiveTab('alerts')}
+          onOpenNotifications={() => handleTabChange('alerts')}
           onRegisterAnimal={() => setShowGlobalRegisterModal(true)}
+          onBack={handleBack}
           onSignOut={handleSignOut}
         />
 
@@ -407,9 +436,24 @@ export default function Home() {
           onClose={() => setSelectedAnimalId(null)}
           onReportAnimal={(animId) => {
             setSelectedAnimalId(null);
-            setActiveTab('report');
+            handleTabChange('report');
           }}
         />
+      )}
+
+      {/* Sticky "Add Sick Animal" Floating Button throughout whole document */}
+      {currentRole === 'farmer' && activeTab !== 'report' && (
+        <button
+          type="button"
+          onClick={() => handleTabChange('report')}
+          className="sticky-sick-animal-fab"
+          title={language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}
+        >
+          <Plus size={18} strokeWidth={2.6} />
+          <span>
+            {language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}
+          </span>
+        </button>
       )}
     </div>
   );

@@ -21,6 +21,7 @@ import {
   MapPin,
   Stethoscope,
   Phone,
+  PhoneCall,
   Plus,
   X,
   Pill,
@@ -232,27 +233,50 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowPhoneSimulator(true)}
-          style={{
-            background: '#52b788',
-            color: '#081c15',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: '12px',
-            fontSize: '0.82rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
-          }}
-        >
-          <Phone size={15} />
-          <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setShowPhoneSimulator(true)}
+            style={{
+              background: '#52b788',
+              color: '#081c15',
+              border: 'none',
+              padding: '10px 18px',
+              borderRadius: '12px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
+            }}
+          >
+            <Phone size={15} />
+            <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
+          </button>
+
+          <a
+            href="tel:18001205338"
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.35)',
+              padding: '9px 14px',
+              borderRadius: '12px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            title="Dial 1800-120-5338 directly on mobile phone"
+          >
+            <PhoneCall size={14} color="#95d5b2" />
+            <span>1800-120-5338</span>
+          </a>
+        </div>
       </div>
 
       {/* Main Stability Status Card (Matching Wireframe Screen 6) */}
@@ -749,6 +773,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         <IVRPhoneSimulator
           isOpen={showPhoneSimulator}
           onClose={() => setShowPhoneSimulator(false)}
+          autoDial={true}
         />
       )}
     </div>

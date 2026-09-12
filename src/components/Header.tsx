@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, ChevronDown, User, LogOut, Phone, Plus } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut, Phone, Plus, ArrowLeft } from 'lucide-react';
 import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
 
 interface HeaderProps {
@@ -12,10 +12,11 @@ interface HeaderProps {
   onRoleChange?: (role: UserRole) => void;
   onOpenNotifications: () => void;
   onRegisterAnimal?: () => void;
+  onBack?: () => void;
   onSignOut?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onRegisterAnimal, onSignOut }) => {
+export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onRegisterAnimal, onBack, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [showIVRSimulator, setShowIVRSimulator] = useState(false);
@@ -32,8 +33,33 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
       <header className="top-header">
       {/* Primary Top Row: Brand & Actions */}
       <div className="header-primary-row">
-        {/* Brand & Govt Badge */}
+        {/* Back Button & Brand */}
         <div className="header-brand">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: '20px',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                height: '34px',
+                background: '#f8fafc',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+              title={language === 'mr' ? 'मागे जा' : language === 'hi' ? 'पीछे जाएं' : 'Go Back'}
+            >
+              <ArrowLeft size={14} strokeWidth={2.5} />
+              <span>{language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}</span>
+            </button>
+          )}
           <div
             style={{
               width: '36px',
@@ -145,48 +171,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
             </button>
           )}
 
-          {/* Notification Bell */}
-          <button
-            onClick={onOpenNotifications}
-            style={{
-              position: 'relative',
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: '#f8fafc',
-              border: '1px solid var(--border-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-main)',
-              flexShrink: 0,
-            }}
-            aria-label={language === 'mr' ? 'सूचना' : language === 'hi' ? 'सूचनाएं' : 'Notifications'}
-          >
-            <Bell size={16} />
-            {unreadCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '-2px',
-                  right: '-2px',
-                  background: 'var(--critical)',
-                  color: '#fff',
-                  fontSize: '0.6rem',
-                  fontWeight: 700,
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
           {/* User Account Profile & Sign Out / Landing */}
           {onSignOut && (
             <button
@@ -247,6 +231,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
         <IVRPhoneSimulator
           isOpen={showIVRSimulator}
           onClose={() => setShowIVRSimulator(false)}
+          autoDial={true}
         />
       )}
     </>

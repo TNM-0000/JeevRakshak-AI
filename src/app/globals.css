@@ -104,7 +104,7 @@ a {
   position: relative;
   max-width: 100vw;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 @media (min-width: 1024px) {
@@ -672,4 +672,44 @@ a {
     gap: 20px !important;
   }
 }
+
+/* Sticky "Add Sick Animal" Floating Action Button throughout whole document */
+.sticky-sick-animal-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-decoration: none;
+}
+
+.sticky-sick-animal-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.55);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+@media (max-width: 1023px) {
+  .sticky-sick-animal-fab {
+    bottom: 84px; /* elevated above mobile navigation dock */
+    right: 18px;
+    padding: 11px 18px;
+    font-size: 0.84rem;
+  }
+}
+
 

@@ -289,16 +289,17 @@ export const Navigation: React.FC<NavigationProps> = ({
           })}
         </nav>
 
-        {/* Role-Specific Primary Quick Action CTA */}
-        <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+        {/* Role-Specific Primary Quick Action CTA (Sticky at left bottom corner) */}
+        <div style={{ marginTop: 'auto', paddingTop: '16px', position: 'sticky', bottom: 0, background: '#ffffff', zIndex: 10 }}>
           {currentRole === 'farmer' && (
             <button
               onClick={() => onSelectTab('report')}
               className="btn-primary"
-              style={{ width: '100%', borderRadius: 'var(--radius-lg)', padding: '14px' }}
+              style={{ width: '100%', borderRadius: 'var(--radius-lg)', padding: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              title="Report / Add Sick Livestock Animal"
             >
-              <Plus size={18} />
-              <span>{t.dashboard.quickReport}</span>
+              <Plus size={18} strokeWidth={2.5} />
+              <span>{language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}</span>
             </button>
           )}
 

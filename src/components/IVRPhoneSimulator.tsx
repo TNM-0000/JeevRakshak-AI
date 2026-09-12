@@ -15,22 +15,17 @@ import {
   CheckCircle2,
   AlertTriangle,
   Send,
-  MessageSquare,
-  HelpCircle,
-  Activity,
   User,
   MapPin,
   RefreshCw,
   X,
-  Volume1,
-  FileText,
   ShieldAlert,
-  ChevronRight,
-  Info,
+  ShieldCheck,
+  Building2,
+  FileAudio,
 } from 'lucide-react';
 import {
   IVRLanguage,
-  IVRMenuOption,
   IVRReport,
   IVREmergencyCase,
   IVRCallbackRequest,
@@ -72,6 +67,7 @@ export type IVRState =
 interface IVRPhoneSimulatorProps {
   isOpen: boolean;
   onClose: () => void;
+  autoDial?: boolean;
   initialCallerPhone?: string;
   initialVillage?: string;
   initialTaluka?: string;
@@ -81,9 +77,10 @@ interface IVRPhoneSimulatorProps {
 export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
   isOpen,
   onClose,
+  autoDial = true,
   initialCallerPhone = '+91 98220 54321',
-  initialVillage = 'Koregaon Bhima',
-  initialTaluka = 'Shirur',
+  initialVillage = 'Shirapur',
+  initialTaluka = 'Baramati',
   initialDistrict = 'Pune',
 }) => {
   // Caller & Session State
@@ -118,29 +115,12 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
   const ringCancelRef = useRef<(() => void) | null>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
 
-  // Call duration counter
-  useEffect(() => {
-    if (ivrState !== 'idle' && ivrState !== 'ended') {
-      timerRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [ivrState]);
-
-  // Clean up speech and sounds when unmounting or closing
-  useEffect(() => {
-    return () => {
-      stopIVRSpeech();
-      if (ringCancelRef.current) ringCancelRef.current();
-    };
-  }, []);
-
-  if (!isOpen) return null;
+  // Format seconds as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Speak current prompt helper
   const playPrompt = (text: string, onEnd?: () => void) => {
@@ -173,27 +153,66 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
     setVoiceTranscript('');
     setIvrState('dialing');
 
-    // Simulate ringtone for 2 seconds then answer
-    ringCancelRef.current = playRingtone(2);
+    try {
+      ringCancelRef.current = playRingtone(1.6);
+    } catch (e) {
+      console.warn('Ringtone playback:', e);
+    }
+
     setTimeout(() => {
       setIvrState('language_select');
-      const langPrompt = `${IVR_PROMPTS[language].welcome} ${IVR_PROMPTS[language].select_language}`;
+      const langPrompt = `${IVR_PROMPTS[language]?.welcome || ''} ${IVR_PROMPTS[language]?.select_language || ''}`;
       playPrompt(langPrompt);
-    }, 2200);
+    }, 1600);
   };
+
+  // Auto-Dial on mount when opened
+  useEffect(() => {
+    if (isOpen && autoDial) {
+      handleStartCall();
+    }
+  }, [isOpen]);
+
+  // Call duration counter
+  useEffect(() => {
+    if (ivrState !== 'idle' && ivrState !== 'ended') {
+      timerRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [ivrState]);
+
+  // Clean up speech and sounds when unmounting or closing
+  useEffect(() => {
+    return () => {
+      stopIVRSpeech();
+      if (ringCancelRef.current) ringCancelRef.current();
+    };
+  }, []);
+
+  if (!isOpen) return null;
 
   // Simulate Missed Call Service (Auto-Callback)
   const handleMissedCallService = () => {
     setSmsNotification(
-      'Missed Call registered from 1800-120-JEEV. JeevRakshak AI auto-callback initiating in 3 seconds...'
+      'Missed Call registered from 1800-120-JEEV. JeevRakshak AI auto-callback initiating in 2 seconds...'
     );
     setTimeout(() => {
       setIvrState('ringing');
-      ringCancelRef.current = playRingtone(2.5);
+      try {
+        ringCancelRef.current = playRingtone(2);
+      } catch (e) {
+        console.warn(e);
+      }
       setTimeout(() => {
         handleStartCall();
-      }, 2500);
-    }, 2000);
+      }, 2000);
+    }, 1500);
   };
 
   // Hang Up Call
@@ -305,8 +324,8 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
         setSelectedSymptom(symptoms[index]);
         setIvrState('disease_recording');
         playPrompt(IVR_PROMPTS[language].disease_record_prompt, () => {
-          playBeep(1000, 500);
           setIsRecordingVoice(true);
+          playBeep(1000, 350);
         });
       } else {
         playPrompt(IVR_PROMPTS[language].invalid_input);
@@ -314,436 +333,548 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
       return;
     }
 
-    // Recording termination (#)
+    // Finish voice recording when pressing #
     if (key === '#') {
       if (ivrState === 'disease_recording') {
         finishVoiceDiseaseReport();
-      } else if (ivrState === 'feedback_recording') {
-        finishVoiceFeedback();
+        return;
       }
-      return;
+      if (ivrState === 'feedback_recording') {
+        finishFeedbackRecording();
+        return;
+      }
     }
 
-    // Vet Consult Sub-menu
-    if (ivrState === 'vet_consult') {
-      if (key === '1') {
-        // Request Callback
-        const cb = await dataService.createIVRCallbackRequest({
-          caller_phone: callerPhone,
-          animal_type: selectedAnimal,
-          reason: 'Farmer requested immediate veterinary callback via IVR Option 3.',
-          district,
-          taluka,
-          priority: 'urgent',
-        });
-        setSubmittedCallback(cb);
-        setIvrState('vet_callback_done');
-        playPrompt(IVR_PROMPTS[language].doctor_callback_success);
-        setSmsNotification(
-          `SMS sent to ${callerPhone}: Your Vet Callback Request is scheduled. Dr. Rahul Kulkarni will call you shortly.`
-        );
-      } else if (key === '0') {
-        setIvrState('main_menu');
-        playPrompt(IVR_PROMPTS[language].main_menu);
-      }
-      return;
-    }
-
-    // Emergency Sub-menu
+    // Emergency prompt confirm 1
     if (ivrState === 'emergency_prompt') {
       if (key === '1') {
-        // Confirm Emergency 1962
-        const emg = await dataService.createIVREmergencyCase({
+        const emergencyCase = await dataService.createIVREmergencyCase({
           caller_phone: callerPhone,
-          animal_type: selectedAnimal || 'Bovine',
-          description: 'Farmer triggered emergency 1962 SOS response via IVR line.',
-          district,
-          taluka,
+          animal_type: selectedAnimal,
+          description: `Voice 1962 Emergency initiated from ${village}, ${taluka}`,
           village,
+          taluka,
+          district,
         });
-        setSubmittedEmergency(emg);
+        setSubmittedEmergency(emergencyCase);
         setIvrState('emergency_dispatched');
-        const emgMsg = IVR_PROMPTS[language].emergency_dispatched.replace(
+        const prompt = IVR_PROMPTS[language].emergency_dispatched.replace(
           '{code}',
-          emg.emergency_code
+          emergencyCase.emergency_code
         );
-        playPrompt(emgMsg);
-        setSmsNotification(
-          `EMERGENCY ALERT: 1962 Mobile Vet Van dispatched for ${emg.emergency_code}. ETA: 20 mins. Contact: 1962.`
-        );
-      } else if (key === '0') {
+        playPrompt(prompt);
+      } else {
         setIvrState('main_menu');
         playPrompt(IVR_PROMPTS[language].main_menu);
       }
       return;
     }
 
-    // Vaccination Sub-menu
-    if (ivrState === 'vaccination_info') {
+    // Doctor callback confirm 1
+    if (ivrState === 'vet_consult') {
       if (key === '1') {
-        setSmsNotification(
-          `SMS sent to ${callerPhone}: FMD Round 4 Camp at ${village} Panchayat on Sept 15, 9 AM - 2 PM. Vaccinate all cattle.`
-        );
-      } else if (key === '0') {
+        const callbackReq = await dataService.createIVRCallbackRequest({
+          caller_phone: callerPhone,
+          farmer_name: 'Shri Babanrao Babar',
+          animal_type: selectedAnimal,
+          reason: `Urgent tele-consultation requested via 1800-120-JEEV`,
+          taluka,
+          district,
+          priority: 'urgent',
+        });
+        setSubmittedCallback(callbackReq);
+        setIvrState('vet_callback_done');
+        playPrompt(IVR_PROMPTS[language].doctor_callback_success);
+      } else {
         setIvrState('main_menu');
         playPrompt(IVR_PROMPTS[language].main_menu);
       }
       return;
-    }
-
-    // Return to main menu on 0 from anywhere
-    if (key === '0') {
-      setIvrState('main_menu');
-      playPrompt(IVR_PROMPTS[language].main_menu);
     }
   };
 
-  // Complete Disease Voice Report
-  const finishVoiceDiseaseReport = async (overrideTranscript?: string) => {
+  // Automated voice report generator
+  const finishVoiceDiseaseReport = async () => {
     setIsRecordingVoice(false);
     setIvrState('disease_triage');
 
-    // Pick realistic sample vernacular transcript if none provided
-    const transcriptKey =
-      selectedSymptom.includes('Lumpy')
-        ? 'cow_lumpy'
-        : selectedSymptom.includes('Blisters')
-        ? 'buffalo_fmd'
-        : selectedAnimal === 'Goat'
-        ? 'goat_pox'
-        : 'general_fever';
+    let transcript = SAMPLE_FARMER_TRANSCRIPTS.cow_lumpy.transcript_mr;
+    if (language === 'hi') transcript = SAMPLE_FARMER_TRANSCRIPTS.cow_lumpy.transcript_hi;
+    else if (language === 'en') transcript = SAMPLE_FARMER_TRANSCRIPTS.cow_lumpy.transcript_en;
 
-    const sample = SAMPLE_FARMER_TRANSCRIPTS[transcriptKey];
-    const finalTranscript =
-      overrideTranscript ||
-      (language === 'hi'
-        ? sample.transcript_hi
-        : language === 'en'
-        ? sample.transcript_en
-        : sample.transcript_mr);
+    setVoiceTranscript(transcript);
 
-    setVoiceTranscript(finalTranscript);
-
-    // Call Central Data Service to store report, create case ID, and triage AI
     const report = await dataService.submitIVRDiseaseReport({
       caller_phone: callerPhone,
-      animal_type: selectedAnimal,
+      farmer_name: 'Shri Babanrao Babar',
       detected_language: language,
-      district,
-      taluka,
+      animal_type: selectedAnimal,
+      symptoms: [selectedSymptom],
+      raw_transcript: transcript,
       village,
-      raw_transcript: finalTranscript,
-      symptoms: [selectedSymptom, 'Fever', 'Lethargy'],
+      taluka,
+      district,
     });
 
     setSubmittedReport(report);
     setIvrState('disease_complete');
-
-    // Speak success prompt with Case ID
-    const successMsg = IVR_PROMPTS[language].disease_success.replace(
-      '{caseId}',
-      report.case_id
-    );
-    playPrompt(successMsg);
-
-    // Push simulated SMS notification
-    setSmsNotification(
-      `SMS to ${callerPhone}: JeevRakshak AI - Your disease report is registered as ${report.case_id}. Suspected: ${sample.suspected}. Local Vet alerted.`
-    );
+    const prompt = IVR_PROMPTS[language].disease_success.replace('{caseId}', report.case_id);
+    playPrompt(prompt);
   };
 
-  // Complete Feedback Voice Recording
-  const finishVoiceFeedback = async () => {
+  const finishFeedbackRecording = async () => {
     setIsRecordingVoice(false);
-    const feedbackText =
-      language === 'hi'
-        ? 'पशु चिकित्सालय में दवाई नहीं मिल रही है, कृपया व्यवस्था करें।'
-        : 'शिरूर पशुवैद्यकीय दवाखान्यात वेळेवर लस उपलब्ध करून देण्यात यावी ही विनंती.';
-    setVoiceTranscript(feedbackText);
-
-    const feedback = await dataService.submitIVRFeedback({
-      caller_phone: callerPhone,
-      category: 'medicine_unavailability',
-      transcript: feedbackText,
-      district,
-      taluka,
-    });
-
-    setFeedbackTicket(feedback.feedback_code);
+    const ticketId = `GRV-${Date.now().toString().slice(-5)}`;
+    setFeedbackTicket(ticketId);
     setIvrState('feedback_complete');
-
-    const successMsg = IVR_PROMPTS[language].feedback_success.replace(
-      '{ticketId}',
-      feedback.feedback_code
-    );
-    playPrompt(successMsg);
-
-    setSmsNotification(
-      `SMS to ${callerPhone}: Feedback registered under Code ${feedback.feedback_code}. Government Animal Husbandry Dept will review.`
-    );
-  };
-
-  // Format seconds to mm:ss
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60)
-      .toString()
-      .padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+    const prompt = IVR_PROMPTS[language].feedback_success.replace('{ticketId}', ticketId);
+    playPrompt(prompt);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row my-auto max-h-[92vh]">
-        {/* Close Button */}
-        <button
-          onClick={() => {
-            handleEndCall();
-            onClose();
+    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 2000 }}>
+      <div
+        className="modal-card"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: '1000px',
+          width: '95vw',
+          maxHeight: '92vh',
+          padding: 0,
+          overflow: 'hidden',
+          borderRadius: 'var(--radius-xl)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.35)',
+          background: '#ffffff',
+          border: '1px solid var(--border-card)',
+        }}
+      >
+        {/* Top Government & Toll-Free Header Banner (Theme Signature) */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+            padding: '16px 24px',
+            color: '#ffffff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(255,255,255,0.15)',
           }}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
-          title="Close Simulator"
         >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* LEFT COLUMN: Realistic Mobile Phone Screen & DTMF Keypad */}
-        <div className="w-full lg:w-1/2 bg-gradient-to-b from-gray-900 via-slate-900 to-black p-6 flex flex-col items-center justify-between text-white border-b lg:border-b-0 lg:border-r border-gray-800">
-          {/* Phone Top Notch / Status Bar */}
-          <div className="w-full flex items-center justify-between text-xs text-gray-400 mb-3 px-2">
-            <div className="flex items-center space-x-1.5">
-              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span className="font-medium text-gray-300">BSNL 4G | Jio</span>
-            </div>
-            <div className="text-center font-semibold text-gray-200">
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-[10px] bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                100%
-              </span>
-            </div>
-          </div>
-
-          {/* Caller Banner */}
-          <div className="w-full bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center mb-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-medium mb-1 border border-emerald-500/30">
-              <ShieldAlert className="w-3 h-3" />
-              महाराष्ट्र शासन | Toll-Free IVR
-            </div>
-            <h3 className="text-xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-              1800-120-JEEV <span className="text-xs text-emerald-400 font-mono">(5338)</span>
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">JeevRakshak AI Livestock Health Hotline</p>
-
-            {/* Call State / Duration */}
-            <div className="mt-2 flex items-center justify-center gap-2">
-              {ivrState === 'idle' && (
-                <span className="text-xs text-amber-400 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-ping" />
-                  Ready to Call
-                </span>
-              )}
-              {ivrState === 'dialing' && (
-                <span className="text-xs text-cyan-400 flex items-center gap-1">
-                  <RefreshCw className="w-3 h-3 animate-spin" /> Dialing toll-free gateway...
-                </span>
-              )}
-              {ivrState === 'ringing' && (
-                <span className="text-xs text-emerald-400 flex items-center gap-1 animate-pulse">
-                  <PhoneCall className="w-3 h-3" /> Ringing...
-                </span>
-              )}
-              {ivrState !== 'idle' && ivrState !== 'dialing' && ivrState !== 'ringing' && ivrState !== 'ended' && (
-                <div className="flex items-center gap-2">
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-xs font-mono font-medium text-emerald-300">
-                    Connected {formatTime(callDuration)}
-                  </span>
-                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                    {IVR_LANGUAGES.find((l) => l.code === language)?.nativeName}
-                  </span>
-                </div>
-              )}
-              {ivrState === 'ended' && (
-                <span className="text-xs text-red-400">Call Ended ({formatTime(callDuration)})</span>
-              )}
-            </div>
-          </div>
-
-          {/* Prompt / Teleprompter Display */}
-          <div className="w-full bg-black/40 rounded-xl p-3 border border-white/5 mb-3 min-h-[75px] max-h-[110px] overflow-y-auto">
-            <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1 border-b border-white/5 pb-1">
-              <span className="flex items-center gap-1">
-                <Volume2 className="w-3 h-3 text-emerald-400" />
-                IVR Voice Prompt:
-              </span>
-              {isPromptPlaying && (
-                <span className="text-[10px] text-emerald-400 font-mono animate-pulse">
-                  Playing TTS...
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-emerald-100/90 leading-relaxed italic">
-              {activePromptText ||
-                (ivrState === 'idle'
-                  ? 'Click "Call 1800-120-JEEV" below or press Missed Call to test.'
-                  : 'Listening...')}
-            </p>
-          </div>
-
-          {/* Voice Waveform Activity Indicator */}
-          <div className="w-full flex items-center justify-center gap-1 h-6 mb-3 bg-white/5 rounded-lg px-2">
-            {[40, 70, 30, 85, 60, 95, 45, 80, 55, 65, 30, 90, 50, 75, 40].map((h, i) => (
-              <span
-                key={i}
-                className={`w-1 rounded-full transition-all duration-150 ${
-                  isPromptPlaying || isRecordingVoice
-                    ? 'bg-emerald-400 animate-pulse'
-                    : 'bg-gray-700 h-1.5'
-                }`}
-                style={{
-                  height: isPromptPlaying || isRecordingVoice ? `${Math.max(4, (h * (i % 3 + 1)) % 22)}px` : '4px',
-                }}
-              />
-            ))}
-            {isRecordingVoice && (
-              <span className="text-[10px] text-red-400 font-bold ml-2 animate-pulse flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> REC (# to stop)
-              </span>
-            )}
-          </div>
-
-          {/* DTMF Keypad Grid */}
-          <div className="w-full max-w-[280px] grid grid-cols-3 gap-2.5 mb-3">
-            {[
-              { num: '1', letters: 'Disease / भाषा' },
-              { num: '2', letters: 'Vaccines / लसी' },
-              { num: '3', letters: 'Doctor / सल्ला' },
-              { num: '4', letters: '1962 SOS' },
-              { num: '5', letters: 'Alerts / सूचना' },
-              { num: '6', letters: 'Feedback' },
-              { num: '7', letters: 'PQRS' },
-              { num: '8', letters: 'TUV' },
-              { num: '9', letters: 'WXYZ' },
-              { num: '*', letters: 'Repeat' },
-              { num: '0', letters: 'Menu / ऑपरेटर' },
-              { num: '#', letters: 'Finish REC' },
-            ].map((keyItem) => (
-              <button
-                key={keyItem.num}
-                onClick={() => handleKeyPress(keyItem.num)}
-                disabled={ivrState === 'idle' || ivrState === 'dialing' || ivrState === 'ended'}
-                className="group flex flex-col items-center justify-center p-2 rounded-2xl bg-white/10 hover:bg-emerald-600/30 active:scale-95 transition border border-white/5 hover:border-emerald-500/40 disabled:opacity-40 disabled:pointer-events-none"
-              >
-                <span className="text-xl font-bold text-white group-hover:text-emerald-300">
-                  {keyItem.num}
-                </span>
-                <span className="text-[9px] text-gray-400 group-hover:text-emerald-200 uppercase tracking-tighter truncate max-w-[70px]">
-                  {keyItem.letters}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Call Controls Bar */}
-          <div className="w-full flex items-center justify-around pt-2 border-t border-white/10">
-            {/* Speaker Toggle */}
-            <button
-              onClick={() => setIsSpeaker(!isSpeaker)}
-              className={`p-3 rounded-full transition ${
-                isSpeaker ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-white/10 text-gray-400'
-              }`}
-              title={isSpeaker ? 'Speakerphone ON' : 'Speakerphone OFF'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#95d5b2',
+              }}
             >
-              {isSpeaker ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-            </button>
+              <Phone size={20} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>
+                  1800-120-JEEV (5338)
+                </span>
+                <span
+                  style={{
+                    background: '#52b788',
+                    color: '#081c15',
+                    fontSize: '0.68rem',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                  }}
+                >
+                  Toll-Free • 24x7
+                </span>
+              </div>
+              <p style={{ fontSize: '0.74rem', color: '#d8f3dc', margin: 0 }}>
+                महाराष्ट्र शासन • पशुसंवर्धन विभाग | Rural IVR Voice Helpline (Zero Internet Needed)
+              </p>
+            </div>
+          </div>
 
-            {/* Main Action Button: Call or Hangup */}
-            {ivrState === 'idle' || ivrState === 'ended' ? (
-              <button
-                onClick={handleStartCall}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white shadow-lg shadow-emerald-600/30 transition transform hover:scale-105 active:scale-95"
-                title="Dial Toll-Free Hotline"
-              >
-                <Phone className="w-6 h-6" />
-              </button>
-            ) : (
-              <button
-                onClick={handleEndCall}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-600/30 transition transform hover:scale-105 active:scale-95"
-                title="Hang Up"
-              >
-                <PhoneOff className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Mute Toggle */}
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className={`p-3 rounded-full transition ${
-                isMuted ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' : 'bg-white/10 text-gray-400'
-              }`}
-              title={isMuted ? 'Muted' : 'Unmuted'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <a
+              href="tel:18001205338"
+              className="btn-primary"
+              style={{
+                background: '#52b788',
+                color: '#081c15',
+                fontSize: '0.74rem',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: 800,
+                textDecoration: 'none',
+              }}
+              title="Dial on actual phone app"
             >
-              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              <PhoneCall size={13} />
+              <span>Direct Phone Dial</span>
+            </a>
+
+            <button
+              onClick={() => {
+                handleEndCall();
+                onClose();
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              title="Close Simulator"
+            >
+              <X size={16} />
             </button>
           </div>
-
-          {/* Missed Call Quick Button */}
-          {ivrState === 'idle' && (
-            <button
-              onClick={handleMissedCallService}
-              className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1.5 transition"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Simulate Farmer Missed Call (Auto-Callback)
-            </button>
-          )}
         </div>
 
-        {/* RIGHT COLUMN: Interactive Control Desk, Real-time STT & Telemetry */}
-        <div className="w-full lg:w-1/2 p-6 flex flex-col justify-between bg-slate-50 overflow-y-auto">
-          <div>
-            {/* Header & Badges */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <span className="text-xs font-bold text-emerald-800 tracking-wide uppercase">
-                  Alternative Rural Access Channel
+        {/* Modal Body: Two-Column Interactive Layout */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, overflowY: 'auto' }}>
+          {/* LEFT COLUMN: Phone Handset Mockup (Green/Emerald Theme) */}
+          <div
+            style={{
+              flex: '1 1 360px',
+              maxWidth: '440px',
+              padding: '24px 20px',
+              background: '#f8fafc',
+              borderRight: '1px solid var(--border-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            {/* Phone Screen Shell */}
+            <div
+              className="glass-card"
+              style={{
+                width: '100%',
+                maxWidth: '340px',
+                borderRadius: '24px',
+                padding: '16px',
+                background: '#ffffff',
+                border: '2px solid #bbf7d0',
+                boxShadow: '0 10px 25px rgba(45, 106, 79, 0.12)',
+              }}
+            >
+              {/* Status Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: '#52796f', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Radio size={12} color="#16a34a" />
+                  <span style={{ fontWeight: 600 }}>BSNL 4G | Jio</span>
+                </div>
+                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <span style={{ background: '#dcfce7', color: '#166534', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, fontSize: '0.66rem' }}>
+                  100%
                 </span>
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  IVR Voice Architecture
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    Interactive Simulator
-                  </span>
-                </h2>
               </div>
-            </div>
 
-            {/* Caller Profile Settings Card */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-emerald-600" />
+              {/* Call Status Box */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+                  borderRadius: '16px',
+                  padding: '14px',
+                  textAlign: 'center',
+                  color: '#ffffff',
+                  marginBottom: '12px',
+                }}
+              >
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.66rem', fontWeight: 700, color: '#95d5b2', marginBottom: '4px' }}>
+                  <ShieldCheck size={12} />
+                  <span>महाराष्ट्र शासन • Toll-Free</span>
+                </div>
+
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '0.02em', color: '#ffffff' }}>
+                  1800-120-JEEV
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#d8f3dc' }}>
+                  JeevRakshak AI Livestock Health Line
+                </div>
+
+                {/* Status Indicator */}
+                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.76rem' }}>
+                  {ivrState === 'idle' && (
+                    <span style={{ color: '#fde68a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
+                      Ready to Dial
+                    </span>
+                  )}
+                  {ivrState === 'dialing' && (
+                    <span style={{ color: '#93c5fd', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <div className="animate-spin" style={{ width: '10px', height: '10px', border: '2px solid #93c5fd', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                      Dialing Toll-Free...
+                    </span>
+                  )}
+                  {ivrState === 'ringing' && (
+                    <span style={{ color: '#86efac', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <PhoneCall size={12} /> Ringing...
+                    </span>
+                  )}
+                  {ivrState !== 'idle' && ivrState !== 'dialing' && ivrState !== 'ringing' && ivrState !== 'ended' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#86efac' }}>
+                        Connected {formatTime(callDuration)}
+                      </span>
+                      <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 5px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>
+                        {IVR_LANGUAGES.find((l) => l.code === language)?.nativeName}
+                      </span>
+                    </div>
+                  )}
+                  {ivrState === 'ended' && (
+                    <span style={{ color: '#fca5a5' }}>Call Ended ({formatTime(callDuration)})</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Voice Prompt & TTS Teleprompter */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  border: '1px solid var(--border-subtle)',
+                  minHeight: '70px',
+                  maxHeight: '100px',
+                  overflowY: 'auto',
+                  marginBottom: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: '#52796f', marginBottom: '4px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
+                    <Volume2 size={12} color="#2d6a4f" />
+                    IVR Voice Prompt:
+                  </span>
+                  {isPromptPlaying && (
+                    <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '0.64rem' }}>
+                      Playing Audio...
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.76rem', color: '#1b4332', fontStyle: 'italic', margin: 0, lineHeight: 1.4 }}>
+                  {activePromptText || (ivrState === 'idle' ? 'Click "Call 1800-120-JEEV" below to start.' : 'Listening for options...')}
+                </p>
+              </div>
+
+              {/* Waveform indicator */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', height: '20px', marginBottom: '10px', background: '#f0fdf4', borderRadius: '8px', padding: '0 8px' }}>
+                {[30, 60, 25, 75, 50, 85, 40, 70, 45, 55, 25, 80, 40, 65, 30].map((h, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      width: '3px',
+                      height: isPromptPlaying || isRecordingVoice ? `${Math.max(4, (h * (i % 3 + 1)) % 16)}px` : '4px',
+                      background: isPromptPlaying || isRecordingVoice ? '#2d6a4f' : '#cbd5e1',
+                      borderRadius: '2px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  />
+                ))}
+                {isRecordingVoice && (
+                  <span style={{ fontSize: '0.68rem', color: '#dc2626', fontWeight: 800, marginLeft: '6px' }}>
+                    REC (# to finish)
+                  </span>
+                )}
+              </div>
+
+              {/* DTMF Keypad Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '12px' }}>
+                {[
+                  { num: '1', letters: 'Disease / भाषा' },
+                  { num: '2', letters: 'Vaccines / लसी' },
+                  { num: '3', letters: 'Doctor / सल्ला' },
+                  { num: '4', letters: '1962 SOS' },
+                  { num: '5', letters: 'Alerts / सूचना' },
+                  { num: '6', letters: 'Feedback' },
+                  { num: '7', letters: 'PQRS' },
+                  { num: '8', letters: 'TUV' },
+                  { num: '9', letters: 'WXYZ' },
+                  { num: '*', letters: 'Repeat' },
+                  { num: '0', letters: 'Menu' },
+                  { num: '#', letters: 'Finish REC' },
+                ].map((keyItem) => (
+                  <button
+                    key={keyItem.num}
+                    type="button"
+                    onClick={() => handleKeyPress(keyItem.num)}
+                    disabled={ivrState === 'idle' || ivrState === 'dialing' || ivrState === 'ended'}
+                    style={{
+                      padding: '8px 4px',
+                      borderRadius: '12px',
+                      background: '#f8fafc',
+                      border: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.1s ease',
+                      opacity: ivrState === 'idle' || ivrState === 'ended' ? 0.45 : 1,
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1b4332', lineHeight: 1.1 }}>
+                      {keyItem.num}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '75px' }}>
+                      {keyItem.letters}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Call Controls Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
+                {/* Speaker Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsSpeaker(!isSpeaker)}
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: isSpeaker ? '#dcfce7' : '#f1f5f9',
+                    color: isSpeaker ? '#166534' : '#64748b',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                  title={isSpeaker ? 'Speaker ON' : 'Speaker OFF'}
+                >
+                  {isSpeaker ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                </button>
+
+                {/* Primary Call / End Action Button */}
+                {ivrState === 'idle' || ivrState === 'ended' ? (
+                  <button
+                    type="button"
+                    onClick={handleStartCall}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(45, 106, 79, 0.35)',
+                      cursor: 'pointer',
+                    }}
+                    title="Call 1800-120-JEEV"
+                  >
+                    <Phone size={20} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleEndCall}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.35)',
+                      cursor: 'pointer',
+                    }}
+                    title="Hang Up"
+                  >
+                    <PhoneOff size={20} />
+                  </button>
+                )}
+
+                {/* Mute Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsMuted(!isMuted)}
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: isMuted ? '#fee2e2' : '#f1f5f9',
+                    color: isMuted ? '#dc2626' : '#64748b',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                  title={isMuted ? 'Muted' : 'Unmuted'}
+                >
+                  {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+              </div>
+
+              {/* Missed call link */}
+              {ivrState === 'idle' && (
+                <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={handleMissedCallService}
+                    style={{ fontSize: '0.72rem', color: '#2d6a4f', textDecoration: 'underline', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    Simulate Missed Call Service (Auto-Callback)
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Control Desk & Telemetry (Website Design System) */}
+          <div style={{ flex: '1 1 400px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Session Caller Profile */}
+            <div className="glass-card" style={{ padding: '16px 18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.84rem', fontWeight: 800, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <User size={15} color="var(--primary)" />
                   Simulated Rural Caller
                 </span>
-                <span className="text-[11px] text-gray-500 font-mono">PSTN / Telecom Loop</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                  PSTN / Telecom Loop
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label className="text-[11px] text-gray-500 font-medium">Phone Number</label>
+                  <label className="form-label" style={{ fontSize: '0.74rem', marginBottom: '4px' }}>Phone Number</label>
                   <input
                     type="text"
                     value={callerPhone}
                     onChange={(e) => setCallerPhone(e.target.value)}
-                    className="w-full mt-0.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg font-mono text-xs text-gray-900 focus:outline-none focus:border-emerald-500"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '34px' }}
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-gray-500 font-medium">Taluka & Village</label>
+                  <label className="form-label" style={{ fontSize: '0.74rem', marginBottom: '4px' }}>Location (Taluka / Village)</label>
                   <input
                     type="text"
                     value={`${village}, ${taluka}`}
@@ -752,31 +883,38 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
                       setVillage(parts[0]?.trim() || village);
                       setTaluka(parts[1]?.trim() || taluka);
                     }}
-                    className="w-full mt-0.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-emerald-500"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', height: '34px' }}
                   />
                 </div>
               </div>
 
-              {/* Language Selector */}
-              <div className="mt-3 pt-2 border-t border-gray-100">
-                <label className="text-[11px] text-gray-500 font-medium block mb-1">
-                  Language Preference ({IVR_LANGUAGES.length} Indian Languages):
+              {/* Language Selector Chips */}
+              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)' }}>
+                <label className="form-label" style={{ fontSize: '0.72rem', marginBottom: '6px', display: 'block' }}>
+                  Language Preference ({IVR_LANGUAGES.length} Regional Indian Languages):
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {IVR_LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
+                      type="button"
                       onClick={() => {
                         setLanguage(lang.code);
                         if (ivrState !== 'idle' && ivrState !== 'ended') {
                           playPrompt(IVR_PROMPTS[lang.code].main_menu);
                         }
                       }}
-                      className={`text-xs px-2.5 py-1 rounded-lg font-medium transition ${
-                        language === lang.code
-                          ? 'bg-emerald-700 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '16px',
+                        fontSize: '0.72rem',
+                        fontWeight: language === lang.code ? 800 : 500,
+                        background: language === lang.code ? '#2d6a4f' : '#f1f5f9',
+                        color: language === lang.code ? '#ffffff' : 'var(--text-main)',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
                     >
                       {lang.nativeName} ({lang.name})
                     </button>
@@ -785,17 +923,28 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
               </div>
             </div>
 
-            {/* 1-Click Simulation Buttons for Judges / Testing */}
-            <div className="bg-emerald-50/70 rounded-2xl p-4 border border-emerald-200 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                  Quick Test Scenarios (1-Click)
+            {/* Quick 1-Click Test Scenarios */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #f8fff9 0%, #f0fdf4 100%)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px 18px',
+                border: '1.5px dashed #52b788',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1b4332', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={15} color="#2d6a4f" />
+                  Quick Automated Scenarios (1-Click Test)
                 </span>
-                <span className="text-[10px] text-emerald-700 font-medium">Demo Automation</span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#2d6a4f' }}>
+                  Demo Automation
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
                 <button
+                  type="button"
                   onClick={() => {
                     handleStartCall();
                     setTimeout(() => {
@@ -804,19 +953,27 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
                       setSelectedSymptom('Lumpy skin nodules');
                       setIvrState('disease_recording');
                       finishVoiceDiseaseReport();
-                    }, 2400);
+                    }, 2000);
                   }}
-                  className="text-left p-2 rounded-xl bg-white hover:bg-emerald-100/60 border border-emerald-200 transition text-xs group"
+                  className="glass-card"
+                  style={{
+                    padding: '10px 12px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: '#ffffff',
+                    border: '1px solid #bbf7d0',
+                  }}
                 >
-                  <span className="font-semibold text-emerald-900 group-hover:text-emerald-950 block">
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#065f46' }}>
                     🐄 Lumpy Skin Voice Report
-                  </span>
-                  <span className="text-[10px] text-gray-500">
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#047857' }}>
                     Cow, Nodules, Marathi Audio, AI Triage
-                  </span>
+                  </div>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     handleStartCall();
                     setTimeout(() => {
@@ -825,125 +982,111 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
                       setSelectedSymptom('Blisters in mouth or feet');
                       setIvrState('disease_recording');
                       finishVoiceDiseaseReport();
-                    }, 2400);
+                    }, 2000);
                   }}
-                  className="text-left p-2 rounded-xl bg-white hover:bg-emerald-100/60 border border-emerald-200 transition text-xs group"
+                  className="glass-card"
+                  style={{
+                    padding: '10px 12px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: '#ffffff',
+                    border: '1px solid #bbf7d0',
+                  }}
                 >
-                  <span className="font-semibold text-emerald-900 group-hover:text-emerald-950 block">
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#065f46' }}>
                     🐃 FMD Contagious Report
-                  </span>
-                  <span className="text-[10px] text-gray-500">
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#047857' }}>
                     Buffalo, Blisters, Hindi STT, Urgent Alert
-                  </span>
+                  </div>
                 </button>
 
                 <button
+                  type="button"
                   onClick={async () => {
                     handleStartCall();
                     setTimeout(() => {
                       setIvrState('emergency_prompt');
                       handleKeyPress('1');
-                    }, 2400);
+                    }, 2000);
                   }}
-                  className="text-left p-2 rounded-xl bg-white hover:bg-rose-50 border border-rose-200 transition text-xs group"
-                >
-                  <span className="font-semibold text-rose-700 group-hover:text-rose-800 block">
-                    🚨 1962 SOS Dispatch
-                  </span>
-                  <span className="text-[10px] text-gray-500">
-                    Critical Ambulance GPS Dispatch
-                  </span>
-                </button>
-
-                <button
-                  onClick={async () => {
-                    handleStartCall();
-                    setTimeout(() => {
-                      setIvrState('vet_consult');
-                      handleKeyPress('1');
-                    }, 2400);
+                  className="glass-card"
+                  style={{
+                    padding: '10px 12px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: '#ffffff',
+                    border: '1px solid #fecaca',
                   }}
-                  className="text-left p-2 rounded-xl bg-white hover:bg-blue-50 border border-blue-200 transition text-xs group"
                 >
-                  <span className="font-semibold text-blue-700 group-hover:text-blue-800 block">
-                    👨‍⚕️ Urgent Vet Callback
-                  </span>
-                  <span className="text-[10px] text-gray-500">
-                    Connects Taluka Veterinary Officer
-                  </span>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#dc2626' }}>
+                    🚨 1962 SOS Emergency Call
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#991b1b' }}>
+                    Critical Dispatch, GPS ambulance dispatch
+                  </div>
                 </button>
               </div>
             </div>
 
-            {/* Speech-to-Text & AI Triage Output Card */}
-            {(voiceTranscript || isRecordingVoice) && (
-              <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5 text-indigo-600" />
-                    Speech-to-Text & NLP Engine
-                  </span>
-                  <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold border border-indigo-200">
-                    97.8% Accuracy
+            {/* Generated Reports & Status Feedback */}
+            {submittedReport && (
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1.5px solid #86efac',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '14px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#065f46' }}>
+                    IVR Case {submittedReport.case_id} Registered Permanently
                   </span>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs font-mono text-gray-800 leading-relaxed mb-2">
-                  <span className="text-gray-400 block text-[10px] mb-1 uppercase font-sans">
-                    Vernacular Farmer Audio Transcript:
-                  </span>
-                  {voiceTranscript || 'Recording live audio from microphone... Press # when finished.'}
+                <div style={{ fontSize: '0.76rem', color: '#047857', lineHeight: 1.5 }}>
+                  <strong>Suspected:</strong> {submittedReport.suspected_disease} ({submittedReport.ai_confidence_score}% Confidence) •{' '}
+                  <strong>Caller:</strong> {submittedReport.farmer_phone} • {submittedReport.village}
                 </div>
-
-                {/* AI Extracted Entities */}
-                {submittedReport && (
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-gray-100">
-                    <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                      <span className="text-[10px] text-emerald-800 font-bold block">
-                        AI Suspected Disease:
-                      </span>
-                      <span className="font-semibold text-emerald-900">
-                        {submittedReport.suspected_disease}
-                      </span>
-                    </div>
-                    <div className="bg-amber-50 p-2 rounded-lg border border-amber-200">
-                      <span className="text-[10px] text-amber-800 font-bold block">
-                        Assigned Case ID:
-                      </span>
-                      <span className="font-mono font-bold text-amber-900">
-                        {submittedReport.case_id}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Live SMS Confirmation Simulation */}
+            {submittedEmergency && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1.5px solid #fca5a5',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '14px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <AlertTriangle size={18} color="#dc2626" />
+                  <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#991b1b' }}>
+                    1962 SOS Ambulance Dispatched ({submittedEmergency.emergency_code})
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#7f1d1d' }}>
+                  Mobile Veterinary Unit dispatched to {submittedEmergency.village}. Doctor notified.
+                </div>
+              </div>
+            )}
+
             {smsNotification && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-3.5 border border-blue-200 shadow-sm flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <div className="flex-1 text-xs">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="font-bold text-blue-950">
-                      Automated Telecom SMS Gateway (DLT Approved)
-                    </span>
-                    <span className="text-[10px] text-blue-700 font-mono">Just Now</span>
-                  </div>
-                  <p className="text-blue-900 leading-relaxed">{smsNotification}</p>
-                </div>
+              <div
+                style={{
+                  background: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  fontSize: '0.78rem',
+                  color: '#0369a1',
+                }}
+              >
+                {smsNotification}
               </div>
             )}
-          </div>
-
-          {/* Footer Information */}
-          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-500">
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              Integrated with Vet & Govt Portals
-            </span>
-            <span className="font-mono">SIH 2024 / 2026 Ready</span>
           </div>
         </div>
       </div>
