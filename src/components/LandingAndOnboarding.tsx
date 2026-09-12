@@ -157,6 +157,23 @@ const ONBOARDING_I18N = {
     govSecurityDesc: 'Protected by 256-bit encryption under National Animal Disease Control Programme (NADCP) and State Animal Husbandry Guidelines.',
     alreadyHaveAccount: 'Already registered on JeevRakshak?',
     signInLink: 'Sign In here',
+    signInRoleSelectTitle: 'Select Your Role to Sign In',
+    signInRoleFarmer: 'Farmer (पशुपालक)',
+    signInRoleVet: 'Veterinary Doctor (पशुवैद्यक)',
+    signInRoleGov: 'Government Official (शासकीय अधिकारी)',
+    signInRoleFarmerSub: 'Access herd management, symptom triage & alerts',
+    signInRoleVetSub: 'Access clinical cases, prescriptions & lab orders',
+    signInRoleGovSub: 'Access state surveillance, heatmaps & containment',
+    signInFarmerIdentifier: 'Farmer Mobile Number or Email',
+    signInVetIdentifier: 'Veterinary Mobile, MSVC License No. or Email',
+    signInGovIdentifier: 'Official Mobile, Employee ID or Govt Email',
+    signInFarmerPlaceholder: 'e.g. 9823012345 or farmer@email.com',
+    signInVetPlaceholder: 'e.g. MSVC-18492 or 9823011111',
+    signInGovPlaceholder: 'e.g. MH-DAHD-0412 or 9823099999',
+    quickFillDemo: 'Quick Fill Demo',
+    signInAsRolePrefix: 'Sign In to',
+    selectedRoleCardTitle: 'Selected Registration Role',
+    changeRoleBtn: 'Change Role',
   },
   hi: {
     govtBadge: 'महाराष्ट्र राज्य पशुधन रोग नियंत्रण एवं निगरानी नेटवर्क',
@@ -277,6 +294,23 @@ const ONBOARDING_I18N = {
     govSecurityDesc: '256-बिट एन्क्रिप्शन और राष्ट्रीय पशु रोग नियंत्रण कार्यक्रम (NADCP) के तहत डेटा पूरी तरह सुरक्षित।',
     alreadyHaveAccount: 'क्या आपका पहले से खाता है?',
     signInLink: 'यहां साइन इन करें',
+    signInRoleSelectTitle: 'साइन इन करने के लिए अपनी भूमिका चुनें',
+    signInRoleFarmer: 'पशुपालक (Farmer)',
+    signInRoleVet: 'पशु चिकित्सक (Veterinarian)',
+    signInRoleGov: 'शासकीय अधिकारी (Government)',
+    signInRoleFarmerSub: 'पशु प्रबंधन, एआई लक्षण जांच और रोग चेतावनियां',
+    signInRoleVetSub: 'क्लिनिकल केस, पर्चे और लैब जांच विवरण',
+    signInRoleGovSub: 'राज्य रोग निगरानी, हीटमैप और नियंत्रण एसओपी',
+    signInFarmerIdentifier: 'पशुपालक मोबाइल नंबर या ईमेल',
+    signInVetIdentifier: 'पशु चिकित्सक मोबाइल, MSVC लाइसेंस या ईमेल',
+    signInGovIdentifier: 'शासकीय मोबाइल, कर्मचारी आईडी या ईमेल',
+    signInFarmerPlaceholder: 'उदा. 9823012345 या farmer@email.com',
+    signInVetPlaceholder: 'उदा. MSVC-18492 या 9823011111',
+    signInGovPlaceholder: 'उदा. MH-DAHD-0412 या 9823099999',
+    quickFillDemo: 'डेमो क्रेडेंशियल भरें',
+    signInAsRolePrefix: 'साइन इन करें -',
+    selectedRoleCardTitle: 'चयनित पंजीकरण भूमिका',
+    changeRoleBtn: 'भूमिका बदलें',
   },
   mr: {
     govtBadge: 'महाराष्ट्र राज्य पशुधन रोग नियंत्रण व सर्वेक्षण प्रणाली',
@@ -397,6 +431,23 @@ const ONBOARDING_I18N = {
     govSecurityDesc: '२५६-बिट एन्क्रिप्शन व राष्ट्रीय प्राणी रोग नियंत्रण कार्यक्रम (NADCP) मानकांनुसार संपूर्ण डेटा सुरक्षित.',
     alreadyHaveAccount: 'आपले आधीच खाते आहे का?',
     signInLink: 'येथे साइन इन करा',
+    signInRoleSelectTitle: 'साइन इन करण्यासाठी आपली भूमिका निवडा',
+    signInRoleFarmer: 'पशुपालक / शेतकरी (Farmer)',
+    signInRoleVet: 'पशुवैद्यक (Veterinarian)',
+    signInRoleGov: 'शासकीय अधिकारी (Government)',
+    signInRoleFarmerSub: 'गोठा व्यवस्थापन, एआई लक्षण तपासणी व सूचना',
+    signInRoleVetSub: 'क्लिनिकल केसेस, औषधोपचार व लॅब तपासण्या',
+    signInRoleGovSub: 'राज्य साथरोग सर्वेक्षण, उद्रेक नकाशे व एसओपी',
+    signInFarmerIdentifier: 'शेतकरी मोबाईल क्रमांक किंवा ईमेल',
+    signInVetIdentifier: 'पशुवैद्यक मोबाईल, MSVC परवाना क्र. किंवा ईमेल',
+    signInGovIdentifier: 'शासकीय मोबाईल, कर्मचारी ओळख क्रमांक किंवा ईमेल',
+    signInFarmerPlaceholder: 'उदा. 9823012345 किंवा farmer@email.com',
+    signInVetPlaceholder: 'उदा. MSVC-18492 किंवा 9823011111',
+    signInGovPlaceholder: 'उदा. MH-DAHD-0412 किंवा 9823099999',
+    quickFillDemo: 'डेमो माहिती भरा',
+    signInAsRolePrefix: 'लॉग इन करा -',
+    selectedRoleCardTitle: 'नोंदणीसाठी निवडलेली भूमिका',
+    changeRoleBtn: 'भूमिका बदला',
   },
 };
 
@@ -441,6 +492,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const [emailTouched, setEmailTouched] = useState(false);
 
   // Sign In states
+  const [signInRole, setSignInRole] = useState<UserRole>('farmer');
   const [signInLogin, setSignInLogin] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
   const [showSignInPassword, setShowSignInPassword] = useState(false);
@@ -526,7 +578,23 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
     }
   };
 
-  // Handle Sign In
+  // Quick Demo Auto-Fill by Role
+  const handleQuickFillDemo = (role: UserRole) => {
+    setSignInRole(role);
+    if (role === 'farmer') {
+      setSignInLogin('9823012345');
+      setSignInPassword('Farmer@123');
+    } else if (role === 'veterinarian') {
+      setSignInLogin('MSVC-18492');
+      setSignInPassword('Vet@12345');
+    } else {
+      setSignInLogin('MH-DAHD-0412');
+      setSignInPassword('Govt@12345');
+    }
+    setErrorMsg(null);
+  };
+
+  // Handle Sign In (supports Farmer, Veterinarian & Government Official)
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -541,25 +609,34 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       return;
     }
 
+    if (passVal.length < 5) {
+      setErrorMsg(copy.invalidPasswordSignIn);
+      setViewMode('auth_error');
+      return;
+    }
+
     const isEmailInput = loginVal.includes('@');
+    const isPureDigits = /^\d+$/.test(loginVal.replace(/[\s\-\(\)]/g, ''));
+
     if (isEmailInput) {
       if (!isValidEmail(loginVal)) {
         setErrorMsg(copy.invalidEmail);
         setViewMode('auth_error');
         return;
       }
-    } else {
+    } else if (isPureDigits) {
       if (!isValidMobile(loginVal)) {
         setErrorMsg(copy.invalidMobile);
         setViewMode('auth_error');
         return;
       }
-    }
-
-    if (passVal.length < 6) {
-      setErrorMsg(copy.invalidPasswordSignIn);
-      setViewMode('auth_error');
-      return;
+    } else {
+      // License number or Employee ID (e.g. MSVC-18492 or MH-DAHD-0412)
+      if (loginVal.length < 3) {
+        setErrorMsg('Please enter a valid credential identifier.');
+        setViewMode('auth_error');
+        return;
+      }
     }
 
     setLoading(true);
@@ -567,6 +644,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
     const res = await dataService.signInUser({
       login: loginVal,
       password: passVal,
+      role: signInRole,
     });
 
     setLoading(false);
@@ -574,7 +652,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       setErrorMsg(copy.invalidCreds);
       setViewMode('auth_error');
     } else {
-      onComplete(dataService.getCurrentRole());
+      const assignedRole = (res.profile as any)?.role || dataService.getCurrentRole() || signInRole;
+      onComplete(assignedRole);
     }
   };
 
@@ -970,7 +1049,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 </div>
 
                 <button
-                  onClick={() => setOnboardingStep(3)}
+                  onClick={() => setOnboardingStep(4)}
                   className="btn-primary"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
@@ -1024,11 +1103,11 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               gap: '12px',
             }}
           >
-            {/* Back Button to Step 3 */}
+            {/* Back Button to Step 2 */}
             <button
               type="button"
               onClick={() => {
-                setOnboardingStep(3);
+                setOnboardingStep(2);
                 setErrorMsg(null);
               }}
               style={{
@@ -1050,7 +1129,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <span>{copy.back}</span>
             </button>
 
-            {/* 4-Step Breadcrumb Stepper */}
+            {/* 3-Step Breadcrumb Stepper */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span
@@ -1100,30 +1179,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
               <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '22px',
-                    height: '22px',
-                    borderRadius: '50%',
-                    background: '#2D6A4F',
-                    color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  ✓
-                </span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {copy.stepperLoc || 'Location'}
-                </span>
-              </div>
-
-              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
-
               <div
                 style={{
                   display: 'flex',
@@ -1149,7 +1204,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                     fontWeight: 800,
                   }}
                 >
-                  4
+                  3
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#2D6A4F', fontWeight: 800 }}>
                   {copy.stepperAccount || 'Create Account'}
@@ -1781,7 +1836,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
             {/* RIGHT COLUMN: PROFILE DOSSIER & JURISDICTION SUMMARY */}
             <div style={{ flex: '1 1 360px', maxWidth: '440px', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* CARD 1: CONFIGURED OPERATIONAL JURISDICTION */}
+              {/* CARD 1: SELECTED ROLE & ACCOUNT PROFILE */}
               <div
                 style={{
                   background: '#ffffff',
@@ -1791,100 +1846,74 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   boxShadow: '0 4px 15px -2px rgba(0,0,0,0.04)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '12px',
                         background: '#ecfdf5',
                         color: '#065f46',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        fontSize: '1.25rem',
                       }}
                     >
-                      <MapPin size={18} />
+                      {selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}
                     </div>
                     <div>
-                      <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {copy.jurisdictionCardTitle || 'Operational Location & Jurisdiction'}
+                      <h4 style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {selectedRole === 'farmer'
+                          ? copy.roles.farmer.title
+                          : selectedRole === 'veterinarian'
+                          ? copy.roles.veterinarian.title
+                          : copy.roles.government.title}
                       </h4>
                       <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
-                        {copy.jurisdictionCardSub || 'Configured in Step 3 • Geospatially linked'}
+                        {copy.selectedRoleCardTitle || 'Selected Registration Role'}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
-                      setOnboardingStep(3);
+                      setOnboardingStep(2);
                       setErrorMsg(null);
                     }}
                     style={{
                       background: '#f1f5f9',
                       border: '1px solid #e2e8f0',
                       borderRadius: '8px',
-                      padding: '4px 10px',
-                      fontSize: '0.72rem',
+                      padding: '5px 12px',
+                      fontSize: '0.74rem',
                       fontWeight: 700,
                       color: 'var(--text-main)',
                       cursor: 'pointer',
                       flexShrink: 0,
                     }}
                   >
-                    {copy.editLocationBtn || 'Change Location'}
+                    {copy.changeRoleBtn || 'Change Role'}
                   </button>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.district}</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      {locationData.district || selectedDistrict || 'Pune'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.block}</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      {locationData.block || selectedBlock || 'Shirur'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.village}</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      {locationData.village || selectedVillage || 'Shirapur'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pincode / State</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      {locationData.pincode || '412210'} • {locationData.state || 'Maharashtra'}
-                    </div>
-                  </div>
                 </div>
 
                 <div
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'rgba(45, 106, 79, 0.08)',
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    fontSize: '0.74rem',
-                    color: '#2D6A4F',
-                    fontWeight: 700,
+                    background: '#f8fafc',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid #f1f5f9',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-muted)',
+                    lineHeight: 1.45,
                   }}
                 >
-                  <Radio size={14} className="animate-pulse" />
-                  <span>
-                    GPS Node: {locationData.latitude ? locationData.latitude.toFixed(4) : '18.8120'}° N, {locationData.longitude ? locationData.longitude.toFixed(4) : '74.3910'}° E
-                  </span>
+                  {selectedRole === 'farmer'
+                    ? copy.roles.farmer.desc
+                    : selectedRole === 'veterinarian'
+                    ? copy.roles.veterinarian.desc
+                    : copy.roles.government.desc}
                 </div>
               </div>
 
@@ -1991,38 +2020,209 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
         </div>
       )}
 
-      {/* VIEW 3: SIGN IN SCREEN */}
+      {/* VIEW 3: SIGN IN SCREEN (MULTI-ROLE: FARMER, VET, GOV) */}
       {viewMode === 'signin' && (
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 14px' }}>
-          <div className="modal-card" style={{ maxWidth: '440px', width: '100%', padding: '28px 22px', boxShadow: 'var(--shadow-lg)' }}>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '24px 16px', minHeight: 'calc(100vh - 80px)' }}>
+          <div
+            className="modal-card"
+            style={{
+              maxWidth: '520px',
+              width: '100%',
+              padding: '32px 28px',
+              borderRadius: '24px',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04)',
+              border: '1px solid #e2e8f0',
+              background: '#ffffff',
+            }}
+          >
+            {/* Top Navigation */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <button
+                type="button"
                 onClick={() => {
                   setViewMode('hero');
                   setErrorMsg(null);
                 }}
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '6px',
                   fontSize: '0.82rem',
+                  fontWeight: 600,
                   color: 'var(--text-muted)',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
+                  padding: 0,
                 }}
               >
                 <ArrowLeft size={16} />
                 <span>{copy.back}</span>
               </button>
+
+              <div
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: '#065f46',
+                  background: '#ecfdf5',
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  border: '1px solid #a7f3d0',
+                }}
+              >
+                🔒 SECURE PORTAL AUTH
+              </div>
             </div>
 
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
               {copy.signInTitle}
             </h2>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              {copy.signInSub}
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.4 }}>
+              {copy.signInRoleSelectTitle || 'Select your role and enter your registered credentials to access your dedicated workspace.'}
             </p>
+
+            {/* 3-ROLE SELECTOR CARDS */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                {[
+                  {
+                    id: 'farmer' as UserRole,
+                    label: copy.signInRoleFarmer || 'Farmer',
+                    sub: 'पशुपालक',
+                    badge: '👨‍🌾',
+                  },
+                  {
+                    id: 'veterinarian' as UserRole,
+                    label: copy.signInRoleVet || 'Doctor',
+                    sub: 'पशुवैद्यक',
+                    badge: '🩺',
+                  },
+                  {
+                    id: 'government' as UserRole,
+                    label: copy.signInRoleGov || 'Official',
+                    sub: 'शासकीय',
+                    badge: '🏛️',
+                  },
+                ].map((r) => {
+                  const isSel = signInRole === r.id;
+                  return (
+                    <button
+                      type="button"
+                      key={r.id}
+                      onClick={() => {
+                        setSignInRole(r.id);
+                        setErrorMsg(null);
+                      }}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        padding: '12px 8px',
+                        borderRadius: '14px',
+                        border: isSel ? '2px solid #2D6A4F' : '1.5px solid #e2e8f0',
+                        background: isSel ? '#ecfdf5' : '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        boxShadow: isSel ? '0 4px 12px rgba(45, 106, 79, 0.12)' : 'none',
+                        position: 'relative',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{r.badge}</span>
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          fontWeight: isSel ? 800 : 700,
+                          color: isSel ? '#065f46' : 'var(--text-main)',
+                          textAlign: 'center',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {r.id === 'farmer' ? 'Farmer' : r.id === 'veterinarian' ? 'Vet Doctor' : 'Govt Official'}
+                      </span>
+                      <span style={{ fontSize: '0.68rem', color: isSel ? '#047857' : 'var(--text-muted)' }}>{r.sub}</span>
+                      {isSel && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-6px',
+                            right: '-6px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: '#2D6A4F',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            fontWeight: 800,
+                          }}
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ROLE SUMMARY BANNER */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '9px 12px',
+                marginBottom: '18px',
+                fontSize: '0.76rem',
+              }}
+            >
+              <div style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                  {signInRole === 'farmer'
+                    ? '👨‍🌾 Farmer Portal: '
+                    : signInRole === 'veterinarian'
+                    ? '🩺 Veterinary Portal: '
+                    : '🏛️ Government Portal: '}
+                </span>
+                <span>
+                  {signInRole === 'farmer'
+                    ? (copy.signInRoleFarmerSub || 'AI Triage, Vaccination Ledger & Outbreak Alerts')
+                    : signInRole === 'veterinarian'
+                    ? (copy.signInRoleVetSub || 'Clinical Cases, Prescriptions & Lab Requisitions')
+                    : (copy.signInRoleGovSub || 'State Surveillance, Heatmaps & Containment SOPs')}
+                </span>
+              </div>
+
+              {/* Quick Fill Demo Button */}
+              <button
+                type="button"
+                onClick={() => handleQuickFillDemo(signInRole)}
+                style={{
+                  background: 'rgba(45, 106, 79, 0.08)',
+                  border: '1px solid rgba(45, 106, 79, 0.25)',
+                  color: '#2D6A4F',
+                  borderRadius: '8px',
+                  padding: '4px 8px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  marginLeft: '8px',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Fill demo credentials for instant testing"
+              >
+                ⚡ {copy.quickFillDemo || 'Demo Fill'}
+              </button>
+            </div>
 
             {errorMsg && (
               <div
@@ -2031,38 +2231,67 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   color: 'var(--critical)',
                   border: '1px solid var(--critical-border)',
                   padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: '12px',
                   fontSize: '0.82rem',
                   marginBottom: '16px',
                   fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
               >
-                {errorMsg}
+                <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                <span>{errorMsg}</span>
               </div>
             )}
 
-            <form onSubmit={handleSignIn}>
-              <div className="form-group">
-                <label className="form-label">{copy.loginLabel}</label>
+            <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* CREDENTIAL IDENTIFIER INPUT */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ fontWeight: 700 }}>
+                  {signInRole === 'farmer'
+                    ? (copy.signInFarmerIdentifier || 'Farmer Mobile Number or Email')
+                    : signInRole === 'veterinarian'
+                    ? (copy.signInVetIdentifier || 'Veterinary Mobile, MSVC License No. or Email')
+                    : (copy.signInGovIdentifier || 'Official Mobile, Employee ID or Govt Email')}
+                  <span style={{ color: 'var(--critical)' }}> *</span>
+                </label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
                     required
-                    placeholder={copy.loginPlaceholder}
+                    placeholder={
+                      signInRole === 'farmer'
+                        ? (copy.signInFarmerPlaceholder || 'e.g. 9823012345 or farmer@email.com')
+                        : signInRole === 'veterinarian'
+                        ? (copy.signInVetPlaceholder || 'e.g. MSVC-18492 or 9823011111')
+                        : (copy.signInGovPlaceholder || 'e.g. MH-DAHD-0412 or 9823099999')
+                    }
                     value={signInLogin}
                     onChange={(e) => {
                       setSignInLogin(e.target.value);
                       if (errorMsg) setErrorMsg(null);
                     }}
                     className="form-input"
-                    style={{ paddingLeft: '34px' }}
+                    style={{ paddingLeft: '38px', height: '46px', borderRadius: '12px' }}
                   />
-                  <Phone size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                  <div style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }}>
+                    {signInRole === 'farmer' ? <User size={17} /> : signInRole === 'veterinarian' ? <Stethoscope size={17} /> : <Building2 size={17} />}
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">{copy.passwordLabel}</label>
+              {/* PASSWORD INPUT */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label className="form-label" style={{ marginBottom: 0, fontWeight: 700 }}>
+                    {copy.passwordLabel}
+                    <span style={{ color: 'var(--critical)' }}> *</span>
+                  </label>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    Demo: {signInRole === 'farmer' ? 'Farmer@123' : signInRole === 'veterinarian' ? 'Vet@12345' : 'Govt@12345'}
+                  </span>
+                </div>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showSignInPassword ? 'text' : 'password'}
@@ -2074,16 +2303,16 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                       if (errorMsg) setErrorMsg(null);
                     }}
                     className="form-input"
-                    style={{ paddingLeft: '34px', paddingRight: '36px' }}
+                    style={{ paddingLeft: '38px', paddingRight: '40px', height: '46px', borderRadius: '12px' }}
                   />
-                  <Lock size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                  <Lock size={17} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
                   <button
                     type="button"
                     onClick={() => setShowSignInPassword(!showSignInPassword)}
                     style={{
                       position: 'absolute',
-                      right: '10px',
-                      top: '12px',
+                      right: '12px',
+                      top: '14px',
                       background: 'none',
                       border: 'none',
                       color: 'var(--text-muted)',
@@ -2092,25 +2321,49 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                     }}
                     aria-label="Toggle password visibility"
                   >
-                    {showSignInPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showSignInPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </div>
 
+              {/* SUBMIT SIGN IN BUTTON */}
               <button
                 type="submit"
                 disabled={loading}
                 className="btn-primary"
-                style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px', marginTop: '12px' }}
+                style={{
+                  width: '100%',
+                  borderRadius: '12px',
+                  padding: '14px 20px',
+                  height: '48px',
+                  fontSize: '0.96rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  marginTop: '4px',
+                }}
               >
-                <span>{loading ? copy.authenticating : copy.signIn}</span>
-                <ArrowRight size={16} />
+                <span>
+                  {loading
+                    ? copy.authenticating
+                    : `${copy.signInAsRolePrefix || 'Sign In to'} ${
+                        signInRole === 'farmer'
+                          ? 'Farmer Portal'
+                          : signInRole === 'veterinarian'
+                          ? 'Veterinarian Portal'
+                          : 'Government Portal'
+                      }`}
+                </span>
+                <ArrowRight size={17} />
               </button>
             </form>
 
             <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              {copy.noAccount}{' '}
+              <span>{copy.noAccount} </span>
               <button
+                type="button"
                 onClick={() => {
                   setViewMode('onboarding');
                   setOnboardingStep(1);
@@ -2123,6 +2376,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   border: 'none',
                   cursor: 'pointer',
                   padding: 0,
+                  textDecoration: 'underline',
                 }}
               >
                 {copy.registerHere}

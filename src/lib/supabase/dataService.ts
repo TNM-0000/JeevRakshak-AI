@@ -164,6 +164,10 @@ export interface RegisteredAccount {
   village?: string;
   state?: string;
   herd_size?: number;
+  license_number?: string;
+  hospital_name?: string;
+  employee_id?: string;
+  designation?: string;
 }
 
 class LocalStore {
@@ -188,6 +192,12 @@ class LocalStore {
       password: 'Vet@12345',
       role: 'veterinarian',
       full_name: 'Dr. Priya Kulkarni, B.V.Sc',
+      license_number: 'MSVC-18492',
+      hospital_name: 'Taluka Veterinary Polyclinic, Baramati',
+      district: 'Pune',
+      block: 'Baramati',
+      village: 'Baramati',
+      state: 'Maharashtra',
     },
     {
       id: 'demo-govt-1',
@@ -196,6 +206,12 @@ class LocalStore {
       password: 'Govt@12345',
       role: 'government',
       full_name: 'Rajesh Patil, DAHO Pune',
+      employee_id: 'MH-DAHD-0412',
+      designation: 'District Animal Husbandry Officer (DAHO)',
+      district: 'Pune',
+      block: 'Haveli',
+      village: 'Pune City',
+      state: 'Maharashtra',
     },
   ];
   locations: AdministrativeLocation[] = [...initialLocations];
@@ -792,11 +808,12 @@ export const dataService = {
     return { profile: newProfile };
   },
 
-  // User Sign In
-  async signInUser(params: { login: string; password: string }): Promise<{ profile?: Profile; error?: string }> {
+  // User Sign In (Supports all 3 roles: Farmer, Veterinarian, Government Official)
+  async signInUser(params: { login: string; password: string; role?: UserRole }): Promise<{ profile?: Profile; error?: string }> {
     const cleanLogin = params.login.trim();
     const cleanPhone = cleanLogin.replace(/[^0-9]/g, '');
     const cleanPass = params.password.trim();
+    const requestedRole = params.role;
 
     // 1. Try Supabase Auth
     try {
@@ -808,20 +825,23 @@ export const dataService = {
       });
       if (!error && data?.user) {
         const profileId = data.user.id;
-        const profileRole = (data.user.user_metadata?.role as UserRole) || 'farmer';
+        const profileRole = (data.user.user_metadata?.role as UserRole) || requestedRole || 'farmer';
         const matched = localStore.registeredAccounts.find(
           (acc) => acc.id === profileId || (acc.email && acc.email.toLowerCase() === authEmail.toLowerCase())
         );
-        const resolvedName = matched?.full_name || data.user.user_metadata?.full_name || 'Livestock Owner';
+        const resolvedName =
+          matched?.full_name ||
+          data.user.user_metadata?.full_name ||
+          (profileRole === 'veterinarian' ? 'Dr. Priya Kulkarni' : profileRole === 'government' ? 'Rajesh Patil' : 'Livestock Owner');
         const profile: Profile = {
           id: profileId,
           full_name: resolvedName,
           phone: matched?.phone || data.user.user_metadata?.phone || cleanLogin,
           email: matched?.email || authEmail,
           location_id: null,
-          district: matched?.district,
-          block: matched?.block,
-          village: matched?.village,
+          district: matched?.district || 'Pune',
+          block: matched?.block || 'Shirur',
+          village: matched?.village || 'Shirapur',
           state: matched?.state || 'Maharashtra',
           farm_name: `${resolvedName}'s Farm`,
           is_active: true,
@@ -847,25 +867,45 @@ export const dataService = {
         localStore.currentUser = profile;
         localStore.currentRole = profileRole;
         localStore.onboardingDone = true;
+        if (profileRole === 'veterinarian') {
+          localStore.vetHospitalSetupDone = true;
+          if (matched?.hospital_name) {
+            (localStore.currentUser as any).hospital_name = matched.hospital_name;
+          }
+        }
         localStore.save();
-        return { profile };
+        return { profile: { ...profile, role: profileRole } as any };
       }
     } catch {
       // ignore
     }
 
-    // 2. Query registered accounts in localStore (matches phone or email)
-    const matched = localStore.registeredAccounts.find((acc) => {
-      if (cleanPhone && acc.phone === cleanPhone) return true;
+    // 2. Query registered accounts in localStore (matches phone, email, license number, or employee ID)
+    let matched = localStore.registeredAccounts.find((acc) => {
+      if (requestedRole && acc.role !== requestedRole) return false;
+      if (cleanPhone && cleanPhone.length === 10 && acc.phone === cleanPhone) return true;
       if (acc.phone === cleanLogin) return true;
       if (acc.email && acc.email.toLowerCase() === cleanLogin.toLowerCase()) return true;
+      if (acc.license_number && acc.license_number.toLowerCase() === cleanLogin.toLowerCase()) return true;
+      if (acc.employee_id && acc.employee_id.toLowerCase() === cleanLogin.toLowerCase()) return true;
       return false;
     });
+
+    if (!matched) {
+      matched = localStore.registeredAccounts.find((acc) => {
+        if (cleanPhone && cleanPhone.length === 10 && acc.phone === cleanPhone) return true;
+        if (acc.phone === cleanLogin) return true;
+        if (acc.email && acc.email.toLowerCase() === cleanLogin.toLowerCase()) return true;
+        if (acc.license_number && acc.license_number.toLowerCase() === cleanLogin.toLowerCase()) return true;
+        if (acc.employee_id && acc.employee_id.toLowerCase() === cleanLogin.toLowerCase()) return true;
+        return false;
+      });
+    }
 
     if (matched) {
       if (matched.password === cleanPass) {
         // Password matches!
-        let profile = localStore.profiles.find((p) => p.id === matched.id || p.phone === matched.phone);
+        let profile = localStore.profiles.find((p) => p.id === matched!.id || p.phone === matched!.phone);
         if (!profile) {
           profile = {
             id: matched.id,
@@ -873,11 +913,11 @@ export const dataService = {
             phone: matched.phone,
             email: matched.email,
             location_id: null,
-            district: matched.district,
-            block: matched.block,
-            village: matched.village,
+            district: matched.district || 'Pune',
+            block: matched.block || 'Shirur',
+            village: matched.village || 'Shirapur',
             state: matched.state || 'Maharashtra',
-            farm_name: `${matched.full_name}'s Farm`,
+            farm_name: matched.farm_name || `${matched.full_name}'s Farm`,
             is_active: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -890,12 +930,12 @@ export const dataService = {
           if (matched.block) profile.block = matched.block;
           if (matched.village) profile.village = matched.village;
           if (matched.state) profile.state = matched.state;
-          profile.farm_name = `${matched.full_name}'s Farm`;
+          profile.farm_name = matched.farm_name || `${matched.full_name}'s Farm`;
         }
 
         // Ensure user's herd is titled with farmer's name's farm
         if (matched.role === 'farmer') {
-          const herdTitle = `${matched.full_name}'s Farm`;
+          const herdTitle = matched.farm_name || `${matched.full_name}'s Farm`;
           const userHerd = localStore.herds.find((h) => h.owner_profile_id === profile!.id);
           if (userHerd) {
             userHerd.name = herdTitle;
@@ -914,8 +954,14 @@ export const dataService = {
         localStore.currentUser = profile;
         localStore.currentRole = matched.role;
         localStore.onboardingDone = true;
+        if (matched.role === 'veterinarian') {
+          localStore.vetHospitalSetupDone = true;
+          if (matched.hospital_name) {
+            (localStore.currentUser as any).hospital_name = matched.hospital_name;
+          }
+        }
         localStore.save();
-        return { profile };
+        return { profile: { ...profile, role: matched.role } as any };
       } else {
         // Wrong password entered
         return { error: 'INVALID_CREDENTIALS' };
