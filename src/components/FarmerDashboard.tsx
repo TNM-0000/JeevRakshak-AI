@@ -5,6 +5,11 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { AnimalWithDetails, HealthReportWithDetails, WeatherObservation } from '@/types/database';
 import {
+  getLocalizedWeatherDescription,
+  localizeSpecies,
+  localizeBreed,
+} from '@/lib/i18n/dbLocalization';
+import {
   CheckCircle2,
   AlertTriangle,
   Calendar,
@@ -34,23 +39,30 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [animals, setAnimals] = useState<AnimalWithDetails[]>([]);
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
   const [weather, setWeather] = useState<WeatherObservation | null>(null);
-  const [farmName, setFarmName] = useState<string>('My Livestock Farm');
+  const [farmName, setFarmName] = useState<string>('');
   const currentUser = dataService.getCurrentUser();
+
+  const defaultFarmName =
+    language === 'mr'
+      ? (currentUser?.full_name ? `${currentUser.full_name} यांचे फार्म` : 'माझे पशुधन फार्म')
+      : language === 'hi'
+      ? (currentUser?.full_name ? `${currentUser.full_name} का फार्म` : 'मेरा पशुधन फार्म')
+      : (currentUser?.full_name ? `${currentUser.full_name}'s Farm` : 'My Livestock Farm');
 
   useEffect(() => {
     dataService.getHerds().then((herds) => {
       if (herds.length > 0 && herds[0].name) {
         setFarmName(herds[0].name);
-      } else if (currentUser?.full_name) {
-        setFarmName(`${currentUser.full_name}'s Farm`);
+      } else {
+        setFarmName(defaultFarmName);
       }
     });
     dataService.getAnimals().then(setAnimals);
     dataService.getHealthReports().then(setReports);
-    dataService.getWeather().then((wx) => {
+    dataService.getWeather(language).then((wx) => {
       if (wx.length > 0) setWeather(wx[0]);
     });
-  }, [currentUser]);
+  }, [currentUser, language, defaultFarmName]);
 
   const totalMonitored = animals.length;
   const criticalCount = animals.filter((a) => a.currentStatus === 'critical').length;
@@ -63,9 +75,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>
             <MapPin size={14} />
-            <span>Maharashtra • Pune District</span>
+            <span>{language === 'mr' ? 'महाराष्ट्र • पुणे जिल्हा' : language === 'hi' ? 'महाराष्ट्र • पुणे जिला' : 'Maharashtra • Pune District'}</span>
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName}</h2>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
         </div>
         <button
           onClick={onOpenReport}
@@ -143,7 +155,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           </span>
         </div>
         <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-          {weather?.description || t.dashboard.weatherRiskDesc}
+          {getLocalizedWeatherDescription(weather, language) || weather?.description || t.dashboard.weatherRiskDesc}
         </p>
         <div>
           <button
@@ -184,7 +196,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             </div>
             <div>
               <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{t.dashboard.vaccinationAlert}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>COW-023 • Booster dose</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                COW-023 • {language === 'mr' ? 'बूस्टर डोस' : language === 'hi' ? 'बूस्टर खुराक' : 'Booster dose'}
+              </div>
             </div>
           </div>
           <button
@@ -215,7 +229,13 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             </div>
             <div>
               <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{t.dashboard.nearbyReports}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shirur block cluster flagged</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {language === 'mr'
+                  ? 'शिरूर तालुका संसर्ग क्लस्टर नोंदवले'
+                  : language === 'hi'
+                  ? 'शिरूर ब्लॉक संक्रमण क्लस्टर चिह्नित'
+                  : 'Shirur block cluster flagged'}
+              </div>
             </div>
           </div>
           <button
@@ -256,17 +276,29 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                 <Activity size={22} />
               </div>
               <h4 style={{ fontSize: '0.98rem', fontWeight: 700, marginBottom: '4px', color: 'var(--text-main)' }}>
-                No livestock registered in this herd yet
+                {language === 'mr'
+                  ? 'या कळपात अद्याप कोणतेही पशुधन नोंदणीकृत नाही'
+                  : language === 'hi'
+                  ? 'इस झुंड में अभी तक कोई पशुधन पंजीकृत नहीं है'
+                  : 'No livestock registered in this herd yet'}
               </h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 14px auto', lineHeight: 1.4 }}>
-                Register your cattle, buffalo, or goats in the Herd tab to start automated health tracking, vaccination countdowns, and AI triage.
+                {language === 'mr'
+                  ? 'स्वयंचलित आरोग्य तपासणी, लसीकरण स्मरणपत्र आणि एआय ट्रायज सुरू करण्यासाठी कळप टॅबमध्ये तुमच्या जनावरांची नोंदणी करा.'
+                  : language === 'hi'
+                  ? 'स्वचालित स्वास्थ्य ट्रैकिंग, टीकाकरण उलटी गिनती और एआई ट्राइएज शुरू करने के लिए हर्ड टैब में अपनी गाय, भैंस या बकरियों को पंजीकृत करें।'
+                  : 'Register your cattle, buffalo, or goats in the Herd tab to start automated health tracking, vaccination countdowns, and AI triage.'}
               </p>
               <button
                 onClick={onOpenReport}
                 className="btn-primary"
                 style={{ padding: '8px 18px', fontSize: '0.82rem', borderRadius: 'var(--radius-full)', margin: '0 auto' }}
               >
-                Report Animal / Start Triage
+                {language === 'mr'
+                  ? 'आजारी जनावराची नोंद / ट्रायज सुरू करा'
+                  : language === 'hi'
+                  ? 'बीमार पशु की रिपोर्ट / ट्राइएज शुरू करें'
+                  : 'Report Animal / Start Triage'}
               </button>
             </div>
           ) : (
@@ -291,7 +323,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 800, fontSize: '0.98rem' }}>{animal.tag_number}</span>
                       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        {animal.species} • {animal.breed}
+                        {localizeSpecies(animal.species, language)} • {localizeBreed(animal.breed, language)}
                       </span>
                       <span
                         className={`badge ${
@@ -303,14 +335,18 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>
                       {isCrit
-                        ? 'Difficulty breathing + weakness observed'
+                        ? (language === 'mr' ? 'श्वास घेण्यास तीव्र त्रास + अशक्तपणा आढळला' : language === 'hi' ? 'सांस लेने में कठिनाई + कमजोरी देखी गई' : 'Difficulty breathing + weakness observed')
                         : isTreat
-                        ? 'Fever + reduced appetite • Antibiotic course active'
-                        : 'Routine grazing, normal lactation'}
+                        ? (language === 'mr' ? 'ताप + कमी भूक • प्रतिजैविक (अँटीबायोटिक) उपचार सुरू' : language === 'hi' ? 'बुखार + भूख में कमी • एंटीबायोटिक खुराक जारी' : 'Fever + reduced appetite • Antibiotic course active')
+                        : (language === 'mr' ? 'नियमित चरत आहे, सामान्य दूध उत्पादन' : language === 'hi' ? 'नियमित रूप से चर रहा है, सामान्य दूध उत्पादन' : 'Routine grazing, normal lactation')}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                       <strong>{t.dashboard.nextAction}:</strong>{' '}
-                      {isCrit ? 'Field veterinarian visiting today' : isTreat ? 'Follow-up tomorrow' : 'Booster scheduled'}
+                      {isCrit
+                        ? (language === 'mr' ? 'पशुवैद्यकीय अधिकारी आज भेट देणार' : language === 'hi' ? 'पशु चिकित्सक आज दौरा करेंगे' : 'Field veterinarian visiting today')
+                        : isTreat
+                        ? (language === 'mr' ? 'उद्या तपासणी व पाठपुरावा' : language === 'hi' ? 'कल पुनः जांच व फॉलो-अप' : 'Follow-up tomorrow')
+                        : (language === 'mr' ? 'नियोजित बूस्टर लसीकरण' : language === 'hi' ? 'बूस्टर खुराक निर्धारित' : 'Booster scheduled')}
                     </div>
                   </div>
 

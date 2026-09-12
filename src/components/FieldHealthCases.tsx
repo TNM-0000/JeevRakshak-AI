@@ -11,6 +11,16 @@ import {
   SampleStatus,
 } from '@/types/database';
 import {
+  getLocalizedField,
+  localizeSpecies,
+  localizeBreed,
+  localizeSymptoms,
+  localizeBlock,
+  localizeVillage,
+  localizeSampleType,
+  localizeSampleStatus,
+} from '@/lib/i18n/dbLocalization';
+import {
   ClipboardList,
   AlertTriangle,
   FlaskConical,
@@ -32,7 +42,7 @@ interface FieldHealthCasesProps {
 }
 
 export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnimal }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'new' | 'review' | 'pending' | 'confirmed'>('all');
   const [selectedCase, setSelectedCase] = useState<HealthReportWithDetails | null>(null);
@@ -77,7 +87,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
       tested_at: null,
       status: 'collected',
       result: null,
-      notes: sampleNotes || 'Sample dispatched to District Veterinary Lab Pune',
+      notes: sampleNotes || (language === 'mr' ? 'पुणे जिल्हा पशुवैद्यकीय प्रयोगशाळेकडे नमुना पाठवला' : language === 'hi' ? 'पुणे जिला पशु चिकित्सा प्रयोगशाला भेजा गया नमूना' : 'Sample dispatched to District Veterinary Lab Pune'),
     });
 
     setShowSampleModal(false);
@@ -115,7 +125,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
     await dataService.updateSampleStatus(
       sampleId,
       nextStatus,
-      nextStatus === 'tested' ? 'Negative for Anthrax; Positive for BRD viral isolate' : undefined
+      nextStatus === 'tested' ? (language === 'mr' ? 'अँथ्रॅक्स चाचणी नकारात्मक; बीआरडी विषाणू संसर्ग निष्पन्न' : language === 'hi' ? 'एंथ्रेक्स परीक्षण नकारात्मक; बीआरडी वायरल अलग' : 'Negative for Anthrax; Positive for BRD viral isolate') : undefined
     );
     loadCases();
     if (selectedCase) {
@@ -133,7 +143,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>
             <MapPin size={14} />
-            <span>Shirur Block, Pune</span>
+            <span>{localizeBlock('Shirur', language)}, {language === 'mr' ? 'पुणे जिल्हा' : language === 'hi' ? 'पुणे जिला' : 'Pune District'}</span>
             <span>•</span>
             <span style={{ color: 'var(--primary)' }}>{t.fieldHealth.updatedJustNow}</span>
           </div>
@@ -173,7 +183,11 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {reports.length} {t.fieldHealth.casesNeedAttention}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#b91c1c' }}>
-            Active disease surveillance queue across Shirur and Haveli blocks.
+            {language === 'mr'
+              ? 'शिरूर आणि हवेली तालुक्यात सक्रिय रोग नियंत्रण व देखरेख.'
+              : language === 'hi'
+              ? 'शिरूर और हवेली ब्लॉकों में सक्रिय रोग निगरानी कतार।'
+              : 'Active disease surveillance queue across Shirur and Haveli blocks.'}
           </div>
         </div>
       </div>
@@ -181,7 +195,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
       {/* Filter Tabs */}
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
         {[
-          { id: 'all', label: 'All Cases' },
+          { id: 'all', label: language === 'mr' ? 'सर्व केसेस' : language === 'hi' ? 'सभी मामले' : 'All Cases' },
           { id: 'new', label: t.fieldHealth.new },
           { id: 'review', label: t.fieldHealth.review },
           { id: 'pending', label: t.fieldHealth.pending },
@@ -220,17 +234,17 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>
-                      CASE #{report.id.replace('rep-', '').toUpperCase()}
+                      {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'CASE'} #{report.id.replace('rep-', '').toUpperCase()}
                     </span>
                     <span className={`badge ${isCrit ? 'badge-critical' : 'badge-warning'}`}>
                       {isCrit ? t.fieldHealth.urgent : status.toUpperCase()}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    Shirapur • {report.animal?.species || 'Livestock'} ({report.animal?.tag_number || 'Tag'})
+                    {localizeVillage('Shirapur', language)} • {localizeSpecies(report.animal?.species || 'Cattle', language)} ({report.animal?.tag_number || (language === 'mr' ? 'टॅग' : language === 'hi' ? 'टैग' : 'Tag')})
                     {report.mortality_count > 0 && (
                       <strong style={{ color: 'var(--critical)', marginLeft: '6px' }}>
-                        • {report.mortality_count} mortality
+                        • {report.mortality_count} {language === 'mr' ? 'मृत्यू नोंद' : language === 'hi' ? 'मृत्यु दर्ज' : 'mortality'}
                       </strong>
                     )}
                   </div>
@@ -244,7 +258,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
 
               {/* Symptoms snippet */}
               <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: '#f8fafc', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
-                <strong>Symptoms:</strong> {report.symptoms}
+                <strong>{language === 'mr' ? 'लक्षणे:' : language === 'hi' ? 'लक्षण:' : 'Symptoms:'}</strong> {localizeSymptoms(report.symptoms, language)}
               </div>
 
               {/* Action Buttons: Review Case & Navigate */}
@@ -258,7 +272,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   <span>{t.fieldHealth.reviewCase}</span>
                 </button>
                 <button
-                  onClick={() => alert(`Navigating to Shirapur coordinates (18.8120, 74.3910)`)}
+                  onClick={() => alert(language === 'mr' ? 'शिरापूर (१८.८१२०, ७४.३९१०) कडे दिशादर्शन सुरू करत आहे' : language === 'hi' ? 'शिरापुर (18.8120, 74.3910) की ओर नेविगेशन शुरू' : 'Navigating to Shirapur coordinates (18.8120, 74.3910)')}
                   className="btn-secondary"
                   style={{ padding: '8px 14px', fontSize: '0.82rem', borderRadius: 'var(--radius-md)' }}
                 >
@@ -280,7 +294,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                    Case #{selectedCase.id.replace('rep-', '').toUpperCase()}
+                    {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'} #{selectedCase.id.replace('rep-', '').toUpperCase()}
                   </h3>
                   <span
                     className={`badge ${
@@ -291,7 +305,11 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   </span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Reported by Suresh Shinde (Farmer) • Source: {selectedCase.source}
+                  {language === 'mr'
+                    ? `सुरेश शिंदे (शेतकरी) यांनी नोंदवले • स्रोत: ${selectedCase.source}`
+                    : language === 'hi'
+                    ? `सुरेश शिंदे (किसान) द्वारा सूचित • स्रोत: ${selectedCase.source}`
+                    : `Reported by Suresh Shinde (Farmer) • Source: ${selectedCase.source}`}
                 </div>
               </div>
               <button onClick={() => setSelectedCase(null)}>
@@ -302,9 +320,11 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {/* Case Details: Animal & Symptoms */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '16px' }}>
               <div style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Animal Tag</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'जनावर टॅग क्रमांक' : language === 'hi' ? 'पशु टैग संख्या' : 'Animal Tag'}
+                </div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
-                  {selectedCase.animal?.tag_number || 'Tag'}
+                  {selectedCase.animal?.tag_number || (language === 'mr' ? 'टॅग' : language === 'hi' ? 'टैग' : 'Tag')}
                 </div>
                 <button
                   onClick={() => {
@@ -312,20 +332,28 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   }}
                   style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600, marginTop: '2px' }}
                 >
-                  View Animal Record &rarr;
+                  {language === 'mr' ? 'जनावराची नोंद पहा →' : language === 'hi' ? 'पशु रिकॉर्ड देखें →' : 'View Animal Record →'}
                 </button>
               </div>
 
               <div style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Location Distance</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>Shirapur, Shirur Block</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>11.8 km away</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'स्थान आणि अंतर' : language === 'hi' ? 'स्थान और दूरी' : 'Location Distance'}
+                </div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                  {localizeVillage('Shirapur', language)}, {localizeBlock('Shirur', language)}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? '११.८ किमी अंतरावर' : language === 'hi' ? '11.8 किमी दूर' : '11.8 km away'}
+                </div>
               </div>
             </div>
 
             {/* Symptoms Tags */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px' }}>Observed Symptoms</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px' }}>
+                {language === 'mr' ? 'निदर्शनास आलेली लक्षणे' : language === 'hi' ? 'देखे गए लक्षण' : 'Observed Symptoms'}
+              </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {selectedCase.symptoms.split(',').map((sym, idx) => (
                   <span
@@ -340,7 +368,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                       fontWeight: 600,
                     }}
                   >
-                    {sym.trim()}
+                    {localizeSymptoms(sym.trim(), language)}
                   </span>
                 ))}
               </div>
@@ -350,12 +378,18 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {selectedCase.diseases && selectedCase.diseases.length > 0 && (
               <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px' }}>
-                  Differential Disease Associations (from Disease Catalog)
+                  {language === 'mr'
+                    ? 'संभाव्य आजार निदान (रोग सूचीवरून)'
+                    : language === 'hi'
+                    ? 'संभावित रोग निदान (रोग सूची से)'
+                    : 'Differential Disease Associations (from Disease Catalog)'}
                 </div>
                 {selectedCase.diseases.map((d) => (
                   <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                    <span style={{ fontWeight: 600 }}>{d.disease?.name}</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{d.confidence}% Confidence</span>
+                    <span style={{ fontWeight: 600 }}>{getLocalizedField(d.disease, 'name', language) || d.disease?.name}</span>
+                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                      {d.confidence}% {language === 'mr' ? 'निश्चितता' : language === 'hi' ? 'सटीकता' : 'Confidence'}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -364,7 +398,9 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {/* Diagnostic Samples Tracking (Screen 18) */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Diagnostic Lab Samples</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                  {language === 'mr' ? 'प्रयोगशाळा तपासणी नमुने' : language === 'hi' ? 'प्रयोगशाला नैदानिक नमूने' : 'Diagnostic Lab Samples'}
+                </span>
                 <button
                   onClick={() => setShowSampleModal(true)}
                   className="btn-secondary"
@@ -388,15 +424,20 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{samp.sample_type}</span>
-                        <span className="badge badge-warning">{samp.status.toUpperCase()}</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                          {localizeSampleType(samp.sample_type, language)}
+                        </span>
+                        <span className="badge badge-warning">
+                          {localizeSampleStatus(samp.status, language)}
+                        </span>
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        District Veterinary Lab • Collected: {samp.collected_at.slice(0, 10)}
+                        {language === 'mr' ? 'जिल्हा पशुवैद्यकीय प्रयोगशाळा • नमुना संकलन:' : language === 'hi' ? 'जिला पशु चिकित्सा प्रयोगशाला • संग्रह:' : 'District Veterinary Lab • Collected:'}{' '}
+                        {samp.collected_at.slice(0, 10)}
                       </div>
                       {samp.notes && (
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-main)', marginTop: '4px' }}>
-                          Notes: {samp.notes}
+                          {language === 'mr' ? 'नोंद:' : language === 'hi' ? 'टिप्पणी:' : 'Notes:'} {samp.notes}
                         </div>
                       )}
 
@@ -408,7 +449,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                             className="btn-secondary"
                             style={{ padding: '4px 8px', fontSize: '0.72rem' }}
                           >
-                            Mark In Transit / Sent
+                            {language === 'mr' ? 'नमुना पाठवला (वाहतुकीत)' : language === 'hi' ? 'भेज दिया गया (रास्ते में)' : 'Mark In Transit / Sent'}
                           </button>
                         )}
                         {samp.status === 'sent' && (
@@ -417,7 +458,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                             className="btn-secondary"
                             style={{ padding: '4px 8px', fontSize: '0.72rem' }}
                           >
-                            Mark Lab Received
+                            {language === 'mr' ? 'लॅबमध्ये प्राप्त झाले' : language === 'hi' ? 'प्रयोगशाला में प्राप्त' : 'Mark Lab Received'}
                           </button>
                         )}
                         {samp.status === 'received' && (
@@ -426,12 +467,12 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                             className="btn-primary"
                             style={{ padding: '4px 8px', fontSize: '0.72rem' }}
                           >
-                            Complete Test & Post Result
+                            {language === 'mr' ? 'चाचणी पूर्ण करा व निकाल नोंदवा' : language === 'hi' ? 'परीक्षण पूरा करें और परिणाम दर्ज करें' : 'Complete Test & Post Result'}
                           </button>
                         )}
                         {samp.status === 'tested' && (
                           <div style={{ fontSize: '0.75rem', color: 'var(--stable)', fontWeight: 700 }}>
-                            Result: {samp.result}
+                            {language === 'mr' ? 'निकाल:' : language === 'hi' ? 'परिणाम:' : 'Result:'} {samp.result}
                           </div>
                         )}
                       </div>
@@ -440,7 +481,11 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 </div>
               ) : (
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)' }}>
-                  No samples collected yet for this report.
+                  {language === 'mr'
+                    ? 'या अहवालासाठी अद्याप नमुने गोळा केलेले नाहीत.'
+                    : language === 'hi'
+                    ? 'इस रिपोर्ट के लिए अभी तक कोई नमूना एकत्र नहीं किया गया है।'
+                    : 'No samples collected yet for this report.'}
                 </div>
               )}
             </div>
@@ -448,7 +493,9 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {/* Case Escalations Section */}
             <div style={{ marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Case Escalations</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                  {language === 'mr' ? 'केस वरिष्ठ पातळीवर पाठवणे (Escalations)' : language === 'hi' ? 'मामला वरिष्ठ स्तर पर भेजना (Escalations)' : 'Case Escalations'}
+                </span>
                 <button
                   onClick={() => setShowEscalateModal(true)}
                   className="btn-secondary"
@@ -473,18 +520,18 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#991b1b' }}>
-                        Escalated to: {esc.escalated_to}
+                        {language === 'mr' ? 'पाठवले:' : language === 'hi' ? 'भेजा गया:' : 'Escalated to:'} {esc.escalated_to}
                       </span>
                       <span className="badge badge-critical">{esc.status.toUpperCase()}</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: '#b91c1c', marginTop: '2px' }}>
-                      Reason: {esc.reason}
+                      {language === 'mr' ? 'कारण:' : language === 'hi' ? 'कारण:' : 'Reason:'} {esc.reason}
                     </div>
                   </div>
                 ))
               ) : (
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Case currently handled at field level.
+                  {language === 'mr' ? 'केस सध्या स्थानिक पातळीवर हाताळली जात आहे.' : language === 'hi' ? 'मामला वर्तमान में क्षेत्रीय स्तर पर ही संभाला जा रहा है।' : 'Case currently handled at field level.'}
                 </div>
               )}
             </div>
@@ -524,7 +571,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             </div>
 
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Case: #{selectedCase.id.replace('rep-', '').toUpperCase()} • Animal: {selectedCase.animal?.tag_number || 'Tag'}
+              {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'}: #{selectedCase.id.replace('rep-', '').toUpperCase()} • {language === 'mr' ? 'जनावर' : language === 'hi' ? 'पशु' : 'Animal'}: {selectedCase.animal?.tag_number || (language === 'mr' ? 'टॅग' : language === 'hi' ? 'टैग' : 'Tag')}
             </div>
 
             <form onSubmit={handleCollectSample}>
@@ -546,7 +593,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                         color: sampleType === type ? 'var(--primary-deep)' : 'var(--text-main)',
                       }}
                     >
-                      {type}
+                      {localizeSampleType(type, language)}
                     </button>
                   ))}
                 </div>
@@ -557,19 +604,21 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 <input
                   type="text"
                   readOnly
-                  value="District Veterinary Polyclinic & Laboratory (Pune)"
+                  value={language === 'mr' ? 'जिल्हा पशुवैद्यकीय पॉलीक्लिनिक आणि प्रयोगशाळा (पुणे)' : language === 'hi' ? 'जिला पशु चिकित्सा पॉलीक्लिनिक एवं प्रयोगशाला (पुणे)' : 'District Veterinary Polyclinic & Laboratory (Pune)'}
                   className="form-input"
                   style={{ background: '#f8fafc', color: 'var(--text-muted)' }}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Notes & Storage Condition</label>
+                <label className="form-label">
+                  {language === 'mr' ? 'नोंदी आणि साठवणुकीची स्थिती' : language === 'hi' ? 'टिप्पणियां और भंडारण की स्थिति' : 'Notes & Storage Condition'}
+                </label>
                 <textarea
                   rows={2}
                   value={sampleNotes}
                   onChange={(e) => setSampleNotes(e.target.value)}
-                  placeholder="e.g. Preserved on ice pack at 4°C, testing for viral panel"
+                  placeholder={language === 'mr' ? 'उदा. ४°C वर बर्फाच्या पॅकवर सुरक्षित, विषाणू चाचणीसाठी' : language === 'hi' ? 'उदा. 4°C पर आइस पैक पर सुरक्षित, वायरल परीक्षण के लिए' : 'e.g. Preserved on ice pack at 4°C, testing for viral panel'}
                   className="form-textarea"
                 />
               </div>
@@ -615,30 +664,53 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 <label className="form-label">{t.fieldHealth.reasonForEscalation}</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {[
-                    'Rapid spread across multiple farms',
-                    'Multiple unexplained livestock deaths',
-                    'Severe respiratory / vesicular symptoms',
-                    'Suspected zoonotic transmission risk',
-                    'Diagnostic lab confirmation needed',
-                  ].map((reason) => (
-                    <button
-                      type="button"
-                      key={reason}
-                      onClick={() => setEscalateReason(reason)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '0.82rem',
-                        fontWeight: 600,
-                        textAlign: 'left',
-                        border: escalateReason === reason ? '2px solid var(--critical)' : '1px solid var(--border-subtle)',
-                        background: escalateReason === reason ? '#fff1f2' : '#ffffff',
-                        color: escalateReason === reason ? '#991b1b' : 'var(--text-main)',
-                      }}
-                    >
-                      {reason}
-                    </button>
-                  ))}
+                    {
+                      en: 'Rapid spread across multiple farms',
+                      hi: 'कई फार्मों में तेजी से फैलाव',
+                      mr: 'एकाहून अधिक गोठ्यांमध्ये वेगाने प्रसार',
+                    },
+                    {
+                      en: 'Multiple unexplained livestock deaths',
+                      hi: 'कई अकस्मात पशु मृत्यु',
+                      mr: 'एकाहून अधिक जनावरांचा अस्पष्ट कारणाने मृत्यू',
+                    },
+                    {
+                      en: 'Severe respiratory / vesicular symptoms',
+                      hi: 'गंभीर श्वसन या छाले संबंधी लक्षण',
+                      mr: 'तीव्र श्वसन विकार / फोड येण्याची लक्षणे',
+                    },
+                    {
+                      en: 'Suspected zoonotic transmission risk',
+                      hi: 'मानवों में फैलने (जूनोटिक) का संभावित जोखिम',
+                      mr: 'मानवांमध्ये संसर्गाचा (झुनोटिक) संभाव्य धोका',
+                    },
+                    {
+                      en: 'Diagnostic lab confirmation needed',
+                      hi: 'नैदानिक प्रयोगशाला पुष्टि की आवश्यकता',
+                      mr: 'प्रयोगशाळा तपासणीद्वारे त्वरित निदानाची गरज',
+                    },
+                  ].map((rObj) => {
+                    const reasonText = language === 'mr' ? rObj.mr : language === 'hi' ? rObj.hi : rObj.en;
+                    return (
+                      <button
+                        type="button"
+                        key={rObj.en}
+                        onClick={() => setEscalateReason(rObj.en)}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          textAlign: 'left',
+                          border: escalateReason === rObj.en ? '2px solid var(--critical)' : '1px solid var(--border-subtle)',
+                          background: escalateReason === rObj.en ? '#fff1f2' : '#ffffff',
+                          color: escalateReason === rObj.en ? '#991b1b' : 'var(--text-main)',
+                        }}
+                      >
+                        {reasonText}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -649,9 +721,15 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                   onChange={(e) => setEscalateTo(e.target.value)}
                   className="form-select"
                 >
-                  <option value="Block Veterinary Officer (Shirur)">Block Veterinary Officer (Shirur)</option>
-                  <option value="District Veterinary Officer (DAHO Pune)">District Veterinary Officer (DAHO Pune)</option>
-                  <option value="State Disease Surveillance Officer (Maharashtra)">State Disease Surveillance Officer (Maharashtra)</option>
+                  <option value="Block Veterinary Officer (Shirur)">
+                    {language === 'mr' ? 'तालुका पशुवैद्यकीय अधिकारी (शिरूर)' : language === 'hi' ? 'ब्लॉक पशु चिकित्सा अधिकारी (शिरूर)' : 'Block Veterinary Officer (Shirur)'}
+                  </option>
+                  <option value="District Veterinary Officer (DAHO Pune)">
+                    {language === 'mr' ? 'जिल्हा पशुवैद्यकीय अधिकारी (DAHO पुणे)' : language === 'hi' ? 'जिला पशु चिकित्सा अधिकारी (DAHO पुणे)' : 'District Veterinary Officer (DAHO Pune)'}
+                  </option>
+                  <option value="State Disease Surveillance Officer (Maharashtra)">
+                    {language === 'mr' ? 'राज्य रोग नियंत्रण अधिकारी (महाराष्ट्र)' : language === 'hi' ? 'राज्य रोग निगरानी अधिकारी (महाराष्ट्र)' : 'State Disease Surveillance Officer (Maharashtra)'}
+                  </option>
                 </select>
               </div>
 
@@ -669,3 +747,4 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
     </div>
   );
 };
+

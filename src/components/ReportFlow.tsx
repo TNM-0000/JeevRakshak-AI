@@ -9,6 +9,7 @@ import {
   HealthReportWithDetails,
   DiseaseCatalogItem,
 } from '@/types/database';
+import { getLocalizedField } from '@/lib/i18n/dbLocalization';
 import {
   AlertCircle,
   Skull,
@@ -55,8 +56,8 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       setAnimals(data);
       if (data.length > 0) setSelectedAnimalId(data[0].id);
     });
-    dataService.getDiseases().then(setDiseases);
-  }, []);
+    dataService.getDiseases(language).then(setDiseases);
+  }, [language]);
 
   const symptomList: { key: keyof typeof t.symptoms; defaultEn: string }[] = [
     { key: 'fever', defaultEn: 'Fever' },
@@ -158,11 +159,11 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.85rem' }}
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+            <span>{language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}</span>
           </button>
         )}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)', marginLeft: step === 1 ? 'auto' : 0 }}>
-          STEP {step} OF 3
+          {language === 'mr' ? `टप्पा ${step} / ३` : language === 'hi' ? `चरण ${step} / 3` : `STEP ${step} OF 3`}
         </div>
       </div>
 
@@ -227,7 +228,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               {
                 id: 'other',
                 title: t.reporting.otherIssue,
-                desc: 'Describe custom symptom observation',
+                desc: language === 'mr' ? 'इतर लक्षणे नोंदवा' : language === 'hi' ? 'अन्य लक्षण दर्ज करें' : 'Describe custom symptom observation',
                 icon: HelpCircle,
                 color: '#475569',
                 bg: '#f1f5f9',
@@ -304,13 +305,23 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                 <input
                   type="text"
                   required
-                  placeholder="Enter animal tag number (e.g. MH-12-PUN-0101)"
+                  placeholder={
+                    language === 'mr'
+                      ? 'पशू टॅग क्रमांक टाका (उदा. MH-12-PUN-0101)'
+                      : language === 'hi'
+                      ? 'पशु टैग नंबर दर्ज करें (उदा. MH-12-PUN-0101)'
+                      : 'Enter animal tag number (e.g. MH-12-PUN-0101)'
+                  }
                   value={manualTag}
                   onChange={(e) => setManualTag(e.target.value)}
                   className="form-input"
                 />
                 <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  No livestock registered yet. This tag will be registered to your herd automatically with this report.
+                  {language === 'mr'
+                    ? 'अद्याप कोणतेही पशू नोंदणीकृत नाहीत. हा टॅग या अहवालासह आपोआप तुमच्या कळपात नोंदवला जाईल.'
+                    : language === 'hi'
+                    ? 'अभी तक कोई पशु पंजीकृत नहीं है। यह टैग इस रिपोर्ट के साथ स्वचालित रूप से आपके झुंड में पंजीकृत हो जाएगा।'
+                    : 'No livestock registered yet. This tag will be registered to your herd automatically with this report.'}
                 </p>
               </div>
             )}
@@ -382,11 +393,11 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             />
           </div>
 
-          {/* Source Selection (Mapped to report_source enum: web, mobile, ivr, field_worker) */}
+          {/* Source Selection (Mapped to report_source enum: web, mobile, ivr) */}
           <div className="form-group">
             <label className="form-label">{t.reporting.source}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {(['mobile', 'web', 'ivr', 'field_worker'] as ReportSource[]).map((src) => (
+              {(['mobile', 'web', 'ivr'] as ReportSource[]).map((src) => (
                 <button
                   type="button"
                   key={src}
@@ -458,7 +469,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                   generatedReport.riskAssessment?.risk_level === 'critical' ? 'badge-critical' : 'badge-warning'
                 }`}
               >
-                LEVEL: {generatedReport.riskAssessment?.risk_level?.toUpperCase()}
+                {language === 'mr' ? 'पातळी:' : language === 'hi' ? 'स्तर:' : 'LEVEL:'} {generatedReport.riskAssessment?.risk_level === 'critical' ? (language === 'mr' ? 'गंभीर' : language === 'hi' ? 'गंभीर' : 'CRITICAL') : (language === 'mr' ? 'मध्यम' : language === 'hi' ? 'मध्यम' : 'MODERATE')}
               </span>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 {t.reporting.confidence}: {generatedReport.riskAssessment?.risk_score}%
@@ -486,14 +497,18 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{d.disease?.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{getLocalizedField(d.disease, 'name', language) || d.disease?.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{d.disease?.species}</div>
                     </div>
-                    <span className="badge badge-info">{d.confidence}% Match</span>
+                    <span className="badge badge-info">
+                      {d.confidence}% {language === 'mr' ? 'जुळणी' : language === 'hi' ? 'समानता' : 'Match'}
+                    </span>
                   </div>
                 ))
               ) : (
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Infectious Respiratory Illness</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'संसर्गजन्य श्वसन आजार' : language === 'hi' ? 'संक्रामक श्वसन रोग' : 'Infectious Respiratory Illness'}
+                </div>
               )}
             </div>
           </div>
@@ -502,10 +517,30 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
           <div className="glass-card" style={{ marginBottom: '16px' }}>
             <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px' }}>{t.reporting.whyFlagged}</h4>
             <ul style={{ paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              <li>Symptoms appeared rapidly within 24-48 hours.</li>
-              <li>Similar respiratory reports registered in Shirur block cluster.</li>
-              <li>Monsoon weather observation indicates 86% humidity favorable for microbial propagation.</li>
-              <li>Animal mortality count flag: {generatedReport.mortality_count}.</li>
+              <li>
+                {language === 'mr'
+                  ? 'लक्षणे २४-४८ तासांत वेगाने दिसून आली.'
+                  : language === 'hi'
+                  ? 'लक्षण 24-48 घंटों के भीतर तेजी से प्रकट हुए।'
+                  : 'Symptoms appeared rapidly within 24-48 hours.'}
+              </li>
+              <li>
+                {language === 'mr'
+                  ? 'शिरूर तालुका क्लस्टरमध्ये अशाच प्रकारचे श्वसन अहवाल नोंदवले गेले.'
+                  : language === 'hi'
+                  ? 'शिरूर ब्लॉक क्लस्टर में इसी तरह की श्वसन रिपोर्ट दर्ज की गई।'
+                  : 'Similar respiratory reports registered in Shirur block cluster.'}
+              </li>
+              <li>
+                {language === 'mr'
+                  ? 'मान्सून हवामान निरीक्षण ८६% आर्द्रता दर्शवते, जे रोगजंतू प्रसारास अनुकूल आहे.'
+                  : language === 'hi'
+                  ? 'मानसून मौसम अवलोकन 86% आर्द्रता दर्शाता है जो रोगाणुओं के प्रसार के लिए अनुकूल है।'
+                  : 'Monsoon weather observation indicates 86% humidity favorable for microbial propagation.'}
+              </li>
+              <li>
+                {language === 'mr' ? 'पशू मृत्यू संख्या नोंद:' : language === 'hi' ? 'पशु मृत्यु गणना ध्वज:' : 'Animal mortality count flag:'} {generatedReport.mortality_count}.
+              </li>
             </ul>
           </div>
 
@@ -515,11 +550,46 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               {t.reporting.recommendedSteps}
             </h4>
             <ol style={{ paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.7 }}>
-              <li><strong>Isolate animal:</strong> Immediately separate {generatedReport.animal?.tag_number || 'affected animal'} to quarantine stall.</li>
-              <li><strong>Movement restriction:</strong> Avoid sending remaining herd to communal grazing pastures.</li>
-              <li><strong>Contact veterinarian:</strong> A field veterinarian has been notified.</li>
-              <li><strong>Disinfection:</strong> Sanitize feeding troughs and drinking water with lime powder.</li>
-              <li><strong>Monitor:</strong> Watch closely for sudden drop in milk or laboured breathing.</li>
+              <li>
+                <strong>{language === 'mr' ? 'पशू वेगळा करा:' : language === 'hi' ? 'पशु अलग करें:' : 'Isolate animal:'} </strong>
+                {language === 'mr'
+                  ? `बाधित पशू (${generatedReport.animal?.tag_number || 'पशू'}) त्वरित वेगळ्या गोठ्यात बांधा.`
+                  : language === 'hi'
+                  ? `प्रभावित पशु (${generatedReport.animal?.tag_number || 'पशु'}) को तुरंत क्वारंटाइन शेड में अलग करें।`
+                  : `Immediately separate ${generatedReport.animal?.tag_number || 'affected animal'} to quarantine stall.`}
+              </li>
+              <li>
+                <strong>{language === 'mr' ? 'हालचालीवर मर्यादा:' : language === 'hi' ? 'आवाजाही पर प्रतिबंध:' : 'Movement restriction:'} </strong>
+                {language === 'mr'
+                  ? 'उर्वरित कळपाला सार्वजनिक चराऊ कुरणात पाठवणे टाळा.'
+                  : language === 'hi'
+                  ? 'शेष झुंड को सार्वजनिक चराई के मैदान में भेजने से बचें।'
+                  : 'Avoid sending remaining herd to communal grazing pastures.'}
+              </li>
+              <li>
+                <strong>{language === 'mr' ? 'पशुवैद्यकांशी संपर्क:' : language === 'hi' ? 'पशु चिकित्सक से संपर्क:' : 'Contact veterinarian:'} </strong>
+                {language === 'mr'
+                  ? 'स्थानिक पशुवैद्यकीय अधिकाऱ्यांना सूचना पाठवली आहे.'
+                  : language === 'hi'
+                  ? 'क्षेत्रीय पशु चिकित्सक को सूचित कर दिया गया है।'
+                  : 'A field veterinarian has been notified.'}
+              </li>
+              <li>
+                <strong>{language === 'mr' ? 'निर्जंतुकीकरण:' : language === 'hi' ? 'कीटाणुशोधन:' : 'Disinfection:'} </strong>
+                {language === 'mr'
+                  ? 'गव्हाणी आणि पिण्याच्या पाण्याची जागा चुन्याच्या भुकटीने निर्जंतुक करा.'
+                  : language === 'hi'
+                  ? 'खुरली और पीने के पानी की जगह को चूने के पाउडर से विसंक्रमित करें।'
+                  : 'Sanitize feeding troughs and drinking water with lime powder.'}
+              </li>
+              <li>
+                <strong>{language === 'mr' ? 'निरीक्षण:' : language === 'hi' ? 'निगरानी:' : 'Monitor:'} </strong>
+                {language === 'mr'
+                  ? 'दुधातील अचानक घट किंवा श्वास घेण्यास त्रास यावर बारकाईने लक्ष ठेवा.'
+                  : language === 'hi'
+                  ? 'दूध में अचानक कमी या सांस लेने में तकलीफ पर कड़ी नज़र रखें।'
+                  : 'Watch closely for sudden drop in milk or laboured breathing.'}
+              </li>
             </ol>
           </div>
 
@@ -535,7 +605,13 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             </button>
             <button
               onClick={() => {
-                alert('Field Veterinarian Dr. Mahendra Kale (+91 98220 99887) alerted via JeevRakshak alert.');
+                alert(
+                  language === 'mr'
+                    ? 'क्षेत्रीय पशुवैद्य डॉ. महेंद्र काळे (+९१ ९८२२० ९९८८७) यांना जीवसंरक्षक अलर्ट पाठवला.'
+                    : language === 'hi'
+                    ? 'क्षेत्रीय पशु चिकित्सक डॉ. महेंद्र काले (+91 98220 99887) को जीवरक्षक अलर्ट भेजा गया।'
+                    : 'Field Veterinarian Dr. Mahendra Kale (+91 98220 99887) alerted via JeevRakshak alert.'
+                );
                 onReportComplete(generatedReport);
               }}
               className="btn-secondary"

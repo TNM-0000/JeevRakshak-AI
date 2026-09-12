@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { dataService } from '@/lib/supabase/dataService';
+import { dataService, localizeSpecies, localizeBreed, localizeTreatment } from '@/lib/supabase/dataService';
 import { AnimalWithDetails, Herd, HerdHealthEvent } from '@/types/database';
 import {
   Layers,
@@ -24,7 +24,7 @@ interface HerdHubProps {
 }
 
 export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [animals, setAnimals] = useState<AnimalWithDetails[]>([]);
   const [herds, setHerds] = useState<Herd[]>([]);
   const [herdEvents, setHerdEvents] = useState<HerdHealthEvent[]>([]);
@@ -47,7 +47,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [language]);
 
   const healthyCount = animals.filter((a) => a.currentStatus === 'healthy').length;
   const treatmentCount = animals.filter((a) => a.currentStatus === 'treatment').length;
@@ -97,7 +97,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
     loadData();
   };
 
-  const currentHerdName = herds[0]?.name || (dataService.getCurrentUser()?.full_name ? `${dataService.getCurrentUser()?.full_name}'s Dairy` : 'My Livestock Herd');
+  const currentHerdName = herds[0]?.name || (dataService.getCurrentUser()?.full_name ? `${dataService.getCurrentUser()?.full_name}'s Dairy` : (language === 'mr' ? 'माझा पशू कळप' : language === 'hi' ? 'मेरा पशु झुंड' : 'My Livestock Herd'));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -115,15 +115,19 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
           style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
         >
           <Plus size={16} />
-          <span>Register Animal</span>
+          <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
         </button>
       </div>
 
       {/* Health Distribution Summary Bar (Matching Wireframe Screen 13) */}
       <div className="glass-card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>Health Distribution</span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Realtime herd census</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>
+            {language === 'mr' ? 'आरोग्य प्रमाण' : language === 'hi' ? 'स्वास्थ्य वितरण' : 'Health Distribution'}
+          </span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            {language === 'mr' ? 'थेट कळप गणना' : language === 'hi' ? 'रीयल-टाइम पशु गणना' : 'Realtime herd census'}
+          </span>
         </div>
 
         {/* Stacked Progress Bar */}
@@ -213,7 +217,13 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
           <Search size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
           <input
             type="text"
-            placeholder="Search by tag number, breed, species..."
+            placeholder={
+              language === 'mr'
+                ? 'टॅग क्रमांक, जात किंवा प्रजाती शोधा...'
+                : language === 'hi'
+                ? 'टैग संख्या, नस्ल या प्रजाति खोजें...'
+                : 'Search by tag number, breed, species...'
+            }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="form-input"
@@ -242,10 +252,14 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
               <Users size={26} />
             </div>
             <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
-              No livestock registered yet
+              {language === 'mr' ? 'कोणतेही पशू नोंदणीकृत नाहीत' : language === 'hi' ? 'कोई पशु पंजीकृत नहीं है' : 'No livestock registered yet'}
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto 18px auto', lineHeight: 1.5 }}>
-              Your herd roster is currently empty. Click the button below to register your cattle, buffalo, or goats with official tag numbers.
+              {language === 'mr'
+                ? 'तुमचा कळप सध्या रिकामा आहे. अधिकृत टॅग क्रमांकासह तुमच्या गाय, म्हैस किंवा शेळीची नोंदणी करण्यासाठी खालील बटणावर क्लिक करा.'
+                : language === 'hi'
+                ? 'आपकी पशु सूची वर्तमान में खाली है। आधिकारिक टैग नंबर के साथ अपनी गाय, भैंस या बकरी को पंजीकृत करने के लिए नीचे दिए गए बटन पर क्लिक करें।'
+                : 'Your herd roster is currently empty. Click the button below to register your cattle, buffalo, or goats with official tag numbers.'}
             </p>
             <button
               onClick={() => setShowAddModal(true)}
@@ -253,7 +267,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
               style={{ padding: '10px 22px', fontSize: '0.88rem', borderRadius: 'var(--radius-full)', margin: '0 auto' }}
             >
               <Plus size={16} />
-              <span>Register First Animal</span>
+              <span>{language === 'mr' ? 'पहिला पशू नोंदवा' : language === 'hi' ? 'पहला पशु पंजीकृत करें' : 'Register First Animal'}</span>
             </button>
           </div>
         ) : (
@@ -286,11 +300,11 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                     </span>
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    {animal.species} • {animal.breed} • {animal.sex}
+                    {localizeSpecies(animal.species, language)} • {localizeBreed(animal.breed, language)} • {animal.sex === 'female' ? (language === 'mr' ? 'मादी' : language === 'hi' ? 'मादा' : 'Female') : (language === 'mr' ? 'नर' : language === 'hi' ? 'नर' : 'Male')}
                   </div>
                   {animal.treatments && animal.treatments.length > 0 && (
                     <div style={{ fontSize: '0.75rem', color: 'var(--primary-hover)', marginTop: '4px' }}>
-                      Active: {animal.treatments[0].treatment_name}
+                      {language === 'mr' ? 'सक्रिय उपचार:' : language === 'hi' ? 'सक्रिय उपचार:' : 'Active:'} {localizeTreatment(animal.treatments[0].treatment_name, language)}
                     </div>
                   )}
                 </div>
@@ -307,19 +321,21 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Herd-Level Health Incidents (Table: herd_health_events)
+              {language === 'mr' ? 'कळप-पातळीवरील आरोग्य घटना' : language === 'hi' ? 'झुंड-स्तरीय स्वास्थ्य घटनाएं' : 'Herd-Level Health Incidents'}
             </h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Multi-animal symptom clusters, mortality events, and group health tracking
+              {language === 'mr' ? 'सामूहिक लक्षणे, मृत्यू घटना आणि समूह आरोग्य निरीक्षण' : language === 'hi' ? 'समूह लक्षण, मृत्यु घटनाएं और समूह स्वास्थ्य ट्रैकिंग' : 'Multi-animal symptom clusters, mortality events, and group health tracking'}
             </p>
           </div>
           <span className="badge-warning" style={{ fontSize: '0.72rem' }}>
-            {herdEvents.length} Recorded
+            {herdEvents.length} {language === 'mr' ? 'नोंदवले' : language === 'hi' ? 'दर्ज' : 'Recorded'}
           </span>
         </div>
 
         {herdEvents.length === 0 ? (
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No group health events reported for this herd.</p>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            {language === 'mr' ? 'या कळपासाठी कोणतीही समूह आरोग्य घटना नोंदवलेली नाही.' : language === 'hi' ? 'इस झुंड के लिए कोई समूह स्वास्थ्य घटना दर्ज नहीं है।' : 'No group health events reported for this herd.'}
+          </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {herdEvents.map((evt) => (
@@ -351,7 +367,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                 </div>
                 <div style={{ textAlign: 'right', fontSize: '0.78rem' }}>
                   <div style={{ fontWeight: 700, color: evt.mortality_count > 0 ? 'var(--critical)' : 'var(--text-main)' }}>
-                    {evt.affected_count} affected {evt.mortality_count > 0 && `• ${evt.mortality_count} deaths`}
+                    {evt.affected_count} {language === 'mr' ? 'बाधित' : language === 'hi' ? 'प्रभावित' : 'affected'} {evt.mortality_count > 0 && `• ${evt.mortality_count} ${language === 'mr' ? 'मृत्यू' : language === 'hi' ? 'मौतें' : 'deaths'}`}
                   </div>
                   <div style={{ color: 'var(--text-muted)' }}>{evt.event_date}</div>
                 </div>
@@ -366,7 +382,9 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
         <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Register New Livestock</h3>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
+                {language === 'mr' ? 'नवीन पशू नोंदणी' : language === 'hi' ? 'नया पशु पंजीकृत करें' : 'Register New Livestock'}
+              </h3>
               <button onClick={() => setShowAddModal(false)}>
                 <X size={18} />
               </button>
@@ -374,7 +392,9 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
 
             <form onSubmit={handleCreateAnimal}>
               <div className="form-group">
-                <label className="form-label">Ear Tag Number</label>
+                <label className="form-label">
+                  {language === 'mr' ? 'कान टॅग क्रमांक' : language === 'hi' ? 'कान टैग संख्या' : 'Ear Tag Number'}
+                </label>
                 <input
                   type="text"
                   required
@@ -386,37 +406,45 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
               </div>
 
               <div className="form-group">
-                <label className="form-label">Species</label>
+                <label className="form-label">
+                  {language === 'mr' ? 'प्रजाती' : language === 'hi' ? 'प्रजाति' : 'Species'}
+                </label>
                 <select value={species} onChange={(e) => setSpecies(e.target.value)} className="form-select">
-                  <option value="Cattle">Cattle (गाय)</option>
-                  <option value="Buffalo">Buffalo (म्हैस)</option>
-                  <option value="Goat">Goat (शेळी)</option>
-                  <option value="Sheep">Sheep (मेंढी)</option>
+                  <option value="Cattle">{language === 'mr' ? 'गाय (Cattle)' : language === 'hi' ? 'गाय (Cattle)' : 'Cattle'}</option>
+                  <option value="Buffalo">{language === 'mr' ? 'म्हैस (Buffalo)' : language === 'hi' ? 'भैंस (Buffalo)' : 'Buffalo'}</option>
+                  <option value="Goat">{language === 'mr' ? 'शेळी (Goat)' : language === 'hi' ? 'बकरी (Goat)' : 'Goat'}</option>
+                  <option value="Sheep">{language === 'mr' ? 'मेंढी (Sheep)' : language === 'hi' ? 'भेड़ (Sheep)' : 'Sheep'}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Breed</label>
+                <label className="form-label">
+                  {language === 'mr' ? 'जात (नस्ल)' : language === 'hi' ? 'नस्ल' : 'Breed'}
+                </label>
                 <input
                   type="text"
                   required
                   value={breed}
                   onChange={(e) => setBreed(e.target.value)}
-                  placeholder="e.g. Gir, Murrah, Osmanabadi"
+                  placeholder={language === 'mr' ? 'उदा. गीर, मुर्रा, उस्मानाबादी' : language === 'hi' ? 'उदा. गीर, मुर्रा, उस्मानाबादी' : 'e.g. Gir, Murrah, Osmanabadi'}
                   className="form-input"
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Sex</label>
+                  <label className="form-label">
+                    {language === 'mr' ? 'लिंग' : language === 'hi' ? 'लिंग' : 'Sex'}
+                  </label>
                   <select value={sex} onChange={(e) => setSex(e.target.value as any)} className="form-select">
-                    <option value="female">Female (मादी)</option>
-                    <option value="male">Male (नर)</option>
+                    <option value="female">{language === 'mr' ? 'मादी (Female)' : language === 'hi' ? 'मादा (Female)' : 'Female'}</option>
+                    <option value="male">{language === 'mr' ? 'नर (Male)' : language === 'hi' ? 'नर (Male)' : 'Male'}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Date of Birth</label>
+                  <label className="form-label">
+                    {language === 'mr' ? 'जन्मतारीख' : language === 'hi' ? 'जन्म तिथि' : 'Date of Birth'}
+                  </label>
                   <input
                     type="date"
                     value={dob}
@@ -431,7 +459,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                 className="btn-primary"
                 style={{ width: '100%', marginTop: '12px', padding: '12px' }}
               >
-                Register Animal
+                {language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}
               </button>
             </form>
           </div>

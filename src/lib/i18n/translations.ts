@@ -5,7 +5,6 @@ export interface Translations {
   tagline: string;
   roles: {
     farmer: string;
-    field_worker: string;
     veterinarian: string;
     government: string;
   };
@@ -172,7 +171,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'Protect every herd. Detect risk before it spreads.',
     roles: {
       farmer: 'Farmer',
-      field_worker: 'Field Worker',
       veterinarian: 'Veterinarian',
       government: 'Government Official',
     },
@@ -337,7 +335,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'हर पशुधन की सुरक्षा। बीमारी फैलने से पहले पहचान।',
     roles: {
       farmer: 'पशुपालक / किसान',
-      field_worker: 'क्षेत्र कार्यकर्ता (फील्ड वर्कर)',
       veterinarian: 'पशु चिकित्सक (डॉक्टर)',
       government: 'शासकीय अधिकारी',
     },
@@ -502,7 +499,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'प्रत्येक जनावराचे रक्षण. रोग फैलावण्यापूर्वीच नियंत्रण.',
     roles: {
       farmer: 'शेतकरी / पशुपालक',
-      field_worker: 'क्षेत्रीय कर्मचारी (फील्ड वर्कर)',
       veterinarian: 'पशुवैद्यकीय अधिकारी (डॉक्टर)',
       government: 'शासकीय अधिकारी',
     },

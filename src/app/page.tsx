@@ -14,7 +14,9 @@ import { DistrictSurveillance } from '@/components/DistrictSurveillance';
 import { AdvisoriesAlerts } from '@/components/AdvisoriesAlerts';
 import { AnimalDetailModal } from '@/components/AnimalDetailModal';
 import { LandingAndOnboarding } from '@/components/LandingAndOnboarding';
-import { DatabaseStatusBanner } from '@/components/DatabaseStatusBanner';
+import { FarmerHerdSetup } from '@/components/FarmerHerdSetup';
+import { VetHospitalSetup } from '@/components/VetHospitalSetup';
+import { VetDashboard } from '@/components/VetDashboard';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -22,36 +24,51 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
   const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
+  const [herdSetupDone, setHerdSetupDone] = useState<boolean>(false);
+  const [vetHospitalSetupDone, setVetHospitalSetupDone] = useState<boolean>(false);
+  const [isEditingHospital, setIsEditingHospital] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
 
-  // Initialize role and onboarding state from dataService
+  // Initialize state from dataService on client mount
   useEffect(() => {
     setMounted(true);
     const role = dataService.getCurrentRole();
-    if (role) setCurrentRole(role);
-    const done = dataService.hasCompletedOnboarding();
-    setIsOnboarded(done);
+    if (role) {
+      setCurrentRole(role);
+      if (role === 'veterinarian') {
+        setActiveTab('vet_desk');
+      } else if (role === 'government') {
+        setActiveTab('surveillance');
+      } else {
+        setActiveTab('home');
+      }
+    }
+    setIsOnboarded(dataService.hasCompletedOnboarding());
+    setHerdSetupDone(dataService.hasCompletedHerdSetup());
+    setVetHospitalSetupDone(dataService.hasCompletedVetHospitalSetup());
   }, []);
 
   const handleRoleChange = (newRole: UserRole) => {
     setCurrentRole(newRole);
     dataService.setCurrentRole(newRole);
 
-    // Contextual tab switch on role change for best user experience
-    if (newRole === 'farmer' && activeTab === 'surveillance') {
-      setActiveTab('home');
-    } else if (newRole === 'field_worker' && (activeTab === 'home' || activeTab === 'surveillance')) {
-      setActiveTab('cases');
-    } else if (newRole === 'veterinarian' && activeTab === 'home') {
-      setActiveTab('cases');
-    } else if (newRole === 'government' && (activeTab === 'home' || activeTab === 'herd')) {
+    if (newRole === 'veterinarian') {
+      setActiveTab('vet_desk');
+      setVetHospitalSetupDone(dataService.hasCompletedVetHospitalSetup());
+    } else if (newRole === 'government') {
       setActiveTab('surveillance');
+    } else {
+      setActiveTab('home');
+      setHerdSetupDone(dataService.hasCompletedHerdSetup());
     }
   };
 
   const handleSignOut = () => {
     dataService.signOut();
     setIsOnboarded(false);
+    setHerdSetupDone(false);
+    setVetHospitalSetupDone(false);
+    setIsEditingHospital(false);
   };
 
   // Prevent flash before hydration
@@ -66,21 +83,53 @@ export default function Home() {
     );
   }
 
-  // If not yet onboarded or signed out, render Landing & Onboarding with status banner
+  // STEP 1: If not yet onboarded or signed out, render Landing & Onboarding
   if (!isOnboarded) {
     return (
-      <>
-        <DatabaseStatusBanner />
-        <LandingAndOnboarding
-          onComplete={(role) => {
-            handleRoleChange(role);
-            setIsOnboarded(true);
-          }}
-        />
-      </>
+      <LandingAndOnboarding
+        onComplete={(role) => {
+          handleRoleChange(role);
+          setIsOnboarded(true);
+        }}
+      />
     );
   }
 
+  // STEP 2: Farmer Herd Setup Page (Post-login onboarding - Skippable)
+  if (currentRole === 'farmer' && !herdSetupDone) {
+    return (
+      <FarmerHerdSetup
+        onComplete={() => {
+          setHerdSetupDone(true);
+          setActiveTab('home');
+        }}
+        onSkip={() => {
+          setHerdSetupDone(true);
+          setActiveTab('home');
+        }}
+      />
+    );
+  }
+
+  // STEP 3: Veterinarian Hospital Setup Page (Post-login onboarding with exact location)
+  if (currentRole === 'veterinarian' && (!vetHospitalSetupDone || isEditingHospital)) {
+    return (
+      <VetHospitalSetup
+        onComplete={() => {
+          setVetHospitalSetupDone(true);
+          setIsEditingHospital(false);
+          setActiveTab('vet_desk');
+        }}
+        onSkip={() => {
+          setVetHospitalSetupDone(true);
+          setIsEditingHospital(false);
+          setActiveTab('vet_desk');
+        }}
+      />
+    );
+  }
+
+  // STEP 4: Render Role-Dedicated Workspace
   return (
     <div className="app-shell">
       {/* Desktop Navigation Sidebar */}
@@ -92,17 +141,40 @@ export default function Home() {
 
       {/* Main App Content View */}
       <div className="app-main">
-        <DatabaseStatusBanner />
         <Header
           currentRole={currentRole}
-          onRoleChange={handleRoleChange}
           onOpenNotifications={() => setActiveTab('alerts')}
           onSignOut={handleSignOut}
         />
 
         <main className="page-container">
-          {/* 1. Farmer Home Dashboard */}
-          {activeTab === 'home' && (
+          {/* ======================================================== */}
+          {/* A. VETERINARIAN DEDICATED INTERFACE                       */}
+          {/* ======================================================== */}
+          {currentRole === 'veterinarian' && activeTab === 'vet_desk' && (
+            <VetDashboard
+              onOpenCases={() => setActiveTab('cases')}
+              onOpenReport={() => setActiveTab('report')}
+              onOpenAdvisories={() => setActiveTab('alerts')}
+              onEditHospitalSetup={() => setIsEditingHospital(true)}
+              onSelectAnimal={(id) => setSelectedAnimalId(id)}
+            />
+          )}
+
+          {/* ======================================================== */}
+          {/* B. GOVERNMENT OFFICIAL DEDICATED SURVEILLANCE INTERFACE   */}
+          {/* ======================================================== */}
+          {currentRole === 'government' && activeTab === 'surveillance' && (
+            <DistrictSurveillance
+              onSelectCase={() => setActiveTab('cases')}
+              onOpenReport={() => setActiveTab('report')}
+            />
+          )}
+
+          {/* ======================================================== */}
+          {/* C. FARMER DEDICATED HOME DASHBOARD                       */}
+          {/* ======================================================== */}
+          {currentRole === 'farmer' && activeTab === 'home' && (
             <FarmerDashboard
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
               onOpenReport={() => setActiveTab('report')}
@@ -111,7 +183,7 @@ export default function Home() {
             />
           )}
 
-          {/* 2. Herd Management Hub */}
+          {/* Herd Management Hub (Farmer) */}
           {activeTab === 'herd' && (
             <HerdHub
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
@@ -119,32 +191,36 @@ export default function Home() {
             />
           )}
 
-          {/* 3. 3-Step Triage Report Flow */}
+          {/* 3-Step Triage Report Flow */}
           {activeTab === 'report' && (
             <ReportFlow
               onReportComplete={() => {
                 setActiveTab('cases');
               }}
-              onCancel={() => setActiveTab('home')}
+              onCancel={() => {
+                if (currentRole === 'veterinarian') setActiveTab('vet_desk');
+                else if (currentRole === 'government') setActiveTab('surveillance');
+                else setActiveTab('home');
+              }}
             />
           )}
 
-          {/* 4. Field Health & Clinical Cases */}
+          {/* Field Health & Clinical Cases */}
           {activeTab === 'cases' && (
             <FieldHealthCases
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
             />
           )}
 
-          {/* 5. District Surveillance & Outbreak Response */}
-          {activeTab === 'surveillance' && (
+          {/* District Surveillance (when navigated to from tabs) */}
+          {activeTab === 'surveillance' && currentRole !== 'government' && (
             <DistrictSurveillance
               onSelectCase={() => setActiveTab('cases')}
               onOpenReport={() => setActiveTab('report')}
             />
           )}
 
-          {/* 6. Alerts & Advisories Center */}
+          {/* Alerts & Advisories Center */}
           {activeTab === 'alerts' && (
             <AdvisoriesAlerts
               onOpenReport={() => setActiveTab('report')}

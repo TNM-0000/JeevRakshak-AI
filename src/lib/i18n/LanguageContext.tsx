@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppLanguage } from '@/types/database';
 import { translations, Translations } from './translations';
+import { dataService } from '@/lib/supabase/dataService';
 
 interface LanguageContextType {
   language: AppLanguage;
@@ -20,6 +21,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem('jeevrakshak_lang') as AppLanguage;
       if (saved && (saved === 'en' || saved === 'hi' || saved === 'mr')) {
         setLanguageState(saved);
+        dataService.setAppLanguage(saved);
+      } else {
+        dataService.setAppLanguage('en');
       }
     } catch {
       // ignore
@@ -33,6 +37,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch {
       // ignore
     }
+    dataService.setAppLanguage(lang);
   };
 
   const t = translations[language];

@@ -9,6 +9,10 @@ import {
   AppNotification,
 } from '@/types/database';
 import {
+  getLocalizedField,
+  getLocalizedWeatherDescription,
+} from '@/lib/i18n/dbLocalization';
+import {
   Bell,
   CloudRain,
   Wind,
@@ -44,8 +48,8 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
 
   const loadData = () => {
     dataService.getAdvisories(language).then(setAdvisories);
-    dataService.getWeather().then(setWeather);
-    dataService.getNotifications().then(setNotifications);
+    dataService.getWeather(language).then(setWeather);
+    dataService.getNotifications(undefined, language).then(setNotifications);
   };
 
   useEffect(() => {
@@ -57,7 +61,13 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, is_read: true } : n))
     );
-    setMarkedReadMessage('Notification marked as read');
+    setMarkedReadMessage(
+      language === 'mr'
+        ? 'सूचना वाचली म्हणून नोंदवली'
+        : language === 'hi'
+        ? 'सूचना पढ़ी गई के रूप में चिह्नित'
+        : 'Notification marked as read'
+    );
     setTimeout(() => setMarkedReadMessage(null), 2500);
   };
 
@@ -106,15 +116,21 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Real-Time Advisories & Alerts
+              {language === 'mr' ? 'थेट सूचना आणि सतर्कता' : language === 'hi' ? 'रीयल-टाइम परामर्श एवं अलर्ट' : 'Real-Time Advisories & Alerts'}
             </span>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Maharashtra Animal Disease Surveillance
+              {language === 'mr' ? 'महाराष्ट्र प्राणी रोग नियंत्रण व देखरेख' : language === 'hi' ? 'महाराष्ट्र पशु रोग निगरानी' : 'Maharashtra Animal Disease Surveillance'}
             </span>
           </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Alerts & Clinical Advisories</h2>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+            {language === 'mr' ? 'सतर्कता आणि पशुवैद्यकीय सूचना' : language === 'hi' ? 'अलर्ट एवं नैदानिक परामर्श' : 'Alerts & Clinical Advisories'}
+          </h2>
           <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-            Weather epidemiological indices, preventative veterinary guidelines, and urgent field notices
+            {language === 'mr'
+              ? 'हवामान रोग निर्देशांक, प्रतिबंधात्मक पशुवैद्यकीय मार्गदर्शक तत्त्वे आणि तातडीच्या क्षेत्रीय सूचना'
+              : language === 'hi'
+              ? 'मौसम महामारी संबंधी सूचकांक, निवारक पशु चिकित्सा दिशानिर्देश और तत्काल क्षेत्रीय नोटिस'
+              : 'Weather epidemiological indices, preventative veterinary guidelines, and urgent field notices'}
           </p>
         </div>
 
@@ -132,7 +148,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               boxShadow: filter === 'all' ? 'var(--shadow-sm)' : 'none',
             }}
           >
-            All ({advisories.length + notifications.length})
+            {language === 'mr' ? 'सर्व' : language === 'hi' ? 'सभी' : 'All'} ({advisories.length + notifications.length})
           </button>
           <button
             onClick={() => setFilter('advisories')}
@@ -146,7 +162,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               boxShadow: filter === 'advisories' ? 'var(--shadow-sm)' : 'none',
             }}
           >
-            Advisories ({advisories.length})
+            {language === 'mr' ? 'सल्ले व मार्गदर्शक' : language === 'hi' ? 'परामर्श' : 'Advisories'} ({advisories.length})
           </button>
           <button
             onClick={() => setFilter('notifications')}
@@ -160,7 +176,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               boxShadow: filter === 'notifications' ? 'var(--shadow-sm)' : 'none',
             }}
           >
-            Notices {unreadNotifs > 0 && `(${unreadNotifs} unread)`}
+            {language === 'mr' ? 'सूचना' : language === 'hi' ? 'नोटिस' : 'Notices'} {unreadNotifs > 0 && `(${unreadNotifs} ${language === 'mr' ? 'नवीन' : language === 'hi' ? 'अपठित' : 'unread'})`}
           </button>
         </div>
       </div>
@@ -202,13 +218,13 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                   letterSpacing: '0.04em',
                 }}
               >
-                EPIDEMIOLOGICAL WEATHER INDEX • PUNE DISTRICT
+                {language === 'mr' ? 'हवामान रोग प्रादुर्भाव निर्देशांक • पुणे जिल्हा' : language === 'hi' ? 'मौसम महामारी संबंधी जोखिम सूचकांक • पुणे जिला' : 'EPIDEMIOLOGICAL WEATHER INDEX • PUNE DISTRICT'}
               </span>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '8px', color: '#fff' }}>
                 {t.dashboard.weatherRiskTitle}
               </h3>
               <p style={{ fontSize: '0.85rem', color: '#d1fae5', marginTop: '4px', maxWidth: '680px', lineHeight: 1.5 }}>
-                {currentWeather.description}
+                {getLocalizedWeatherDescription(currentWeather, language)}
               </p>
             </div>
 
@@ -226,7 +242,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               <div style={{ textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#6ee7b7' }}>
                   <Thermometer size={16} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Temp</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{language === 'mr' ? 'तापमान' : language === 'hi' ? 'तापमान' : 'Temp'}</span>
                 </div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '2px' }}>
                   {currentWeather.temperature_c}°C
@@ -238,7 +254,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               <div style={{ textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#6ee7b7' }}>
                   <Droplets size={16} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Humidity</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{language === 'mr' ? 'आर्द्रता' : language === 'hi' ? 'आर्द्रता' : 'Humidity'}</span>
                 </div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '2px' }}>
                   {currentWeather.humidity_percent}%
@@ -250,7 +266,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               <div style={{ textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#6ee7b7' }}>
                   <CloudRain size={16} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Rain</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{language === 'mr' ? 'पाऊस' : language === 'hi' ? 'वर्षा' : 'Rain'}</span>
                 </div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '2px' }}>
                   {currentWeather.rainfall_mm} mm
@@ -268,16 +284,18 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-                Veterinary Advisories ({language.toUpperCase()})
+                {language === 'mr' ? 'पशुवैद्यकीय मार्गदर्शक सूचना' : language === 'hi' ? 'पशु चिकित्सा परामर्श' : 'Veterinary Advisories'} ({language.toUpperCase()})
               </h3>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Issued by State Veterinary Authority
+                {language === 'mr' ? 'राज्य पशुसंवर्धन विभागाकडून जारी' : language === 'hi' ? 'राज्य पशुपालन विभाग द्वारा जारी' : 'Issued by State Veterinary Authority'}
               </span>
             </div>
 
             {advisories.length === 0 ? (
               <div className="glass-card" style={{ textAlign: 'center', padding: '30px' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No advisories currently active for this region.</p>
+                <p style={{ color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'या भागासाठी सध्या कोणतीही सक्रिय सूचना नाही.' : language === 'hi' ? 'इस क्षेत्र के लिए वर्तमान में कोई परामर्श सक्रिय नहीं है।' : 'No advisories currently active for this region.'}
+                </p>
               </div>
             ) : (
               advisories.map((adv) => (
@@ -293,22 +311,22 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className="badge-stable">ADVISORY</span>
+                      <span className="badge-stable">{language === 'mr' ? 'सल्ला' : language === 'hi' ? 'परामर्श' : 'ADVISORY'}</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {new Date(adv.created_at || Date.now()).toLocaleDateString()}
                       </span>
                     </div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary-hover)' }}>
-                      Language: {adv.language.toUpperCase()}
+                      {language === 'mr' ? 'भाषा:' : language === 'hi' ? 'भाषा:' : 'Language:'} {adv.language.toUpperCase()}
                     </span>
                   </div>
 
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.3 }}>
-                    {adv.title}
+                    {getLocalizedField(adv, 'title', language) || adv.title}
                   </h4>
 
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    {adv.message}
+                    {getLocalizedField(adv, 'message', language) || adv.message}
                   </p>
 
                   <div
@@ -322,12 +340,14 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                       fontSize: '0.78rem',
                     }}
                   >
-                    <span style={{ color: 'var(--text-muted)' }}>Sign-off: Dr. Sunita Patil, DAHO</span>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      {language === 'mr' ? 'स्वाक्षरी: डॉ. सुनीता पाटील, DAHO' : language === 'hi' ? 'हस्ताक्षर: डॉ. सुनीता पाटिल, DAHO' : 'Sign-off: Dr. Sunita Patil, DAHO'}
+                    </span>
                     <button
                       onClick={onOpenReport}
                       style={{ color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      Report Related Symptoms <ChevronRight size={14} />
+                      {language === 'mr' ? 'संबंधित लक्षणे नोंदवा' : language === 'hi' ? 'संबंधित लक्षण रिपोर्ट करें' : 'Report Related Symptoms'} <ChevronRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -347,16 +367,16 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
             >
               <h4 style={{ fontSize: '0.92rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <PhoneCall size={16} color="var(--primary)" />
-                Maharashtra Veterinary Toll-Free Helplines
+                {language === 'mr' ? 'महाराष्ट्र पशुवैद्यकीय टोल-फ्री हेल्पलाइन' : language === 'hi' ? 'महाराष्ट्र पशु चिकित्सा टोल-फ्री हेल्पलाइन' : 'Maharashtra Veterinary Toll-Free Helplines'}
               </h4>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                • State Animal Disease Diagnostic Lab (Pune): <strong>020-25651234</strong>
+                {language === 'mr' ? '• राज्य प्राणी रोग निदान प्रयोगशाळा (पुणे):' : language === 'hi' ? '• राज्य पशु रोग निदान प्रयोगशाला (पुणे):' : '• State Animal Disease Diagnostic Lab (Pune):'} <strong>020-25651234</strong>
               </div>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                • Shirur Taluka Veterinary Polyclinic: <strong>02138-222110</strong>
+                {language === 'mr' ? '• शिरूर तालुका पशुवैद्यकीय पॉलीक्लिनिक:' : language === 'hi' ? '• शिरूर तालुका पशु चिकित्सा पॉलीक्लिनिक:' : '• Shirur Taluka Veterinary Polyclinic:'} <strong>02138-222110</strong>
               </div>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                • National Livestock Mission Support (1962 Emergency Animal Ambulance)
+                {language === 'mr' ? '• राष्ट्रीय पशुधन मिशन (१९६२ आपत्कालीन प्राणी रुग्णवाहिका)' : language === 'hi' ? '• राष्ट्रीय पशुधन मिशन सहायता (1962 आपातकालीन पशु एम्बुलेंस)' : '• National Livestock Mission Support (1962 Emergency Animal Ambulance)'}
               </div>
             </div>
           </div>
@@ -367,16 +387,18 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-                Live Alerts & System Notifications
+                {language === 'mr' ? 'थेट सूचना आणि प्रणाली अलर्ट' : language === 'hi' ? 'लाइव अलर्ट और सिस्टम सूचनाएं' : 'Live Alerts & System Notifications'}
               </h3>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {unreadNotifs} Unread
+                {unreadNotifs} {language === 'mr' ? 'न वाचलेले' : language === 'hi' ? 'अपठित' : 'Unread'}
               </span>
             </div>
 
             {notifications.length === 0 ? (
               <div className="glass-card" style={{ textAlign: 'center', padding: '30px' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No notifications right now.</p>
+                <p style={{ color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'सध्या कोणतीही सूचना नाही.' : language === 'hi' ? 'फिलहाल कोई सूचना नहीं है।' : 'No notifications right now.'}
+                </p>
               </div>
             ) : (
               notifications.map((notif) => (
@@ -408,7 +430,11 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                             : 'badge-info'
                         }
                       >
-                        {notif.notification_type.replace('_', ' ').toUpperCase()}
+                        {notif.notification_type === 'outbreak_alert'
+                          ? (language === 'mr' ? 'रोग प्रादुर्भाव अलर्ट' : language === 'hi' ? 'प्रकोप चेतावनी' : 'OUTBREAK ALERT')
+                          : notif.notification_type === 'health_alert'
+                          ? (language === 'mr' ? 'आरोग्य सतर्कता' : language === 'hi' ? 'स्वास्थ्य चेतावनी' : 'HEALTH ALERT')
+                          : (language === 'mr' ? 'माहिती सूचना' : language === 'hi' ? 'सूचना' : 'SYSTEM INFO')}
                       </span>
                       {!notif.is_read && (
                         <span
@@ -428,11 +454,11 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                   </div>
 
                   <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                    {notif.title}
+                    {getLocalizedField(notif, 'title', language) || notif.title}
                   </h4>
 
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                    {notif.message}
+                    {getLocalizedField(notif, 'message', language) || notif.message}
                   </p>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
@@ -449,10 +475,12 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                         }}
                       >
                         <CheckCircle2 size={13} />
-                        Mark as read
+                        {language === 'mr' ? 'वाचले म्हणून खूण करा' : language === 'hi' ? 'पढ़ा हुआ चिह्नित करें' : 'Mark as read'}
                       </button>
                     ) : (
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Read</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {language === 'mr' ? 'वाचले' : language === 'hi' ? 'पढ़ा गया' : 'Read'}
+                      </span>
                     )}
                   </div>
                 </div>

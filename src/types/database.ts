@@ -7,7 +7,7 @@
 
 export type LocationLevel = 'district' | 'block' | 'village';
 
-export type ReportSource = 'web' | 'mobile' | 'ivr' | 'field_worker';
+export type ReportSource = 'web' | 'mobile' | 'ivr';
 
 export type CaseStatus = 'suspected' | 'probable' | 'confirmed' | 'ruled_out';
 
@@ -17,7 +17,7 @@ export type SampleStatus = 'collected' | 'sent' | 'received' | 'tested';
 
 export type EscalationStatus = 'open' | 'in_progress' | 'resolved';
 
-export type UserRole = 'farmer' | 'field_worker' | 'veterinarian' | 'government';
+export type UserRole = 'farmer' | 'veterinarian' | 'government';
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
@@ -35,6 +35,9 @@ export type AppLanguage = 'en' | 'hi' | 'mr'; // English, Hindi, Marathi
 export interface AdministrativeLocation {
   id: string;
   name: string;
+  name_en?: string;
+  name_hi?: string;
+  name_mr?: string;
   level: LocationLevel;
   parent_id: string | null;
   latitude: number | null;
@@ -49,6 +52,24 @@ export interface Profile {
   phone: string | null;
   location_id: string | null;
   is_active: boolean;
+  preferred_language?: AppLanguage;
+  email?: string;
+  farm_name?: string;
+  district?: string;
+  block?: string;
+  village?: string;
+  state?: string;
+  // Hospital metadata for veterinarians
+  hospital_name?: string;
+  facility_type?: string;
+  license_number?: string;
+  hospital_address?: string;
+  hospital_lat?: number;
+  hospital_lng?: number;
+  hospital_pincode?: string;
+  hospital_district?: string;
+  hospital_block?: string;
+  emergency_phone?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -65,6 +86,9 @@ export interface Herd {
   id: string;
   owner_profile_id: string;
   name: string;
+  name_en?: string;
+  name_hi?: string;
+  name_mr?: string;
   location_id: string;
   created_at?: string;
   updated_at?: string;
@@ -75,10 +99,21 @@ export interface Animal {
   id: string;
   herd_id: string;
   tag_number: string;
+  name?: string;
   species: string; // e.g., Cattle, Buffalo, Goat, Sheep
+  species_en?: string;
+  species_hi?: string;
+  species_mr?: string;
   breed: string;
+  breed_en?: string;
+  breed_hi?: string;
+  breed_mr?: string;
   sex: 'male' | 'female';
   date_of_birth: string | null;
+  is_milking?: boolean;
+  milking_status?: 'lactating' | 'dry' | 'heifer' | 'calving';
+  vaccination_status?: 'vaccinated' | 'due' | 'not_vaccinated';
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -90,8 +125,14 @@ export interface HealthReport {
   reported_by: string; // profile id
   source: ReportSource;
   symptoms: string; // comma-separated or text of symptoms
+  symptoms_en?: string;
+  symptoms_hi?: string;
+  symptoms_mr?: string;
   mortality_count: number;
   notes: string | null;
+  notes_en?: string | null;
+  notes_hi?: string | null;
+  notes_mr?: string | null;
   reported_at: string;
   created_at?: string;
 }
@@ -103,6 +144,9 @@ export interface CaseAssessment {
   status: CaseStatus;
   triage_method: TriageMethod;
   assessment_notes: string | null;
+  assessment_notes_en?: string | null;
+  assessment_notes_hi?: string | null;
+  assessment_notes_mr?: string | null;
   assessed_by: string | null; // profile id
   assessed_at: string;
 }
@@ -113,9 +157,15 @@ export interface AnimalTreatment {
   animal_id: string;
   prescribed_by: string | null;
   treatment_name: string;
+  treatment_name_en?: string;
+  treatment_name_hi?: string;
+  treatment_name_mr?: string;
   dosage: string;
   treatment_date: string;
   notes: string | null;
+  notes_en?: string | null;
+  notes_hi?: string | null;
+  notes_mr?: string | null;
   created_at?: string;
 }
 
@@ -124,10 +174,16 @@ export interface AnimalVaccination {
   id: string;
   animal_id: string;
   vaccine_name: string;
+  vaccine_name_en?: string;
+  vaccine_name_hi?: string;
+  vaccine_name_mr?: string;
   vaccination_date: string;
   next_due_date: string | null;
   administered_by: string | null;
   notes: string | null;
+  notes_en?: string | null;
+  notes_hi?: string | null;
+  notes_mr?: string | null;
   created_at?: string;
 }
 
@@ -136,13 +192,22 @@ export interface DiagnosticSample {
   id: string;
   health_report_id: string;
   sample_type: string; // Blood, Nasal swab, Saliva, Tissue, etc.
+  sample_type_en?: string;
+  sample_type_hi?: string;
+  sample_type_mr?: string;
   collected_at: string;
   sent_at: string | null;
   received_at: string | null;
   tested_at: string | null;
   status: SampleStatus;
   result: string | null;
+  result_en?: string | null;
+  result_hi?: string | null;
+  result_mr?: string | null;
   notes: string | null;
+  notes_en?: string | null;
+  notes_hi?: string | null;
+  notes_mr?: string | null;
   created_at?: string;
 }
 
@@ -152,6 +217,9 @@ export interface CaseEscalation {
   health_report_id: string;
   escalated_to: string; // profile id or title
   reason: string;
+  reason_en?: string;
+  reason_hi?: string;
+  reason_mr?: string;
   status: EscalationStatus;
   created_at?: string;
   resolved_at: string | null;
@@ -162,7 +230,13 @@ export interface HealthAdvisory {
   id: string;
   health_report_id: string | null;
   title: string;
+  title_en?: string;
+  title_hi?: string;
+  title_mr?: string;
   message: string;
+  message_en?: string;
+  message_hi?: string;
+  message_mr?: string;
   language: string; // 'en', 'hi', 'mr'
   created_by: string | null;
   created_at?: string;
@@ -177,6 +251,9 @@ export interface HerdHealthEvent {
   affected_count: number;
   mortality_count: number;
   description: string | null;
+  description_en?: string | null;
+  description_hi?: string | null;
+  description_mr?: string | null;
   event_date: string;
   created_at?: string;
 }
@@ -185,7 +262,13 @@ export interface HerdHealthEvent {
 export interface DiseaseCatalogItem {
   id: string;
   name: string;
+  name_en?: string;
+  name_hi?: string;
+  name_mr?: string;
   description: string | null;
+  description_en?: string | null;
+  description_hi?: string | null;
+  description_mr?: string | null;
   species: string;
   severity: RiskLevel | string;
   is_active: boolean;
@@ -213,6 +296,9 @@ export interface WeatherObservation {
   rainfall_mm: number | null;
   wind_speed_kmh: number | null;
   description: string | null;
+  description_en?: string | null;
+  description_hi?: string | null;
+  description_mr?: string | null;
   created_at?: string;
 }
 
@@ -236,7 +322,13 @@ export interface OutbreakEvent {
   disease_id: string;
   location_id: string;
   title: string;
+  title_en?: string;
+  title_hi?: string;
+  title_mr?: string;
   description: string | null;
+  description_en?: string | null;
+  description_hi?: string | null;
+  description_mr?: string | null;
   severity: RiskLevel;
   affected_herds: number;
   affected_animals: number;
@@ -255,9 +347,16 @@ export interface AppNotification {
   health_report_id: string | null;
   outbreak_event_id: string | null;
   title: string;
+  title_en?: string;
+  title_hi?: string;
+  title_mr?: string;
   message: string;
+  message_en?: string;
+  message_hi?: string;
+  message_mr?: string;
   notification_type: NotificationType;
   is_read: boolean;
+  language?: string;
   created_at?: string;
   read_at: string | null;
 }

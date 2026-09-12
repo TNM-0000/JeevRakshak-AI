@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, Database, CheckCircle2, ChevronDown, User, LogOut } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
+  onRoleChange?: (role: UserRole) => void;
   onOpenNotifications: () => void;
   onSignOut?: () => void;
 }
@@ -16,8 +16,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [seeding, setSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const currentUser = dataService.getCurrentUser();
 
   useEffect(() => {
@@ -25,15 +23,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    setSeedMessage(null);
-    const res = await dataService.seedSupabaseMaster();
-    setSeedMessage(res.message);
-    setSeeding(false);
-    setTimeout(() => setSeedMessage(null), 4000);
-  };
 
   return (
     <header className="top-header">
@@ -78,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               </span>
             </div>
             <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Govt. of Maharashtra • #26128
+              {language === 'mr' ? 'महाराष्ट्र शासन • #२६१२८' : language === 'hi' ? 'महाराष्ट्र सरकार • #26128' : 'Govt. of Maharashtra • #26128'}
             </p>
           </div>
         </div>
@@ -115,25 +104,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
             />
           </div>
 
-          {/* Supabase Master Sync Button */}
-          <button
-            onClick={handleSeedDatabase}
-            disabled={seeding}
-            className="btn-secondary"
-            style={{
-              padding: '5px 10px',
-              fontSize: '0.75rem',
-              borderRadius: '20px',
-              minHeight: '34px',
-              height: '34px',
-            }}
-            title="Seed master locations and disease catalog to connected Supabase database"
-          >
-            <Database size={13} color="var(--primary)" />
-            <span style={{ display: 'none' }} className="desktop-sync-label">
-              {seeding ? 'Syncing...' : 'Sync'}
-            </span>
-          </button>
 
           {/* Notification Bell */}
           <button
@@ -151,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               color: 'var(--text-main)',
               flexShrink: 0,
             }}
-            aria-label="Notifications"
+            aria-label={language === 'mr' ? 'सूचना' : language === 'hi' ? 'सूचनाएं' : 'Notifications'}
           >
             <Bell size={16} />
             {unreadCount > 0 && (
@@ -192,11 +162,37 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
                 alignItems: 'center',
                 gap: '5px',
               }}
-              title={currentUser ? `Profile: ${currentUser.full_name} (${currentUser.phone}). Click to Sign Out / Switch.` : 'Sign Out / Switch'}
+              title={
+                currentUser
+                  ? language === 'mr'
+                    ? `प्रोफाइल: ${currentUser.full_name} (${currentUser.phone}). लॉग आउट करा`
+                    : language === 'hi'
+                    ? `प्रोफ़ाइल: ${currentUser.full_name} (${currentUser.phone}). लॉग आउट करें`
+                    : `Profile: ${currentUser.full_name} (${currentUser.phone}). Click to Sign Out.`
+                  : language === 'mr'
+                  ? 'लॉग आउट'
+                  : language === 'hi'
+                  ? 'लॉग आउट'
+                  : 'Sign Out'
+              }
             >
               <User size={13} color="var(--primary)" />
-              <span style={{ display: 'none', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="desktop-user-label">
-                {currentUser?.full_name?.split(' ')[0] || 'User'}
+              <span style={{ display: 'none', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="desktop-user-label">
+                {currentUser?.full_name?.split(' ')[0] || (language === 'mr' ? 'वापरकर्ता' : language === 'hi' ? 'उपयोगकर्ता' : 'User')}
+              </span>
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary-hover)',
+                  padding: '1px 7px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--primary-border)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t.roles[currentRole]}
               </span>
               <LogOut size={12} style={{ color: 'var(--text-muted)' }} />
             </button>
@@ -204,44 +200,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
         </div>
       </div>
 
-      {/* Role Switcher Row: Horizontally swipeable on mobile */}
-      <div className="header-role-row">
-        <div className="role-pill-group" title={t.dashboard.switchRoleNotice}>
-          {(['farmer', 'field_worker', 'veterinarian', 'government'] as UserRole[]).map((r) => (
-            <button
-              key={r}
-              className={`role-pill ${currentRole === r ? 'active' : ''}`}
-              onClick={() => onRoleChange(r)}
-            >
-              {t.roles[r]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {seedMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '70px',
-            right: '20px',
-            background: '#064e3b',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: '12px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 9999,
-          }}
-        >
-          <CheckCircle2 size={16} />
-          <span>{seedMessage}</span>
-        </div>
-      )}
     </header>
   );
 };

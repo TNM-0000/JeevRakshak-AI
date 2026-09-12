@@ -20,10 +20,13 @@ import {
   OutbreakEvent,
   AppNotification,
   UserRole,
+  AppLanguage,
   HealthReportWithDetails,
   AnimalWithDetails,
   OutbreakWithDetails,
   SampleStatus,
+  CaseStatus,
+  TriageMethod,
 } from '@/types/database';
 
 import {
@@ -31,7 +34,36 @@ import {
   initialDiseases,
   initialWeather,
   initialAdvisories,
+  initialOutbreaks,
+  initialNotifications,
 } from './seedData';
+
+import {
+  getLocalizedField,
+  localizeSpecies,
+  localizeBreed,
+  localizeSymptoms,
+  localizeTreatment,
+  localizeVaccine,
+  localizeSampleType,
+  localizeSampleStatus,
+  localizeStatus,
+  localizeBlock,
+  localizeVillage,
+} from '@/lib/i18n/dbLocalization';
+export {
+  getLocalizedField,
+  localizeSpecies,
+  localizeBreed,
+  localizeSymptoms,
+  localizeTreatment,
+  localizeVaccine,
+  localizeSampleType,
+  localizeSampleStatus,
+  localizeStatus,
+  localizeBlock,
+  localizeVillage,
+} from '@/lib/i18n/dbLocalization';
 
 // Helper to generate a valid RFC4122 UUID in browser or node
 function generateUUID(): string {
@@ -111,7 +143,42 @@ export async function dbUpdate(table: string, payload: any, filters: Record<stri
 }
 
 // Clean in-memory store for active session and offline resilience
+export interface RegisteredAccount {
+  id: string;
+  phone: string;
+  email?: string;
+  password: string;
+  role: UserRole;
+  full_name: string;
+}
+
 class LocalStore {
+  registeredAccounts: RegisteredAccount[] = [
+    {
+      id: 'demo-farmer-1',
+      phone: '9823012345',
+      email: 'farmer@jeevrakshak.org',
+      password: 'Farmer@123',
+      role: 'farmer',
+      full_name: 'Suresh Rambhau Shinde',
+    },
+    {
+      id: 'demo-vet-1',
+      phone: '9823011111',
+      email: 'vet@jeevrakshak.org',
+      password: 'Vet@12345',
+      role: 'veterinarian',
+      full_name: 'Dr. Priya Kulkarni, B.V.Sc',
+    },
+    {
+      id: 'demo-govt-1',
+      phone: '9823099999',
+      email: 'govt@jeevrakshak.org',
+      password: 'Govt@12345',
+      role: 'government',
+      full_name: 'Rajesh Patil, DAHO Pune',
+    },
+  ];
   locations: AdministrativeLocation[] = [...initialLocations];
   profiles: Profile[] = [];
   profileRoles: ProfileRole[] = [];
@@ -128,12 +195,15 @@ class LocalStore {
   vaccinations: AnimalVaccination[] = [];
   herdHealthEvents: HerdHealthEvent[] = [];
   weather: WeatherObservation[] = [...initialWeather];
-  outbreaks: OutbreakEvent[] = [];
+  outbreaks: OutbreakEvent[] = [...initialOutbreaks];
   advisories: HealthAdvisory[] = [...initialAdvisories];
-  notifications: AppNotification[] = [];
+  notifications: AppNotification[] = [...initialNotifications];
   currentRole: UserRole = 'farmer';
+  currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
   onboardingDone: boolean = false;
+  herdSetupDone: boolean = false;
+  vetHospitalSetupDone: boolean = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -175,14 +245,55 @@ class LocalStore {
         const savedEscalations = localStorage.getItem('jr_escalations');
         if (savedEscalations) this.caseEscalations = JSON.parse(savedEscalations);
 
+        const savedOutbreaks = localStorage.getItem('jr_outbreaks');
+        if (savedOutbreaks) {
+          this.outbreaks = JSON.parse(savedOutbreaks);
+        } else {
+          this.outbreaks = [...initialOutbreaks];
+        }
+
+        const savedNotifications = localStorage.getItem('jr_notifications');
+        if (savedNotifications) {
+          this.notifications = JSON.parse(savedNotifications);
+        } else {
+          this.notifications = [...initialNotifications];
+        }
+
         const savedRole = localStorage.getItem('jr_current_role') as UserRole;
-        if (savedRole) this.currentRole = savedRole;
+        if (savedRole && (savedRole === 'farmer' || savedRole === 'veterinarian' || savedRole === 'government')) {
+          this.currentRole = savedRole;
+        } else {
+          this.currentRole = 'farmer';
+        }
+
+        const savedLang = localStorage.getItem('jeevrakshak_lang') as AppLanguage;
+        if (savedLang && (savedLang === 'en' || savedLang === 'hi' || savedLang === 'mr')) {
+          this.currentLanguage = savedLang;
+        }
 
         const savedUser = localStorage.getItem('jr_current_user');
         if (savedUser) this.currentUser = JSON.parse(savedUser);
 
         const savedOnboarding = localStorage.getItem('jr_onboarding_done');
         if (savedOnboarding) this.onboardingDone = JSON.parse(savedOnboarding);
+
+        const savedHerdSetup = localStorage.getItem('jr_herd_setup_done');
+        if (savedHerdSetup) this.herdSetupDone = JSON.parse(savedHerdSetup);
+
+        const savedVetSetup = localStorage.getItem('jr_vet_setup_done');
+        if (savedVetSetup) this.vetHospitalSetupDone = JSON.parse(savedVetSetup);
+
+        const savedAccounts = localStorage.getItem('jr_registered_accounts');
+        if (savedAccounts) {
+          try {
+            const parsed = JSON.parse(savedAccounts);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              this.registeredAccounts = parsed;
+            }
+          } catch {
+            // ignore
+          }
+        }
       } catch {
         // ignore localStorage error
       }
@@ -200,13 +311,19 @@ class LocalStore {
         localStorage.setItem('jr_vaccinations', JSON.stringify(this.vaccinations));
         localStorage.setItem('jr_samples', JSON.stringify(this.diagnosticSamples));
         localStorage.setItem('jr_escalations', JSON.stringify(this.caseEscalations));
+        localStorage.setItem('jr_outbreaks', JSON.stringify(this.outbreaks));
+        localStorage.setItem('jr_notifications', JSON.stringify(this.notifications));
         localStorage.setItem('jr_current_role', this.currentRole);
+        localStorage.setItem('jeevrakshak_lang', this.currentLanguage);
         if (this.currentUser) {
           localStorage.setItem('jr_current_user', JSON.stringify(this.currentUser));
         } else {
           localStorage.removeItem('jr_current_user');
         }
         localStorage.setItem('jr_onboarding_done', JSON.stringify(this.onboardingDone));
+        localStorage.setItem('jr_herd_setup_done', JSON.stringify(this.herdSetupDone));
+        localStorage.setItem('jr_vet_setup_done', JSON.stringify(this.vetHospitalSetupDone));
+        localStorage.setItem('jr_registered_accounts', JSON.stringify(this.registeredAccounts));
       } catch {
         // ignore
       }
@@ -227,6 +344,93 @@ export const dataService = {
     localStore.save();
   },
 
+  getAppLanguage(): AppLanguage {
+    return localStore.currentLanguage;
+  },
+
+  async setAppLanguage(lang: AppLanguage) {
+    localStore.currentLanguage = lang;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('jeevrakshak_lang', lang);
+      } catch {
+        // ignore
+      }
+    }
+
+    // 1. If user is logged in, update preferred_language in DB
+    if (localStore.currentUser) {
+      localStore.currentUser.preferred_language = lang;
+      try {
+        await dbUpdate('profiles', { preferred_language: lang }, { id: localStore.currentUser.id });
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. Localize all in-memory database records
+    localStore.locations = localStore.locations.map((loc) => ({
+      ...loc,
+      name: getLocalizedField(loc, 'name', lang) || loc.name,
+    }));
+
+    localStore.diseases = localStore.diseases.map((d) => ({
+      ...d,
+      name: getLocalizedField(d, 'name', lang) || d.name,
+      description: getLocalizedField(d, 'description', lang) || d.description,
+    }));
+
+    localStore.weather = localStore.weather.map((wx) => ({
+      ...wx,
+      description: getLocalizedField(wx, 'description', lang) || wx.description,
+    }));
+
+    localStore.outbreaks = localStore.outbreaks.map((ob) => ({
+      ...ob,
+      title: getLocalizedField(ob, 'title', lang) || ob.title,
+      description: getLocalizedField(ob, 'description', lang) || ob.description,
+    }));
+
+    localStore.advisories = localStore.advisories.map((adv) => ({
+      ...adv,
+      title: getLocalizedField(adv, 'title', lang) || adv.title,
+      message: getLocalizedField(adv, 'message', lang) || adv.message,
+    }));
+
+    localStore.notifications = localStore.notifications.map((notif) => ({
+      ...notif,
+      title: getLocalizedField(notif, 'title', lang) || notif.title,
+      message: getLocalizedField(notif, 'message', lang) || notif.message,
+    }));
+
+    localStore.animals = localStore.animals.map((anim) => ({
+      ...anim,
+      species: localizeSpecies(anim.species, lang),
+      breed: localizeBreed(anim.breed, lang),
+    }));
+
+    localStore.healthReports = localStore.healthReports.map((rep) => ({
+      ...rep,
+      symptoms: localizeSymptoms(rep.symptoms, lang),
+    }));
+
+    localStore.treatments = localStore.treatments.map((tr) => ({
+      ...tr,
+      treatment_name: localizeTreatment(tr.treatment_name, lang),
+    }));
+
+    localStore.vaccinations = localStore.vaccinations.map((vac) => ({
+      ...vac,
+      vaccine_name: localizeVaccine(vac.vaccine_name, lang),
+    }));
+
+    localStore.save();
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('jeevrakshak:language-change', { detail: { language: lang } }));
+    }
+  },
+
   getCurrentUser(): Profile | null {
     return localStore.currentUser || null;
   },
@@ -240,9 +444,166 @@ export const dataService = {
     localStore.save();
   },
 
+  hasCompletedHerdSetup(): boolean {
+    return localStore.herdSetupDone || localStore.animals.length > 0;
+  },
+
+  setHerdSetupCompleted(completed: boolean) {
+    localStore.herdSetupDone = completed;
+    localStore.save();
+  },
+
+  hasCompletedVetHospitalSetup(): boolean {
+    return localStore.vetHospitalSetupDone || Boolean(localStore.currentUser?.hospital_name);
+  },
+
+  setVetHospitalSetupCompleted(completed: boolean) {
+    localStore.vetHospitalSetupDone = completed;
+    localStore.save();
+  },
+
+  async saveVetHospital(params: {
+    hospital_name: string;
+    facility_type: string;
+    license_number: string;
+    hospital_address: string;
+    hospital_lat: number;
+    hospital_lng: number;
+    hospital_pincode: string;
+    hospital_district: string;
+    hospital_block: string;
+    emergency_phone: string;
+  }): Promise<Profile> {
+    const user = localStore.currentUser || {
+      id: generateUUID(),
+      full_name: 'Dr. Veterinarian',
+      phone: params.emergency_phone || '9822000000',
+      location_id: null,
+      is_active: true,
+    };
+
+    const updatedProfile: Profile = {
+      ...user,
+      hospital_name: params.hospital_name,
+      facility_type: params.facility_type,
+      license_number: params.license_number,
+      hospital_address: params.hospital_address,
+      hospital_lat: params.hospital_lat,
+      hospital_lng: params.hospital_lng,
+      hospital_pincode: params.hospital_pincode,
+      hospital_district: params.hospital_district,
+      hospital_block: params.hospital_block,
+      emergency_phone: params.emergency_phone,
+      updated_at: new Date().toISOString(),
+    };
+
+    localStore.currentUser = updatedProfile;
+    localStore.profiles = localStore.profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p));
+    if (!localStore.profiles.some((p) => p.id === updatedProfile.id)) {
+      localStore.profiles.unshift(updatedProfile);
+    }
+    localStore.vetHospitalSetupDone = true;
+    localStore.save();
+
+    // Persist to Supabase
+    try {
+      await dbUpdate(
+        'profiles',
+        {
+          hospital_name: params.hospital_name,
+          facility_type: params.facility_type,
+          license_number: params.license_number,
+          hospital_address: params.hospital_address,
+          hospital_lat: params.hospital_lat,
+          hospital_lng: params.hospital_lng,
+          hospital_pincode: params.hospital_pincode,
+          hospital_district: params.hospital_district,
+          hospital_block: params.hospital_block,
+          emergency_phone: params.emergency_phone,
+        },
+        { id: updatedProfile.id }
+      );
+    } catch {
+      // ignore
+    }
+
+    return updatedProfile;
+  },
+
+  async saveHerdWithAnimals(params: {
+    herdName: string;
+    animals: Array<{
+      name?: string;
+      tag_number: string;
+      species: string;
+      species_en?: string;
+      species_hi?: string;
+      species_mr?: string;
+      breed: string;
+      breed_en?: string;
+      breed_hi?: string;
+      breed_mr?: string;
+      sex: 'male' | 'female';
+      date_of_birth: string | null;
+      is_milking?: boolean;
+      milking_status?: 'lactating' | 'dry' | 'heifer' | 'calving';
+      vaccination_status?: 'vaccinated' | 'due' | 'not_vaccinated';
+      notes?: string;
+    }>;
+  }): Promise<{ herd: Herd; animals: Animal[] }> {
+    const currentUser = localStore.currentUser;
+    const ownerId = currentUser?.id || '00000000-0000-0000-0000-000000000000';
+
+    // 1. Create or get Herd
+    let targetHerd = localStore.herds.find((h) => h.owner_profile_id === ownerId);
+    if (!targetHerd) {
+      targetHerd = await this.createHerd({
+        name: params.herdName.trim() || 'My Livestock Herd',
+        owner_profile_id: ownerId,
+        location_id: currentUser?.location_id || '1',
+      });
+    } else if (params.herdName.trim()) {
+      targetHerd.name = params.herdName.trim();
+      targetHerd.updated_at = new Date().toISOString();
+      localStore.save();
+    }
+
+    // 2. Batch create animals
+    const createdAnimals: Animal[] = [];
+    for (const animalData of params.animals) {
+      if (!animalData.tag_number.trim()) continue;
+      const created = await this.createAnimal({
+        herd_id: targetHerd.id,
+        tag_number: animalData.tag_number.trim().toUpperCase(),
+        name: animalData.name?.trim(),
+        species: animalData.species,
+        species_en: animalData.species_en || animalData.species,
+        species_hi: animalData.species_hi || animalData.species,
+        species_mr: animalData.species_mr || animalData.species,
+        breed: animalData.breed,
+        breed_en: animalData.breed_en || animalData.breed,
+        breed_hi: animalData.breed_hi || animalData.breed,
+        breed_mr: animalData.breed_mr || animalData.breed,
+        sex: animalData.sex,
+        date_of_birth: animalData.date_of_birth || null,
+        is_milking: animalData.is_milking,
+        milking_status: animalData.milking_status,
+        vaccination_status: animalData.vaccination_status,
+        notes: animalData.notes,
+      });
+      createdAnimals.push(created);
+    }
+
+    localStore.herdSetupDone = true;
+    localStore.save();
+    return { herd: targetHerd, animals: createdAnimals };
+  },
+
   signOut() {
     localStore.currentUser = null;
     localStore.onboardingDone = false;
+    localStore.herdSetupDone = false;
+    localStore.vetHospitalSetupDone = false;
     localStore.save();
     try {
       supabase.auth.signOut().catch(() => {});
@@ -320,11 +681,26 @@ export const dataService = {
     localStore.currentRole = params.role;
     localStore.onboardingDone = true;
 
+    // Track registered user account for strict credential matching
+    const registeredAccount: RegisteredAccount = {
+      id: profileId,
+      phone: cleanPhone,
+      email: params.email?.trim() || undefined,
+      password: params.password.trim(),
+      role: params.role,
+      full_name: params.full_name.trim(),
+    };
+    localStore.registeredAccounts = localStore.registeredAccounts.filter(
+      (a) => a.phone !== cleanPhone && (!params.email || a.email !== params.email.trim())
+    );
+    localStore.registeredAccounts.unshift(registeredAccount);
+
     // 3. If farmer, create herd in Supabase
-    if (params.role === 'farmer' && params.farm_name) {
+    if (params.role === 'farmer') {
+      const herdName = params.farm_name?.trim() || `${params.full_name}'s Livestock Farm`;
       await this.createHerd({
         owner_profile_id: profileId,
-        name: params.farm_name,
+        name: herdName,
         location_id: params.location_id || '1',
       });
     }
@@ -336,7 +712,13 @@ export const dataService = {
       health_report_id: null,
       outbreak_event_id: null,
       title: 'Welcome to JeevRakshak AI (महाराष्ट्र शासन)',
+      title_en: 'Welcome to JeevRakshak AI (Govt of Maharashtra)',
+      title_hi: 'जीवक्षक AI में आपका स्वागत है (महाराष्ट्र शासन)',
+      title_mr: 'जीवरक्षक AI मध्ये आपले स्वागत आहे (महाराष्ट्र शासन)',
       message: `Namaste ${params.full_name}, your ${params.role.replace('_', ' ')} account is verified. You can now register livestock and track health reports.`,
+      message_en: `Namaste ${params.full_name}, your ${params.role} account is verified. You can now register livestock and track health reports.`,
+      message_hi: `नमस्ते ${params.full_name}, आपका ${params.role === 'farmer' ? 'पशुपालक' : params.role === 'veterinarian' ? 'पशुचिकित्सक' : 'शासकीय'} खाता सत्यापित हो गया है। आप पशुधन पंजीकृत कर सकते हैं और स्वास्थ्य रिपोर्ट देख सकते हैं।`,
+      message_mr: `नमस्ते ${params.full_name}, आपले ${params.role === 'farmer' ? 'शेतकरी/पशुपालक' : params.role === 'veterinarian' ? 'पशुवैद्यक' : 'शासकीय अधिकारी'} खाते सत्यापित झाले आहे. आपण जनावरांची नोंदणी करू शकता व आरोग्य अहवाल पाहू शकता.`,
       notification_type: 'system',
       is_read: false,
       created_at: new Date().toISOString(),
@@ -347,7 +729,13 @@ export const dataService = {
     await dbInsert('notifications', [{
       recipient_profile_id: profileId,
       title: welcomeNotif.title,
+      title_en: welcomeNotif.title_en,
+      title_hi: welcomeNotif.title_hi,
+      title_mr: welcomeNotif.title_mr,
       message: welcomeNotif.message,
+      message_en: welcomeNotif.message_en,
+      message_hi: welcomeNotif.message_hi,
+      message_mr: welcomeNotif.message_mr,
       notification_type: welcomeNotif.notification_type,
       is_read: false,
     }]);
@@ -359,17 +747,20 @@ export const dataService = {
   // User Sign In
   async signInUser(params: { login: string; password: string }): Promise<{ profile?: Profile; error?: string }> {
     const cleanLogin = params.login.trim();
+    const cleanPhone = cleanLogin.replace(/[^0-9]/g, '');
+    const cleanPass = params.password.trim();
 
     // 1. Try Supabase Auth
     try {
-      const isPhone = /^[0-9+ ]+$/.test(cleanLogin);
-      const authEmail = isPhone ? `${cleanLogin.replace(/[^0-9]/g, '')}@jeevrakshak.org` : cleanLogin;
+      const isPhone = cleanPhone.length === 10;
+      const authEmail = isPhone ? `${cleanPhone}@jeevrakshak.org` : cleanLogin;
       const { data, error } = await supabase.auth.signInWithPassword({
         email: authEmail,
-        password: params.password,
+        password: cleanPass,
       });
       if (!error && data?.user) {
         const profileId = data.user.id;
+        const profileRole = (data.user.user_metadata?.role as UserRole) || 'farmer';
         const profile: Profile = {
           id: profileId,
           full_name: data.user.user_metadata?.full_name || 'Livestock Owner',
@@ -380,6 +771,7 @@ export const dataService = {
           updated_at: new Date().toISOString(),
         };
         localStore.currentUser = profile;
+        localStore.currentRole = profileRole;
         localStore.onboardingDone = true;
         localStore.save();
         return { profile };
@@ -388,58 +780,66 @@ export const dataService = {
       // ignore
     }
 
-    // 2. Query Supabase profiles table directly by phone or name
-    try {
-      const { data: dbProfiles } = await supabase.from('profiles').select('*').or(`phone.eq.${cleanLogin},full_name.ilike.%${cleanLogin}%`).limit(1);
-      if (dbProfiles && dbProfiles.length > 0) {
-        const found = dbProfiles[0] as Profile;
-        localStore.currentUser = found;
+    // 2. Query registered accounts in localStore (matches phone or email)
+    const matched = localStore.registeredAccounts.find((acc) => {
+      if (cleanPhone && acc.phone === cleanPhone) return true;
+      if (acc.phone === cleanLogin) return true;
+      if (acc.email && acc.email.toLowerCase() === cleanLogin.toLowerCase()) return true;
+      return false;
+    });
+
+    if (matched) {
+      if (matched.password === cleanPass) {
+        // Password matches!
+        let profile = localStore.profiles.find((p) => p.id === matched.id || p.phone === matched.phone);
+        if (!profile) {
+          profile = {
+            id: matched.id,
+            full_name: matched.full_name,
+            phone: matched.phone,
+            location_id: null,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          localStore.profiles.unshift(profile);
+        }
+        localStore.currentUser = profile;
+        localStore.currentRole = matched.role;
         localStore.onboardingDone = true;
         localStore.save();
-        return { profile: found };
+        return { profile };
+      } else {
+        // Wrong password entered
+        return { error: 'INVALID_CREDENTIALS' };
       }
-    } catch {
-      // ignore
     }
 
-    // 3. Check localStore
-    const existing = localStore.profiles.find((p) => p.phone === cleanLogin || p.full_name.toLowerCase() === cleanLogin.toLowerCase());
-    if (existing) {
-      localStore.currentUser = existing;
-      localStore.onboardingDone = true;
-      localStore.save();
-      return { profile: existing };
-    }
-
-    // 4. Create new verified session profile
-    const profileId = generateUUID();
-    const newProfile: Profile = {
-      id: profileId,
-      full_name: cleanLogin,
-      phone: cleanLogin,
-      location_id: null,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    localStore.profiles.unshift(newProfile);
-    localStore.currentUser = newProfile;
-    localStore.onboardingDone = true;
-    localStore.save();
-    return { profile: newProfile };
+    // 3. User account not found in registered database
+    return { error: 'INVALID_CREDENTIALS' };
   },
 
   // 1. Administrative Locations (Maharashtra Reference Catalog)
-  async getLocations(): Promise<AdministrativeLocation[]> {
+  async getLocations(lang?: AppLanguage): Promise<AdministrativeLocation[]> {
+    let locs: AdministrativeLocation[] = [];
     try {
       const { data, error } = await supabase.from('administrative_locations').select('*');
       if (!error && data && data.length > 0) {
-        return data as AdministrativeLocation[];
+        locs = data as AdministrativeLocation[];
       }
     } catch {
       // ignore
     }
-    return localStore.locations;
+    if (locs.length === 0) {
+      locs = localStore.locations;
+    }
+    if (lang) {
+      return locs.map((loc) => ({
+        ...loc,
+        name: getLocalizedField(loc, 'name', lang) || loc.name,
+      }));
+    }
+    return locs;
   },
 
   // 2. Herds (Real user herds)
@@ -572,16 +972,27 @@ export const dataService = {
   },
 
   // 4. Disease Catalog (Reference Data)
-  async getDiseases(): Promise<DiseaseCatalogItem[]> {
+  async getDiseases(lang?: AppLanguage): Promise<DiseaseCatalogItem[]> {
+    let list: DiseaseCatalogItem[] = [];
     try {
       const { data, error } = await supabase.from('disease_catalog').select('*');
       if (!error && data && data.length > 0) {
-        return data as DiseaseCatalogItem[];
+        list = data as DiseaseCatalogItem[];
       }
     } catch {
       // ignore
     }
-    return localStore.diseases;
+    if (list.length === 0) {
+      list = localStore.diseases;
+    }
+    if (lang) {
+      return list.map((d) => ({
+        ...d,
+        name: getLocalizedField(d, 'name', lang) || d.name,
+        description: getLocalizedField(d, 'description', lang) || d.description,
+      }));
+    }
+    return list;
   },
 
   // 5. Health Reports & AI Triage Assessments
@@ -740,6 +1151,42 @@ export const dataService = {
     return newTreatment;
   },
 
+  async createTreatment(treatment: Omit<AnimalTreatment, 'id' | 'created_at'>): Promise<AnimalTreatment> {
+    return this.addTreatment(treatment);
+  },
+
+  async assessCase(params: {
+    health_report_id: string;
+    status: CaseStatus;
+    triage_method?: TriageMethod;
+    assessment_notes?: string;
+    assessed_by?: string;
+  }): Promise<CaseAssessment> {
+    const existing = localStore.caseAssessments.find((a) => String(a.health_report_id) === String(params.health_report_id));
+    if (existing) {
+      existing.status = params.status;
+      if (params.triage_method) existing.triage_method = params.triage_method;
+      if (params.assessment_notes) existing.assessment_notes = params.assessment_notes;
+      if (params.assessed_by) existing.assessed_by = params.assessed_by;
+      existing.assessed_at = new Date().toISOString();
+      localStore.save();
+      return existing;
+    }
+
+    const newAssessment: CaseAssessment = {
+      id: `case-${Date.now()}`,
+      health_report_id: params.health_report_id,
+      status: params.status,
+      triage_method: params.triage_method || 'manual',
+      assessment_notes: params.assessment_notes || null,
+      assessed_by: params.assessed_by || 'Veterinarian',
+      assessed_at: new Date().toISOString(),
+    };
+    localStore.caseAssessments.unshift(newAssessment);
+    localStore.save();
+    return newAssessment;
+  },
+
   // 7. Vaccinations
   async getVaccinations(animalId?: string): Promise<AnimalVaccination[]> {
     try {
@@ -781,7 +1228,7 @@ export const dataService = {
     return newVac;
   },
 
-  // 8. Diagnostic Samples (Field Workers)
+  // 8. Diagnostic Samples
   async getSamples(): Promise<DiagnosticSample[]> {
     try {
       const { data, error } = await supabase.from('diagnostic_samples').select('*');
@@ -817,6 +1264,14 @@ export const dataService = {
     localStore.diagnosticSamples.unshift(newSample);
     localStore.save();
     return newSample;
+  },
+
+  async getDiagnosticSamples(): Promise<DiagnosticSample[]> {
+    return this.getSamples();
+  },
+
+  async createDiagnosticSample(sample: Omit<DiagnosticSample, 'id' | 'created_at'>): Promise<DiagnosticSample> {
+    return this.collectDiagnosticSample(sample);
   },
 
   async updateSampleStatus(sampleId: string, status: SampleStatus, result?: string): Promise<DiagnosticSample | null> {
@@ -872,49 +1327,93 @@ export const dataService = {
   },
 
   // 10. Weather Observations (Reference Data)
-  async getWeather(): Promise<WeatherObservation[]> {
+  async getWeather(lang?: AppLanguage): Promise<WeatherObservation[]> {
+    let list: WeatherObservation[] = [];
     try {
       const { data, error } = await supabase.from('weather_observations').select('*');
       if (!error && data && data.length > 0) {
-        return data as WeatherObservation[];
+        list = data as WeatherObservation[];
       }
     } catch {
       // ignore
     }
-    return localStore.weather;
+    if (list.length === 0) {
+      list = localStore.weather;
+    }
+    if (lang) {
+      return list.map((wx) => ({
+        ...wx,
+        description: getLocalizedField(wx, 'description', lang) || wx.description,
+      }));
+    }
+    return list;
   },
 
   // 11. Health Advisories (Reference Data)
-  async getAdvisories(lang?: string): Promise<HealthAdvisory[]> {
+  async getAdvisories(lang?: AppLanguage): Promise<HealthAdvisory[]> {
+    let list: HealthAdvisory[] = [];
     try {
       let query = supabase.from('health_advisories').select('*');
       if (lang) query = query.eq('language', lang);
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        return data as HealthAdvisory[];
+        list = data as HealthAdvisory[];
       }
     } catch {
       // ignore
     }
-    return lang ? localStore.advisories.filter((a) => a.language === lang) : localStore.advisories;
+    if (list.length === 0) {
+      if (lang) {
+        const filtered = localStore.advisories.filter((a) => a.language === lang);
+        list = filtered.length > 0 ? filtered : localStore.advisories;
+      } else {
+        list = localStore.advisories;
+      }
+    }
+    if (lang) {
+      return list.map((adv) => ({
+        ...adv,
+        title: getLocalizedField(adv, 'title', lang) || adv.title,
+        message: getLocalizedField(adv, 'message', lang) || adv.message,
+      }));
+    }
+    return list;
   },
 
   // 12. Notifications
-  async getNotifications(profileId?: string): Promise<AppNotification[]> {
+  async getNotifications(profileId?: string, lang?: AppLanguage): Promise<AppNotification[]> {
     const activeId = profileId || localStore.currentUser?.id;
+    let notifs: AppNotification[] = [];
     try {
       let query = supabase.from('notifications').select('*');
       if (activeId) {
         query = query.eq('recipient_profile_id', activeId);
       }
       const { data, error } = await query;
-      if (!error && data) {
-        return data as AppNotification[];
+      if (!error && data && data.length > 0) {
+        notifs = data as AppNotification[];
       }
     } catch {
       // ignore
     }
-    return activeId ? localStore.notifications.filter((n) => n.recipient_profile_id === activeId) : localStore.notifications;
+
+    if (notifs.length === 0) {
+      notifs = activeId
+        ? localStore.notifications.filter((n) => n.recipient_profile_id === activeId || !n.recipient_profile_id)
+        : localStore.notifications;
+      if (notifs.length === 0) {
+        notifs = localStore.notifications;
+      }
+    }
+
+    if (lang) {
+      return notifs.map((n) => ({
+        ...n,
+        title: getLocalizedField(n, 'title', lang) || n.title,
+        message: getLocalizedField(n, 'message', lang) || n.message,
+      }));
+    }
+    return notifs;
   },
 
   async markNotificationRead(id: string): Promise<void> {
@@ -971,34 +1470,132 @@ export const dataService = {
   },
 
   // 14. Outbreaks (District Surveillance)
-  async getOutbreaks(): Promise<OutbreakWithDetails[]> {
+  async getOutbreaks(lang?: AppLanguage): Promise<OutbreakWithDetails[]> {
+    let list: OutbreakEvent[] = [];
     try {
       const { data, error } = await supabase.from('outbreak_events').select('*');
       if (!error && data && data.length > 0) {
-        return data as OutbreakWithDetails[];
+        list = data as OutbreakEvent[];
       }
     } catch {
       // ignore
     }
-    return localStore.outbreaks.map((ob) => ({
-      ...ob,
-      disease: localStore.diseases.find((d) => String(d.id) === String(ob.disease_id)),
-      location: localStore.locations.find((l) => String(l.id) === String(ob.location_id)),
-    }));
+    if (list.length === 0) {
+      list = localStore.outbreaks;
+    }
+    return list.map((ob) => {
+      const rawDisease = localStore.diseases.find((d) => String(d.id) === String(ob.disease_id));
+      const rawLocation = localStore.locations.find((l) => String(l.id) === String(ob.location_id));
+      return {
+        ...ob,
+        title: lang ? getLocalizedField(ob, 'title', lang) || ob.title : ob.title,
+        description: lang ? getLocalizedField(ob, 'description', lang) || ob.description : ob.description,
+        disease: rawDisease && lang ? {
+          ...rawDisease,
+          name: getLocalizedField(rawDisease, 'name', lang) || rawDisease.name,
+          description: getLocalizedField(rawDisease, 'description', lang) || rawDisease.description,
+        } : rawDisease,
+        location: rawLocation && lang ? {
+          ...rawLocation,
+          name: getLocalizedField(rawLocation, 'name', lang) || rawLocation.name,
+        } : rawLocation,
+      };
+    });
   },
 
-  // 15. Master Data Sync
+  // 15. Master Data Sync: Syncs all reference catalogs with full English, Hindi, and Marathi translations to Supabase
   async seedSupabaseMaster(): Promise<{ success: boolean; message: string }> {
     try {
       let count = 0;
       for (const loc of initialLocations) {
         const { data, error } = await dbInsert('administrative_locations', [{
+          id: loc.id,
           name: loc.name,
+          name_en: loc.name_en,
+          name_hi: loc.name_hi,
+          name_mr: loc.name_mr,
           level: loc.level,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
         }]);
         if (!error && data) count++;
       }
-      return { success: count > 0, message: `Synced ${count} master locations to Supabase.` };
+
+      for (const dis of initialDiseases) {
+        const { data, error } = await dbInsert('disease_catalog', [{
+          id: dis.id,
+          name: dis.name,
+          name_en: dis.name_en,
+          name_hi: dis.name_hi,
+          name_mr: dis.name_mr,
+          description: dis.description,
+          description_en: dis.description_en,
+          description_hi: dis.description_hi,
+          description_mr: dis.description_mr,
+          species: dis.species,
+          severity: dis.severity,
+          is_active: dis.is_active,
+        }]);
+        if (!error && data) count++;
+      }
+
+      for (const adv of initialAdvisories) {
+        const { data, error } = await dbInsert('health_advisories', [{
+          id: adv.id,
+          title: adv.title,
+          title_en: adv.title_en,
+          title_hi: adv.title_hi,
+          title_mr: adv.title_mr,
+          message: adv.message,
+          message_en: adv.message_en,
+          message_hi: adv.message_hi,
+          message_mr: adv.message_mr,
+          language: adv.language,
+        }]);
+        if (!error && data) count++;
+      }
+
+      for (const wx of initialWeather) {
+        const { data, error } = await dbInsert('weather_observations', [{
+          id: wx.id,
+          location_id: wx.location_id,
+          temperature_c: wx.temperature_c,
+          humidity_percent: wx.humidity_percent,
+          rainfall_mm: wx.rainfall_mm,
+          wind_speed_kmh: wx.wind_speed_kmh,
+          description: wx.description,
+          description_en: wx.description_en,
+          description_hi: wx.description_hi,
+          description_mr: wx.description_mr,
+          observed_at: wx.observed_at,
+        }]);
+        if (!error && data) count++;
+      }
+
+      for (const ob of initialOutbreaks) {
+        const { data, error } = await dbInsert('outbreak_events', [{
+          id: ob.id,
+          disease_id: ob.disease_id,
+          location_id: ob.location_id,
+          title: ob.title,
+          title_en: ob.title_en,
+          title_hi: ob.title_hi,
+          title_mr: ob.title_mr,
+          description: ob.description,
+          description_en: ob.description_en,
+          description_hi: ob.description_hi,
+          description_mr: ob.description_mr,
+          severity: ob.severity,
+          affected_herds: ob.affected_herds,
+          affected_animals: ob.affected_animals,
+          mortality_count: ob.mortality_count,
+          started_at: ob.started_at,
+          status: ob.status,
+        }]);
+        if (!error && data) count++;
+      }
+
+      return { success: count > 0, message: `Synced ${count} multilingual records to Supabase.` };
     } catch (err: any) {
       return { success: false, message: err.message || 'Sync failed due to permissions.' };
     }
