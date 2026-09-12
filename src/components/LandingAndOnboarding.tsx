@@ -689,10 +689,10 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
         </div>
       )}
 
-      {/* VIEW 2: ONBOARDING WIZARD */}
-      {viewMode === 'onboarding' && (
+      {/* VIEW 2: ONBOARDING WIZARD (STEPS 1, 2, 4) */}
+      {viewMode === 'onboarding' && onboardingStep !== 3 && (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 14px' }}>
-          <div className="modal-card" style={{ maxWidth: onboardingStep === 3 ? '660px' : '520px', width: '100%', padding: '24px 20px', boxShadow: 'var(--shadow-lg)', transition: 'max-width 0.25s ease' }}>
+          <div className="modal-card" style={{ maxWidth: '520px', width: '100%', padding: '24px 20px', boxShadow: 'var(--shadow-lg)' }}>
             {/* Step Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <button
@@ -913,39 +913,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
                 <button
                   onClick={() => setOnboardingStep(3)}
-                  className="btn-primary"
-                  style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
-                >
-                  <span>{copy.continue}</span>
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            )}
-
-            {/* STEP 3: SET LOCATION (PAN-INDIA GOOGLE MAPS) */}
-            {onboardingStep === 3 && (
-              <div>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
-                  {copy.step3Title}
-                </h2>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                  {copy.step3Sub}
-                </p>
-
-                <div style={{ marginBottom: '22px' }}>
-                  <GoogleMapLocationPicker
-                    initialLocation={locationData}
-                    onChange={(loc) => {
-                      setLocationData(loc);
-                      setSelectedDistrict(loc.district);
-                      setSelectedBlock(loc.block);
-                      setSelectedVillage(loc.village);
-                    }}
-                  />
-                </div>
-
-                <button
-                  onClick={() => setOnboardingStep(4)}
                   className="btn-primary"
                   style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px' }}
                 >
@@ -1366,6 +1333,30 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* VIEW 2 (STEP 3): FULL WEB PAGE LOCATION SETUP */}
+      {viewMode === 'onboarding' && onboardingStep === 3 && (
+        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
+          <GoogleMapLocationPicker
+            initialLocation={locationData}
+            selectedRole={selectedRole}
+            onBack={() => {
+              setOnboardingStep(2);
+              setErrorMsg(null);
+            }}
+            onContinue={() => {
+              setOnboardingStep(4);
+              setErrorMsg(null);
+            }}
+            onChange={(loc) => {
+              setLocationData(loc);
+              setSelectedDistrict(loc.district);
+              setSelectedBlock(loc.block);
+              setSelectedVillage(loc.village);
+            }}
+          />
         </div>
       )}
 
