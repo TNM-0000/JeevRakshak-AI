@@ -10,6 +10,7 @@ import {
   DiseaseCatalogItem,
 } from '@/types/database';
 import { getLocalizedField } from '@/lib/i18n/dbLocalization';
+import { downloadMonthlyEpidemiologicalBulletinPDF, downloadNADCPVaccinationLogExcel } from '@/lib/exportUtils';
 import {
   MapPin,
   AlertTriangle,
@@ -231,20 +232,21 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
             <span>{language === 'mr' ? 'सल्ला प्रसारित करा' : language === 'hi' ? 'सलाह प्रसारित करें' : 'Broadcast Advisory'}</span>
           </button>
           <button
-            onClick={() =>
+            onClick={() => {
+              downloadNADCPVaccinationLogExcel();
               showNotification(
                 language === 'mr'
-                  ? 'डीएएचओ पुनरावलोकनासाठी सर्व्हेलन्स सीएसव्ही निर्यात तयार.'
+                  ? 'सर्व्हेलन्स सीएसव्ही निर्यात यशस्वीरीत्या डाउनलोड केली.'
                   : language === 'hi'
-                  ? 'डीएएचओ समीक्षा के लिए निगरानी सीएसवी निर्यात तैयार।'
-                  : 'Surveillance CSV export compiled and downloaded for DAHO review.'
-              )
-            }
+                  ? 'निगरानी सीएसवी निर्यात सफलतापूर्वक डाउनलोड किया गया।'
+                  : 'Surveillance CSV export compiled and downloaded successfully.'
+              );
+            }}
             className="btn-secondary"
             style={{ fontSize: '0.82rem', padding: '8px 14px' }}
           >
             <FileSpreadsheet size={15} color="var(--info)" />
-            <span>{language === 'mr' ? 'डेटा निर्यात' : language === 'hi' ? 'डेटा निर्यात' : 'Export Data'}</span>
+            <span>{language === 'mr' ? 'डेटा निर्यात' : language === 'hi' ? 'डेटा निर्यात' : 'Export Data (CSV)'}</span>
           </button>
         </div>
       </div>

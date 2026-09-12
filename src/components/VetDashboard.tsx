@@ -14,6 +14,7 @@ import {
   DoctorStats,
   Profile,
 } from '@/types/database';
+import { downloadVetClinicalRegisterPDF, downloadNADCPVaccinationLogExcel } from '@/lib/exportUtils';
 import {
   Building2,
   MapPin,
@@ -2034,7 +2035,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={() => showToast('Monthly Clinical Register (PDF) generated and downloaded.')}
+              onClick={() => {
+                showToast('Generating official Veterinary Clinical Register PDF...');
+                const ok = downloadVetClinicalRegisterPDF(
+                  currentUser?.full_name || 'Dr. Priya Kulkarni',
+                  currentUser?.license_number || 'MSVC-18492',
+                  currentUser?.hospital_name || 'Baramati Taluka Veterinary Polyclinic'
+                );
+                if (ok) showToast('Veterinary Clinical Register (PDF) downloaded successfully.');
+              }}
               className="btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', padding: '10px 16px', borderRadius: '8px' }}
             >
@@ -2044,7 +2053,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
 
             <button
               type="button"
-              onClick={() => showToast('Vaccination & Treatment Dossier (Excel) exported.')}
+              onClick={() => {
+                showToast('Exporting Vaccination & Treatment Log to Excel CSV...');
+                const ok = downloadNADCPVaccinationLogExcel();
+                if (ok) showToast('Vaccination & Treatment Dossier (CSV) downloaded successfully.');
+              }}
               className="btn-secondary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', padding: '10px 16px', borderRadius: '8px' }}
             >

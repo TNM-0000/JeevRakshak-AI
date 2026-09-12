@@ -43,6 +43,12 @@ import {
   Bell,
   RefreshCw,
 } from 'lucide-react';
+import {
+  downloadMonthlyEpidemiologicalBulletinPDF,
+  downloadNADCPVaccinationLogExcel,
+  download1962EmergencyAuditPDF,
+  downloadLivestockCensusRegistryExcel,
+} from '@/lib/exportUtils';
 
 export type GovCleanModule =
   | 'dashboard'
@@ -1048,28 +1054,136 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
             {[
-              { title: 'Monthly District Epidemiological Bulletin', desc: 'Comprehensive incidence report covering all 14 blocks with outbreak maps.', format: 'PDF' },
-              { title: 'NADCP Vaccination Target & Coverage Log', desc: 'Complete breakdown of animal vaccinations by species, breed, and village.', format: 'Excel' },
-              { title: '1962 Ambulatory Response & Case Audit', desc: 'Response times, team assignments, and resolution success rates.', format: 'PDF' },
-              { title: 'Livestock Census & Disease Registry', desc: 'Aggregated health records linked with national animal identification tags.', format: 'Excel' },
+              {
+                id: 'epidemic_bulletin',
+                title: 'Monthly District Epidemiological Bulletin',
+                desc: 'Comprehensive incidence report covering all 14 blocks with pathogen breakdown, affected herds, and active containment protocols.',
+                format: 'PDF',
+                onDownload: () => {
+                  showToast('Generating official Epidemiological Bulletin PDF...');
+                  const ok = downloadMonthlyEpidemiologicalBulletinPDF();
+                  if (ok) showToast('Monthly Epidemiological Bulletin PDF downloaded successfully.');
+                },
+                secondaryFormat: 'Excel CSV',
+                onSecondaryDownload: () => {
+                  showToast('Exporting Epidemiological Data to Excel CSV...');
+                  const ok = downloadNADCPVaccinationLogExcel();
+                  if (ok) showToast('Epidemiological Register (CSV) downloaded successfully.');
+                },
+              },
+              {
+                id: 'vaccination_log',
+                title: 'NADCP Vaccination Target & Coverage Log',
+                desc: 'Complete breakdown of animal vaccinations by species, breed, taluka, batch numbers, and cold chain temperature monitoring.',
+                format: 'Excel CSV',
+                onDownload: () => {
+                  showToast('Exporting NADCP Vaccination Coverage Log to Excel CSV...');
+                  const ok = downloadNADCPVaccinationLogExcel();
+                  if (ok) showToast('NADCP Vaccination Log (CSV) downloaded successfully.');
+                },
+                secondaryFormat: 'PDF',
+                onSecondaryDownload: () => {
+                  showToast('Generating Vaccination Summary PDF...');
+                  const ok = downloadMonthlyEpidemiologicalBulletinPDF();
+                  if (ok) showToast('Vaccination Summary PDF downloaded successfully.');
+                },
+              },
+              {
+                id: 'emergency_audit',
+                title: '1962 Ambulatory Response & Case Audit',
+                desc: 'Incident response times, mobile veterinary ambulance unit dispatches, on-site treatments, and emergency stabilization rates.',
+                format: 'PDF',
+                onDownload: () => {
+                  showToast('Generating 1962 Emergency Ambulatory Response Audit PDF...');
+                  const ok = download1962EmergencyAuditPDF();
+                  if (ok) showToast('1962 Ambulatory Response Audit PDF downloaded successfully.');
+                },
+              },
+              {
+                id: 'census_registry',
+                title: 'Livestock Census & Disease Registry',
+                desc: 'Aggregated health records linked with national animal identification tags (INAPH / Pashu Aadhaar), breeds, and owners.',
+                format: 'Excel CSV',
+                onDownload: () => {
+                  showToast('Exporting Livestock Census Registry to Excel CSV...');
+                  const ok = downloadLivestockCensusRegistryExcel();
+                  if (ok) showToast('Livestock Census Registry (CSV) downloaded successfully.');
+                },
+              },
             ].map((rep, idx) => (
-              <div key={idx} style={{ background: '#F8FFF9', borderRadius: '20px', padding: '22px', border: '1px solid rgba(82, 183, 136, 0.25)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '14px' }}>
+              <div
+                key={idx}
+                style={{
+                  background: '#F8FFF9',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  border: '1px solid rgba(82, 183, 136, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                }}
+              >
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.94rem', color: '#1B4332' }}>{rep.title}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#52796F', marginTop: '4px', lineHeight: 1.4 }}>{rep.desc}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.96rem', color: '#1B4332' }}>{rep.title}</div>
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '3px 8px',
+                        borderRadius: '8px',
+                        background: rep.format === 'PDF' ? '#FDE8E8' : '#E0F2FE',
+                        color: rep.format === 'PDF' ? '#E63946' : '#0284C7',
+                        textTransform: 'uppercase',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {rep.format}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#52796F', marginTop: '6px', lineHeight: 1.45 }}>{rep.desc}</div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => showToast(`Generating ${rep.title} (${rep.format})... Download complete.`)}
-                  className="btn-primary"
-                  style={{ alignSelf: 'flex-start', padding: '8px 16px', borderRadius: '12px', fontSize: '0.78rem' }}
-                >
-                  <Download size={14} />
-                  <span>Download {rep.format}</span>
-                </button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={rep.onDownload}
+                    className="btn-primary"
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '12px',
+                      fontSize: '0.78rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Download size={14} />
+                    <span>Download {rep.format}</span>
+                  </button>
+
+                  {rep.secondaryFormat && rep.onSecondaryDownload && (
+                    <button
+                      type="button"
+                      onClick={rep.onSecondaryDownload}
+                      className="btn-secondary"
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Download size={14} />
+                      <span>{rep.secondaryFormat}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
