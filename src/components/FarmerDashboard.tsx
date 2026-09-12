@@ -20,14 +20,18 @@ import {
   ChevronRight,
   MapPin,
   Stethoscope,
+  Bell,
+  ShieldAlert,
+  Syringe,
   Phone,
   PhoneCall,
   Plus,
   X,
   Pill,
 } from 'lucide-react';
+import { DiseaseAlert } from '@/types/notificationSystem';
+import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
 import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
-import { DoctorPrescriptionRecord } from '@/types/database';
 
 interface FarmerDashboardProps {
   onSelectAnimal: (animalId: string) => void;
@@ -50,6 +54,8 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [prescriptions, setPrescriptions] = useState<DoctorPrescriptionRecord[]>([]);
   const [weather, setWeather] = useState<WeatherObservation | null>(null);
   const [farmName, setFarmName] = useState<string>('');
+  const [diseaseAlerts, setDiseaseAlerts] = useState<DiseaseAlert[]>([]);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [regTagNumber, setRegTagNumber] = useState('');
@@ -58,6 +64,8 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [regSex, setRegSex] = useState<'female' | 'male'>('female');
   const [regDob, setRegDob] = useState('2023-01-01');
   const [regSubmitting, setRegSubmitting] = useState(false);
+
+  const currentUser = dataService.getCurrentUser();
 
   const handleRegisterAnimal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +103,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
       setRegSubmitting(false);
     }
   };
-  const currentUser = dataService.getCurrentUser();
+
 
   // The name of the farmer should be displayed at [Farmer Name]'s Farm
   const defaultFarmName =
@@ -122,6 +130,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
     dataService.getWeather(language).then((wx) => {
       if (wx.length > 0) setWeather(wx[0]);
     });
+    dataService.getDiseaseAlerts().then((alerts) => {
+      setDiseaseAlerts(alerts.filter((a) => a.status === 'active'));
+    });
   }, [currentUser, language, defaultFarmName]);
 
   const locationLabel = currentUser?.district
@@ -141,6 +152,32 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
     return acc + (dueFromRecords || dueFromStatus);
   }, 0);
 
+  const vaccinationList = animals.flatMap((animal) => {
+    return (animal.vaccinations || [])
+      .filter((v) => !!v.next_due_date)
+      .map((vac) => {
+        const dueDate = new Date(vac.next_due_date!);
+        const now = new Date();
+        dueDate.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+        const daysDiff = Math.round((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        let statusTag: 'overdue' | 'due_today' | 'upcoming' = 'upcoming';
+        if (daysDiff < 0) statusTag = 'overdue';
+        else if (daysDiff === 0) statusTag = 'due_today';
+
+        return {
+          animalId: animal.id,
+          tagNumber: animal.tag_number,
+          species: animal.species,
+          breed: animal.breed,
+          vaccineName: vac.vaccine_name,
+          dueDateStr: vac.next_due_date!,
+          daysDiff,
+          statusTag,
+        };
+      });
+  }).sort((a, b) => a.daysDiff - b.daysDiff);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Farm Location Header */}
@@ -152,22 +189,52 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
         </div>
-        <button
-          onClick={() => setShowRegisterModal(true)}
-          className="btn-primary"
-          style={{
-            padding: "8px 18px",
-            fontSize: "0.85rem",
-            borderRadius: "var(--radius-full)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontWeight: 700,
-          }}
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setShowPreferencesModal(true)}
+            style={{
+              padding: '8px 14px',
+              fontSize: '0.82rem',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--border-card)',
+              background: '#FFFFFF',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              fontWeight: 700,
+            }}
+          >
+            <Bell size={14} color="#059669" />
+            <span>Alerts & SMS</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowRegisterModal(true)}
+            className="btn-primary"
+            style={{
+              padding: "8px 18px",
+              fontSize: "0.85rem",
+              borderRadius: "var(--radius-full)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontWeight: 700,
+            }}
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
+          </button>
+          <button
+            onClick={onOpenReport}
+            className="btn-primary"
+            style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
+          >
+            {t.dashboard.quickReport}
+          </button>
+        </div>
       </div>
 
       {/* Rural Alternative Access Channel - Toll Free IVR */}
@@ -191,92 +258,58 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
               width: '46px',
               height: '46px',
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255, 255, 255, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#95d5b2',
-              flexShrink: 0,
+              color: '#52b788',
             }}
           >
             <Phone size={22} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '1rem', fontWeight: 800 }}>
-                {language === 'mr'
-                  ? 'मोफत फोन सुविधा: १८००-१२०-५३३८ (JEEV)'
-                  : language === 'hi'
-                  ? 'टोल-फ्री फोन सुविधा: 1800-120-5338 (JEEV)'
-                  : 'Toll-Free Helpline: 1800-120-JEEV (5338)'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.74rem', background: '#52b788', color: '#1b4332', padding: '2px 8px', borderRadius: '12px', fontWeight: 800 }}>
+                {language === 'mr' ? 'मोफत टोल-फ्री हेल्पलाइन' : language === 'hi' ? 'टोल-फ्री हेल्पलाइन' : 'TOLL FREE 24x7'}
               </span>
-              <span
-                style={{
-                  background: 'rgba(149, 213, 178, 0.25)',
-                  color: '#95d5b2',
-                  fontSize: '0.68rem',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  fontWeight: 700,
-                }}
-              >
-                24x7 • No Internet Needed
+              <span style={{ fontSize: '0.75rem', color: '#a7f3d0' }}>
+                {language === 'mr' ? 'इंटरनेट नसतानाही उपयुक्त' : language === 'hi' ? 'बिना इंटरनेट के भी उपलब्ध' : 'Works without internet'}
               </span>
             </div>
-            <p style={{ fontSize: '0.78rem', color: '#d8f3dc', margin: '4px 0 0' }}>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, marginTop: '2px' }}>
+              1800-120-JEEV (1800-120-5338)
+            </div>
+            <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#d1fae5' }}>
               {language === 'mr'
-                ? 'स्मार्टफोन किंवा इंटरनेट नसतानाही जनावरांच्या आजारांची नोंद, डॉक्टरांचा सल्ला व १९६२ रुग्णवाहिकेसाठी कॉल करा.'
+                ? 'कोणत्याही साध्या फोनवरून कॉल करा, मराठी, हिंदी किंवा इंग्रजीत बोला आणि तत्काळ मार्गदर्शन मिळवा.'
                 : language === 'hi'
-                ? 'बिना इंटरनेट या स्मार्टफोन के पशु रोग रिपोर्ट, डॉक्टर सलाह व 1962 एम्बुलेंस हेतु कॉल करें।'
-                : 'Report diseases, request vet callback & emergency 1962 ambulance via voice call in 9 Indian languages.'}
+                ? 'किसी भी सामान्य फोन से कॉल करें, अपनी भाषा में बोलें और तत्काल प्राथमिक उपचार सलाह प्राप्त करें।'
+                : 'Dial from any feature phone, speak symptoms in Hindi, Marathi or English, and get immediate AI triage.'}
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setShowPhoneSimulator(true)}
-            style={{
-              background: '#52b788',
-              color: '#081c15',
-              border: 'none',
-              padding: '10px 18px',
-              borderRadius: '12px',
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
-            }}
-          >
-            <Phone size={15} />
-            <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
-          </button>
-
-          <a
-            href="tel:18001205338"
-            style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-              padding: '9px 14px',
-              borderRadius: '12px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            title="Dial 1800-120-5338 directly on mobile phone"
-          >
-            <PhoneCall size={14} color="#95d5b2" />
-            <span>1800-120-5338</span>
-          </a>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowPhoneSimulator(true)}
+          style={{
+            background: '#52b788',
+            color: '#081c15',
+            border: 'none',
+            padding: '10px 18px',
+            borderRadius: '12px',
+            fontSize: '0.82rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
+          }}
+        >
+          <Phone size={15} />
+          <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
+        </button>
       </div>
 
       {/* Main Stability Status Card (Matching Wireframe Screen 6) */}
@@ -437,6 +470,163 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <ChevronRight size={14} />
           </button>
         </div>
+      </div>
+
+      {/* SECTION: Regional Animal Health Alerts */}
+      {diseaseAlerts.length > 0 && (
+        <div
+          className="glass-card"
+          style={{
+            background: 'linear-gradient(135deg, #FFFDF8 0%, #FFFFFF 100%)',
+            border: '1.5px solid #FCD34D',
+            borderRadius: 'var(--radius-xl)',
+            padding: '20px 24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldAlert size={20} color="#D97706" />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#92400E' }}>
+                {language === 'mr' ? 'प्रादेशिक पशु रोग सतर्कता' : language === 'hi' ? 'क्षेत्रीय पशु रोग चेतावनी' : 'Regional Animal Health Alerts'}
+              </h3>
+            </div>
+            <span style={{ fontSize: '0.74rem', background: '#FEF3C7', color: '#92400E', padding: '3px 9px', borderRadius: '12px', fontWeight: 800 }}>
+              {diseaseAlerts.length} {language === 'mr' ? 'सक्रिय सूचना' : 'Active Alerts'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {diseaseAlerts.map((alert) => {
+              const badgeColors: Record<string, { bg: string; text: string; iconColor: string; symbol: string }> = {
+                critical: { bg: '#FEE2E2', text: '#991B1B', iconColor: '#EF4444', symbol: '🔴 Critical' },
+                high: { bg: '#FFEDD5', text: '#9A3412', iconColor: '#F97316', symbol: '🟠 High' },
+                moderate: { bg: '#FEF3C7', text: '#92400E', iconColor: '#F59E0B', symbol: '🟡 Moderate' },
+                low: { bg: '#DCFCE7', text: '#166534', iconColor: '#10B981', symbol: '🟢 Low' },
+              };
+              const styleMeta = badgeColors[alert.risk_level] || badgeColors.moderate;
+              const regionText = [alert.village, alert.block, alert.district].filter(Boolean).join(', ');
+              const formattedDate = new Date(alert.reported_date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+              return (
+                <div
+                  key={alert.id}
+                  style={{
+                    background: '#FFFFFF',
+                    border: `1px solid ${styleMeta.bg}`,
+                    borderLeft: `5px solid ${styleMeta.iconColor}`,
+                    borderRadius: '14px',
+                    padding: '14px 18px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, padding: '2px 8px', borderRadius: '8px', background: styleMeta.bg, color: styleMeta.text }}>
+                        {styleMeta.symbol}
+                      </span>
+                      <strong style={{ fontSize: '0.94rem', color: '#0F172A' }}>{alert.disease_name}</strong>
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      📍 {regionText} • 📅 {formattedDate}
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', margin: '0 0 8px 0', lineHeight: 1.45 }}>
+                    {alert.recommended_action}
+                  </p>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    <div>
+                      <strong>{language === 'mr' ? 'शिफारस केलेली कृती:' : 'Recommended Action:'}</strong> {alert.recommended_action}
+                    </div>
+                    <div style={{ fontWeight: 700, color: '#059669' }}>
+                      📞 Helpline: 1962 (Mobile Vet Van)
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION: Upcoming Vaccinations */}
+      <div
+        className="glass-card"
+        style={{
+          borderRadius: 'var(--radius-xl)',
+          padding: '20px 24px',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Syringe size={18} color="#059669" />
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>
+              {language === 'mr' ? 'नियोजित व आगामी लसीकरण वेळापत्रक' : language === 'hi' ? 'आगामी टीकाकरण कार्यक्रम' : 'Upcoming & Overdue Vaccinations'}
+            </h3>
+          </div>
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            {vaccinationList.length} {language === 'mr' ? 'नोंदी' : 'Schedules'}
+          </span>
+        </div>
+
+        {vaccinationList.length === 0 ? (
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+            {language === 'mr' ? 'सर्व जनावरांचे लसीकरण अद्ययावत आहे.' : language === 'hi' ? 'सभी पशुओं का टीकाकरण अद्यतित है।' : 'All animals are up to date on vaccinations.'}
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+            {vaccinationList.slice(0, 4).map((vac, idx) => {
+              const isOverdue = vac.statusTag === 'overdue';
+              const isDueToday = vac.statusTag === 'due_today';
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => onSelectAnimal(vac.animalId)}
+                  style={{
+                    background: '#FFFFFF',
+                    border: `1px solid ${isOverdue ? '#FCA5A5' : isDueToday ? '#FCD34D' : '#CBD5E1'}`,
+                    borderRadius: '14px',
+                    padding: '14px 16px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>{vac.tagNumber}</strong>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '8px',
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        background: isOverdue ? '#FEE2E2' : isDueToday ? '#FEF3C7' : '#ECFDF5',
+                        color: isOverdue ? '#991B1B' : isDueToday ? '#92400E' : '#065F46',
+                      }}
+                    >
+                      {isOverdue
+                        ? `Overdue by ${Math.abs(vac.daysDiff)}d`
+                        : isDueToday
+                        ? 'Due Today'
+                        : `In ${vac.daysDiff} days`}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                    {vac.vaccineName}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    Due Date: {vac.dueDateStr}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Two-column Widgets on tablet/desktop: Vaccinations Due & Nearby Reports */}
@@ -632,6 +822,13 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         </div>
       </div>
 
+      {/* Preferences Modal */}
+      <NotificationPreferencesModal
+        isOpen={showPreferencesModal}
+        userId={currentUser?.id || 'demo-farmer-1'}
+        onClose={() => setShowPreferencesModal(false)}
+      />
+
       {/* Register Animal Modal */}
       {showRegisterModal && (
         <div className="modal-backdrop" onClick={() => setShowRegisterModal(false)}>
@@ -776,6 +973,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           autoDial={true}
         />
       )}
+
     </div>
   );
 };

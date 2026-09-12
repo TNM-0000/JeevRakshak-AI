@@ -61,6 +61,8 @@ import {
   initialOutbreaks,
   initialNotifications,
 } from './seedData';
+import { DiseaseAlert, AlertStatus } from '@/types/notificationSystem';
+import { notificationService } from '@/lib/notifications/notificationService';
 
 import {
   getLocalizedField,
@@ -186,22 +188,11 @@ export interface RegisteredAccount {
   designation?: string;
 }
 
-export interface OldDataSummary {
-  fullName: string;
-  email: string;
-  farmName: string;
-  district: string;
-  block: string;
-  village: string;
-  role: UserRole;
-  animalsCount: number;
-  reportsCount: number;
-}
-
 // ------------------------------------------------------------------------------------
 // INITIAL IVR SEED DATA & TELEMETRY
 // ------------------------------------------------------------------------------------
 export const initialIVRCalls: IVRCall[] = [
+
   {
     id: 'call-1',
     call_sid: 'CA-2026-981203',
@@ -469,6 +460,7 @@ export const initialIVRFeedback: IVRFeedback[] = [
   },
 ];
 
+
 export class LocalStore {
   registeredAccounts: RegisteredAccount[] = [
     {
@@ -532,13 +524,13 @@ export class LocalStore {
   outbreaks: OutbreakEvent[] = [...initialOutbreaks];
   advisories: HealthAdvisory[] = [...initialAdvisories];
   notifications: AppNotification[] = [...initialNotifications];
+  diseaseAlerts: DiseaseAlert[] = [...initialDiseaseAlerts];
   ivrCalls: IVRCall[] = [...initialIVRCalls];
   ivrReports: IVRReport[] = [...initialIVRReports];
   ivrCallbacks: IVRCallbackRequest[] = [...initialIVRCallbacks];
   ivrEmergencies: IVREmergencyCase[] = [...initialIVREmergencies];
   ivrAnnouncements: IVRAnnouncement[] = [...initialIVRAnnouncements];
   ivrFeedback: IVRFeedback[] = [...initialIVRFeedback];
-  prescriptions: DoctorPrescriptionRecord[] = [];
   currentRole: UserRole = 'farmer';
   currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
@@ -593,6 +585,13 @@ export class LocalStore {
           this.notifications = JSON.parse(savedNotifications);
         } else {
           this.notifications = [...initialNotifications];
+        }
+
+        const savedAlerts = localStorage.getItem('jr_disease_alerts');
+        if (savedAlerts) {
+          this.diseaseAlerts = JSON.parse(savedAlerts);
+        } else {
+          this.diseaseAlerts = [...initialDiseaseAlerts];
         }
 
         const savedRole = localStorage.getItem('jr_current_role') as UserRole;
@@ -780,7 +779,6 @@ export class LocalStore {
         localStorage.setItem('jr_escalations', JSON.stringify(this.caseEscalations));
         localStorage.setItem('jr_outbreaks', JSON.stringify(this.outbreaks));
         localStorage.setItem('jr_notifications', JSON.stringify(this.notifications));
-        localStorage.setItem('jr_prescriptions', JSON.stringify(this.prescriptions));
         localStorage.setItem('jr_current_role', this.currentRole);
         localStorage.setItem('jeevrakshak_lang', this.currentLanguage);
         if (this.currentUser) {
@@ -1323,6 +1321,31 @@ export const dataService = {
       is_read: false,
     }]);
 
+    // 5. FIRST-TIME ACCOUNT CREATION NOTIFICATION (SMS + EMAIL)
+    // Strictly idempotent: only triggers if not previously sent
+    if (!registeredAccount.first_account_notif_sent) {
+      registeredAccount.first_account_notif_sent = true;
+      newProfile.first_account_notif_sent = true;
+      notificationService.dispatch({
+        type: 'ACCOUNT_CREATED',
+        userId: profileId,
+        userName: params.full_name,
+        userPhone: cleanPhone,
+        userEmail: params.email?.trim() || undefined,
+        userRole: params.role,
+        region: [params.village, params.block, params.district].filter(Boolean).join(', ') || 'Maharashtra',
+        relatedEventId: `account_created_${profileId}`,
+        preferredChannels: ['sms', 'email'],
+        variables: {
+          user_name: params.full_name,
+          user_role: params.role === 'farmer' ? 'Farmer (पशुपालक)' : params.role === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+          region: params.district || 'Maharashtra',
+        },
+      }).catch((e) => console.warn('[AccountCreated Notification Exception]:', e));
+
+      dbUpdate('profiles', { first_account_notif_sent: true }, { id: profileId }).catch(() => {});
+    }
+
     localStore.save();
     return { profile: newProfile };
   },
@@ -1401,40 +1424,6 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
-
-        // Compute summary of restored old data
-        const ownerId = profile.id;
-        const userHerds = localStore.herds.filter((h) => String(h.owner_profile_id) === String(ownerId));
-        const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
-        userHerdIds.add(`herd-${ownerId}`);
-
-        const userAnimals = localStore.animals.filter(
-          (a) =>
-            String(a.owner_profile_id) === String(ownerId) ||
-            (a.herd_id && userHerdIds.has(String(a.herd_id))) ||
-            (matched?.id === 'demo-farmer-1' && (!a.owner_profile_id || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1'))
-        );
-
-        const userReports = localStore.healthReports.filter(
-          (r) =>
-            String(r.reported_by) === String(ownerId) ||
-            (r.animal_id && userAnimals.some((a) => String(a.id) === String(r.animal_id)))
-        );
-
-        const effectiveAnimalsCount = (matched?.id === 'demo-farmer-1' && userAnimals.length === 0) ? 3 : userAnimals.length;
-
-        const summary: OldDataSummary = {
-          fullName: profile.full_name,
-          email: matched?.email || profile.email || cleanLogin,
-          farmName: profile.farm_name || (profileRole === 'veterinarian' ? (localStore.currentUser as any)?.hospital_name || 'Veterinary Polyclinic' : `${profile.full_name}'s Farm`),
-          district: profile.district || 'Pune',
-          block: profile.block || 'Shirur',
-          village: profile.village || 'Shirapur',
-          role: profileRole,
-          animalsCount: effectiveAnimalsCount,
-          reportsCount: userReports.length,
-        };
-
         localStore.save();
         return {
           profile: { ...profile, role: profileRole } as any,
@@ -1442,6 +1431,7 @@ export const dataService = {
           oldDataSummary: summary,
         };
       }
+
     } catch {
       // ignore
     }
@@ -1526,61 +1516,6 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
-
-        // Compute summary of restored old data
-        const ownerId = profile.id;
-        const userHerds = localStore.herds.filter((h) => String(h.owner_profile_id) === String(ownerId));
-        const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
-        userHerdIds.add(`herd-${ownerId}`);
-
-        const userAnimals = localStore.animals.filter(
-          (a) =>
-            String(a.owner_profile_id) === String(ownerId) ||
-            (a.herd_id && userHerdIds.has(String(a.herd_id))) ||
-            (matched!.id === 'demo-farmer-1' && (!a.owner_profile_id || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1'))
-        );
-
-        const userReports = localStore.healthReports.filter(
-          (r) =>
-            String(r.reported_by) === String(ownerId) ||
-            (r.animal_id && userAnimals.some((a) => String(a.id) === String(r.animal_id)))
-        );
-
-        const effectiveAnimalsCount = (matched.id === 'demo-farmer-1' && userAnimals.length === 0) ? 3 : userAnimals.length;
-
-        const summary: OldDataSummary = {
-          fullName: profile.full_name,
-          email: matched.email || profile.email || cleanLogin,
-          farmName: profile.farm_name || (matched.role === 'veterinarian' ? matched.hospital_name || 'Veterinary Polyclinic' : `${profile.full_name}'s Farm`),
-          district: profile.district || 'Pune',
-          block: profile.block || 'Shirur',
-          village: profile.village || 'Shirapur',
-          role: matched.role,
-          animalsCount: effectiveAnimalsCount,
-          reportsCount: userReports.length,
-        };
-
-        // System notification acknowledging old data restoration
-        const welcomeBackNotif: AppNotification = {
-          id: `notif-restore-${Date.now()}`,
-          recipient_profile_id: profile.id,
-          health_report_id: null,
-          outbreak_event_id: null,
-          title: 'Account Restored / जुने खाते पुनर्संचयित',
-          title_en: 'Account Restored',
-          title_hi: 'मौजूदा खाता पुनर्भंडारित किया गया',
-          title_mr: 'जुने खाते पुनर्संचयित केले',
-          message: `Welcome back ${profile.full_name}! Your previous livestock records (${effectiveAnimalsCount} animals) and farm details have been loaded.`,
-          message_en: `Welcome back ${profile.full_name}! Your previous livestock records (${effectiveAnimalsCount} animals) and farm details have been loaded.`,
-          message_hi: `वापसी पर स्वागत है ${profile.full_name}! आपका पुराना डेटा, ${effectiveAnimalsCount} पशुधन रिकॉर्ड और फार्म विवरण लोड कर दिए गए हैं।`,
-          message_mr: `पुन्हा स्वागत आहे ${profile.full_name}! आपले जुने खाते, ${effectiveAnimalsCount} जनावरांचे रेकॉर्ड आणि फार्म तपशील लोड करण्यात आले आहेत.`,
-          notification_type: 'system',
-          is_read: false,
-          created_at: new Date().toISOString(),
-          read_at: null,
-        };
-        localStore.notifications.unshift(welcomeBackNotif);
-
         localStore.save();
         return {
           profile: { ...profile, role: matched.role } as any,
@@ -3413,9 +3348,97 @@ export const dataService = {
     return claimed;
   },
 
+  // 17. Regional Disease Alerts System
+  async getDiseaseAlerts(): Promise<DiseaseAlert[]> {
+    try {
+      const { data, error } = await supabase.from('disease_alerts').select('*');
+      if (!error && data && data.length > 0) {
+        return data as DiseaseAlert[];
+      }
+    } catch {
+      // ignore
+    }
+    return localStore.diseaseAlerts;
+  },
+
+  async createDiseaseAlert(alert: Omit<DiseaseAlert, 'id' | 'created_at' | 'status'>): Promise<DiseaseAlert> {
+    let alertId = `alert-${Date.now()}`;
+    const newAlert: DiseaseAlert = {
+      ...alert,
+      id: alertId,
+      status: 'active',
+      created_at: new Date().toISOString(),
+    };
+
+    const res = await dbInsert('disease_alerts', [{
+      disease_id: newAlert.disease_id,
+      disease_name: newAlert.disease_name,
+      region_level: newAlert.region_level,
+      district: newAlert.district,
+      block: newAlert.block || null,
+      village: newAlert.village || null,
+      risk_level: newAlert.risk_level,
+      case_count: newAlert.case_count,
+      reported_date: newAlert.reported_date,
+      alert_start_date: newAlert.alert_start_date,
+      alert_expiry_date: newAlert.alert_expiry_date,
+      recommended_action: newAlert.recommended_action,
+      source_authority: newAlert.source_authority,
+      status: newAlert.status,
+      target_audience: newAlert.target_audience,
+    }]);
+
+    if (res.data && res.data[0]) {
+      newAlert.id = String(res.data[0].id);
+    }
+
+    localStore.diseaseAlerts.unshift(newAlert);
+    localStore.save();
+    return newAlert;
+  },
+
+  async updateDiseaseAlertStatus(id: string, status: AlertStatus): Promise<DiseaseAlert | null> {
+    await dbUpdate('disease_alerts', { status, updated_at: new Date().toISOString() }, { id });
+    const item = localStore.diseaseAlerts.find((a) => a.id === id);
+    if (item) {
+      item.status = status;
+      item.updated_at = new Date().toISOString();
+      localStore.save();
+      return item;
+    }
+    return null;
+  },
+
+  async getAllProfiles(): Promise<Profile[]> {
+    const list = [...localStore.profiles];
+    for (const acc of localStore.registeredAccounts) {
+      if (!list.some((p) => p.id === acc.id || p.phone === acc.phone)) {
+        list.push({
+          id: acc.id,
+          full_name: acc.full_name,
+          phone: acc.phone,
+          email: acc.email,
+          location_id: null,
+          district: acc.district || 'Pune',
+          block: acc.block || 'Shirur',
+          village: acc.village || 'Shirapur',
+          state: acc.state || 'Maharashtra',
+          is_active: true,
+          hospital_name: acc.hospital_name,
+          license_number: acc.license_number,
+          first_login_at: acc.first_login_at,
+          first_account_notif_sent: acc.first_account_notif_sent,
+          first_login_notif_sent: acc.first_login_notif_sent,
+        });
+      }
+    }
+    return list;
+  },
+
   // ==========================================
   // IVR TELEPHONY & VOICE SERVICES
   // ==========================================
+
 
   // 1. Ingest new IVR Call
   async registerIVRCall(params: {
@@ -3775,4 +3798,3 @@ export const dataService = {
     return created;
   },
 };
-
