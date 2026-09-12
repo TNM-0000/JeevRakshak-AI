@@ -35,6 +35,22 @@ import {
   DoctorFieldVisitRecord,
   DoctorDiseaseReportRecord,
   DoctorStats,
+  IVRCall,
+  IVRSession,
+  IVRVoiceRecording,
+  IVRTranscript,
+  IVRReport,
+  IVRSymptom,
+  IVRCallbackRequest,
+  IVREmergencyCase,
+  IVRAnnouncement,
+  IVRFeedback,
+  IVRLanguagePreference,
+  IVRAnalytics,
+  IVRMenuOption,
+  IVRPriority,
+  IVRCallbackStatus,
+  IVRFeedbackCategory,
 } from '@/types/database';
 
 import {
@@ -170,6 +186,277 @@ export interface RegisteredAccount {
   designation?: string;
 }
 
+// ------------------------------------------------------------------------------------
+// INITIAL IVR SEED DATA & TELEMETRY
+// ------------------------------------------------------------------------------------
+export const initialIVRCalls: IVRCall[] = [
+  {
+    id: 'call-1',
+    call_sid: 'CA-2026-981203',
+    caller_phone: '9822410291',
+    toll_free_number: '1800-120-JEEV',
+    language: 'mr',
+    status: 'completed',
+    direction: 'inbound',
+    duration_seconds: 145,
+    primary_intent: 'disease_reporting',
+    dtmf_digits_pressed: '2,1,1,1',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Shirapur',
+    started_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+    ended_at: new Date(Date.now() - 3600000 * 2 + 145000).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'call-2',
+    call_sid: 'CA-2026-981204',
+    caller_phone: '9860119283',
+    toll_free_number: '1800-120-JEEV',
+    language: 'mr',
+    status: 'completed',
+    direction: 'inbound',
+    duration_seconds: 98,
+    primary_intent: 'vet_consultation',
+    dtmf_digits_pressed: '2,3,1',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Talegaon Dhamdhere',
+    started_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+    ended_at: new Date(Date.now() - 3600000 * 4 + 98000).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    id: 'call-3',
+    call_sid: 'CA-2026-981205',
+    caller_phone: '9823055412',
+    toll_free_number: '1800-120-JEEV',
+    language: 'mr',
+    status: 'completed',
+    direction: 'inbound',
+    duration_seconds: 210,
+    primary_intent: 'emergency_sos',
+    dtmf_digits_pressed: '2,4',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Ranjangaon',
+    started_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+    ended_at: new Date(Date.now() - 3600000 * 6 + 210000).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+  {
+    id: 'call-4',
+    call_sid: 'CA-2026-981206',
+    caller_phone: '9890123490',
+    toll_free_number: '1800-120-JEEV',
+    language: 'hi',
+    status: 'completed',
+    direction: 'inbound',
+    duration_seconds: 165,
+    primary_intent: 'disease_reporting',
+    dtmf_digits_pressed: '1,1,2,3',
+    district: 'Pune',
+    taluka: 'Baramati',
+    village: 'Malegaon',
+    started_at: new Date(Date.now() - 3600000 * 9).toISOString(),
+    ended_at: new Date(Date.now() - 3600000 * 9 + 165000).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 9).toISOString(),
+  },
+  {
+    id: 'call-5',
+    call_sid: 'CA-2026-981207',
+    caller_phone: '9823190822',
+    toll_free_number: '1800-120-JEEV',
+    language: 'mr',
+    status: 'completed',
+    direction: 'inbound',
+    duration_seconds: 120,
+    primary_intent: 'complaints_feedback',
+    dtmf_digits_pressed: '2,6',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Koregaon Bhima',
+    started_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+    ended_at: new Date(Date.now() - 3600000 * 12 + 120000).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+];
+
+export const initialIVRReports: IVRReport[] = [
+  {
+    id: 'ivr-rep-1',
+    case_id: 'JRK-2026-00125',
+    call_id: 'call-1',
+    farmer_phone: '9822410291',
+    farmer_name: 'Babanrao Babar',
+    animal_type: 'Cow (Crossbred Jersey)',
+    symptoms: ['Fever (ताप)', 'Excessive Salivation (लाळ गळणे)', 'Mouth Blisters (तोंडावर फोड)'],
+    suspected_disease: 'Foot-and-Mouth Disease (लाळ-खुरकूत / FMD)',
+    risk_level: 'critical',
+    assigned_hospital_name: 'Taluka Veterinary Polyclinic, Shirur',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Shirapur',
+    status: 'pending_review',
+    ai_confidence_score: 94.5,
+    recommended_actions: [
+      'Isolate affected cow immediately in separate shed',
+      'Apply potassium permanganate (KMnO4) wash to oral lesions',
+      'Wear protective boots before entering unaffected pens',
+      'Dispatch ring vaccination team within 5km radius',
+    ],
+    audio_url: 'https://actions.google.com/sounds/v1/speech/farmer_voice_sample.mp3',
+    transcript: 'माझ्या गाईला कालपासून खूप ताप आहे आणि तोंडातून सतत लाळ गळते आहे. जीभ आणि हिरड्यांवर फोड आले आहेत. चारा खात नाहीये.',
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'ivr-rep-2',
+    case_id: 'JRK-2026-00128',
+    call_id: 'call-4',
+    farmer_phone: '9890123490',
+    farmer_name: 'Santosh Thorat',
+    animal_type: 'Buffalo (Murrah)',
+    symptoms: ['Skin Nodules (त्वचेवर गाठी)', 'High Fever (तीव्र ताप)', 'Leg Swelling (पायाला सूज)'],
+    suspected_disease: 'Lumpy Skin Disease (लम्पी त्वचा रोग / LSD)',
+    risk_level: 'elevated',
+    assigned_hospital_name: 'Taluka Veterinary Polyclinic, Baramati',
+    district: 'Pune',
+    taluka: 'Baramati',
+    village: 'Malegaon',
+    status: 'accepted',
+    ai_confidence_score: 91.8,
+    recommended_actions: [
+      'Isolate animal and spray mosquito / tick repellent',
+      'Administer antipyretic & antihistamine as advised by vet',
+      'Disinfect shed with 1% formalin solution',
+    ],
+    transcript: 'म्हैशीच्या अंगावर गोल गोल गाठी आल्या आहेत. ताप आहे आणि पायाला सूज आल्यामुळे चालताना खूप त्रास होतोय.',
+    created_at: new Date(Date.now() - 3600000 * 9).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 9).toISOString(),
+  },
+];
+
+export const initialIVRCallbacks: IVRCallbackRequest[] = [
+  {
+    id: 'cb-1',
+    call_id: 'call-2',
+    farmer_phone: '9860119283',
+    farmer_name: 'Dnyaneshwar Jadhav',
+    animal_type: 'Calf (2-Month HF Calf)',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Talegaon Dhamdhere',
+    reason: 'Severe persistent diarrhea and extreme weakness for 3 days; calf unable to stand.',
+    priority: 'urgent',
+    status: 'pending',
+    transcript: 'दोन महिन्याचं वासरू आहे, तीन दिवसांपासून पातळ हगवण चालू आहे, दूध पीत नाही आणि उभं राहू शकत नाही. तातडीने सल्ला द्यावा.',
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    id: 'cb-2',
+    call_id: 'call-6',
+    farmer_phone: '9822998811',
+    farmer_name: 'Anand Ghorpade',
+    animal_type: 'Crossbred Cow',
+    district: 'Pune',
+    taluka: 'Haveli',
+    village: 'Uruli Kanchan',
+    reason: 'Post-parturient recumbency (Milk Fever suspected)',
+    priority: 'critical',
+    status: 'completed',
+    resolution_notes: 'Dr. Priya called back, administered IV Calcium Borogluconate on-site. Animal stabilized.',
+    called_back_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+  },
+];
+
+export const initialIVREmergencies: IVREmergencyCase[] = [
+  {
+    id: 'emg-1',
+    emergency_code: 'SOS-1962-8921',
+    call_id: 'call-3',
+    farmer_phone: '9823055412',
+    farmer_name: 'Pandurang Shinde',
+    animal_type: 'Pregnant Cow',
+    description: 'Dystocia (Difficult calving) - Calf stuck in birth canal for 4 hours with labor arrest. Animal in acute distress.',
+    district: 'Pune',
+    taluka: 'Shirur',
+    village: 'Ranjangaon',
+    priority: 'critical',
+    dispatched_unit: 'Mobile Veterinary Clinic #MH-12-EM-1962',
+    response_status: 'on_site',
+    eta_minutes: 5,
+    notified_daho: true,
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+];
+
+export const initialIVRAnnouncements: IVRAnnouncement[] = [
+  {
+    id: 'ann-1',
+    title: 'FMD Ring Vaccination Drive - Shirur Taluka',
+    content_en: 'Notice: Compulsory ring vaccination active in 10km radius of Shirur taluka following suspected Foot-and-Mouth outbreak. Please bring all livestock to local Gram Panchayat center.',
+    content_hi: 'सूचना: शिरूर तालुका में खुरपका-मुंहपका रोग के संदिग्ध प्रकोप के बाद 10 किमी दायरे में अनिवार्य रिंग टीकाकरण अभियान सक्रिय है।',
+    content_mr: 'सूचना: शिरूर तालुक्यात लाळ-खुरकूत प्रादुर्भावाच्या पार्श्वभूमीवर १० किमी परिसरात रिंग लसीकरण मोहीम सुरू आहे. पशुपालकांनी तातडीने लसीकरण करून घ्यावे.',
+    category: 'outbreak_alert',
+    target_district: 'Pune',
+    target_taluka: 'Shirur',
+    is_active: true,
+    priority: 'critical',
+    play_count: 428,
+    start_date: '2026-09-01',
+    end_date: '2026-09-30',
+    created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+  },
+  {
+    id: 'ann-2',
+    title: 'NADCP Brucellosis Calfhood Campaign',
+    content_en: 'Free Brucellosis vaccination for all 4 to 8 month female calves under National Animal Disease Control Programme.',
+    content_hi: 'राष्ट्रीय पशु रोग नियंत्रण कार्यक्रम (NADCP) के तहत 4 से 8 माह की सभी बछड़ियों के लिए निःशुल्क ब्रुसेलोसिस टीकाकरण।',
+    content_mr: 'राष्ट्रीय प्राणी रोग नियंत्रण कार्यक्रमांतर्गत ४ ते ८ महिन्यांच्या सर्व कालवडींसाठी मोफत ब्रुसेलोसिस लसीकरण शिबिर.',
+    category: 'vaccination_campaign',
+    target_district: 'Pune',
+    target_taluka: 'All',
+    is_active: true,
+    priority: 'routine',
+    play_count: 890,
+    start_date: '2026-09-10',
+    end_date: '2026-10-15',
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+  },
+];
+
+export const initialIVRFeedback: IVRFeedback[] = [
+  {
+    id: 'fb-1',
+    feedback_code: 'GRV-2026-0419',
+    call_id: 'call-5',
+    caller_phone: '9823190822',
+    category: 'medicine_unavailability',
+    transcript: 'शिरूर प्राथमिक पशुवैद्यकीय दवाखान्यात अँटीबायोटिक्स आणि जखमेची मलम उपलब्ध नाही, बाहेरून विकत घ्यायला सांगतात.',
+    sentiment: 'negative',
+    district: 'Pune',
+    taluka: 'Shirur',
+    status: 'pending_review',
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+  {
+    id: 'fb-2',
+    feedback_code: 'GRV-2026-0420',
+    call_id: 'call-7',
+    caller_phone: '9850123980',
+    category: 'vaccination_camp',
+    transcript: 'गावामध्ये लसीकरण पथक वेळेवर आले नाही, तीन तास थांबावे लागले. सूचना फलक आधी लावावा.',
+    sentiment: 'neutral',
+    district: 'Pune',
+    taluka: 'Baramati',
+    status: 'resolved',
+    resolution_notes: 'Notice boards schedule revised and communicated via SMS to Gram Panchayat.',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+];
+
 class LocalStore {
   registeredAccounts: RegisteredAccount[] = [
     {
@@ -233,6 +520,12 @@ class LocalStore {
   outbreaks: OutbreakEvent[] = [...initialOutbreaks];
   advisories: HealthAdvisory[] = [...initialAdvisories];
   notifications: AppNotification[] = [...initialNotifications];
+  ivrCalls: IVRCall[] = [...initialIVRCalls];
+  ivrReports: IVRReport[] = [...initialIVRReports];
+  ivrCallbacks: IVRCallbackRequest[] = [...initialIVRCallbacks];
+  ivrEmergencies: IVREmergencyCase[] = [...initialIVREmergencies];
+  ivrAnnouncements: IVRAnnouncement[] = [...initialIVRAnnouncements];
+  ivrFeedback: IVRFeedback[] = [...initialIVRFeedback];
   currentRole: UserRole = 'farmer';
   currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
@@ -329,6 +622,24 @@ class LocalStore {
             // ignore
           }
         }
+
+        const savedIVRCalls = localStorage.getItem('jr_ivr_calls');
+        if (savedIVRCalls) this.ivrCalls = JSON.parse(savedIVRCalls);
+
+        const savedIVRReports = localStorage.getItem('jr_ivr_reports');
+        if (savedIVRReports) this.ivrReports = JSON.parse(savedIVRReports);
+
+        const savedIVRCallbacks = localStorage.getItem('jr_ivr_callbacks');
+        if (savedIVRCallbacks) this.ivrCallbacks = JSON.parse(savedIVRCallbacks);
+
+        const savedIVREmergencies = localStorage.getItem('jr_ivr_emergencies');
+        if (savedIVREmergencies) this.ivrEmergencies = JSON.parse(savedIVREmergencies);
+
+        const savedIVRAnnouncements = localStorage.getItem('jr_ivr_announcements');
+        if (savedIVRAnnouncements) this.ivrAnnouncements = JSON.parse(savedIVRAnnouncements);
+
+        const savedIVRFeedback = localStorage.getItem('jr_ivr_feedback');
+        if (savedIVRFeedback) this.ivrFeedback = JSON.parse(savedIVRFeedback);
       } catch {
         // ignore localStorage error
       }
@@ -359,6 +670,12 @@ class LocalStore {
         localStorage.setItem('jr_herd_setup_done', JSON.stringify(this.herdSetupDone));
         localStorage.setItem('jr_vet_setup_done', JSON.stringify(this.vetHospitalSetupDone));
         localStorage.setItem('jr_registered_accounts', JSON.stringify(this.registeredAccounts));
+        localStorage.setItem('jr_ivr_calls', JSON.stringify(this.ivrCalls));
+        localStorage.setItem('jr_ivr_reports', JSON.stringify(this.ivrReports));
+        localStorage.setItem('jr_ivr_callbacks', JSON.stringify(this.ivrCallbacks));
+        localStorage.setItem('jr_ivr_emergencies', JSON.stringify(this.ivrEmergencies));
+        localStorage.setItem('jr_ivr_announcements', JSON.stringify(this.ivrAnnouncements));
+        localStorage.setItem('jr_ivr_feedback', JSON.stringify(this.ivrFeedback));
       } catch {
         // ignore
       }
@@ -2395,6 +2712,367 @@ export const dataService = {
     store.cases.unshift(claimed);
     this._saveDoctorStore(doctorId, store);
     return claimed;
+  },
+
+  // ==========================================
+  // IVR TELEPHONY & VOICE SERVICES
+  // ==========================================
+
+  // 1. Ingest new IVR Call
+  async registerIVRCall(params: {
+    caller_phone: string;
+    language?: string;
+    primary_intent?: IVRMenuOption;
+    dtmf_digits?: string;
+    duration_seconds?: number;
+    district?: string;
+    taluka?: string;
+    direction?: 'inbound' | 'outbound_callback';
+  }): Promise<IVRCall> {
+    const newCall: IVRCall = {
+      id: `call-${Date.now()}`,
+      call_sid: `CA-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+      caller_phone: params.caller_phone,
+      toll_free_number: '1800-120-JEEV',
+      language: params.language || 'mr',
+      status: 'completed',
+      direction: params.direction || 'inbound',
+      duration_seconds: params.duration_seconds || 85,
+      primary_intent: params.primary_intent || 'disease_reporting',
+      dtmf_digits_pressed: params.dtmf_digits || '1',
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+      village: 'Shirapur',
+      started_at: new Date(Date.now() - (params.duration_seconds || 85) * 1000).toISOString(),
+      ended_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+    localStore.ivrCalls.unshift(newCall);
+    localStore.save();
+    return newCall;
+  },
+
+  // 2. Submit IVR Disease Report with Speech-to-Text & AI Triage
+  async submitIVRDiseaseReport(params: {
+    caller_phone: string;
+    farmer_name?: string;
+    animal_type: string;
+    symptoms: string[];
+    voice_recording_url?: string;
+    raw_transcript: string;
+    detected_language?: string;
+    district?: string;
+    taluka?: string;
+    village?: string;
+  }): Promise<IVRReport> {
+    const caseNum = String(100 + localStore.ivrReports.length + 1).padStart(5, '0');
+    const caseId = `JRK-2026-${caseNum}`;
+
+    // AI Disease Triage Logic based on symptoms & speech
+    let suspectedDisease = 'Undifferentiated Pyrexia / Bovine Viral Infection';
+    let riskLevel: IVRPriority = 'elevated';
+    let aiScore = 91.5;
+    let recs = [
+      'Isolate animal from remaining herd',
+      'Provide clean drinking water with electrolytes',
+      'Veterinary clinical evaluation scheduled',
+    ];
+
+    const joined = (params.symptoms.join(' ') + ' ' + params.raw_transcript).toLowerCase();
+    if (
+      joined.includes('salivation') ||
+      joined.includes('blister') ||
+      joined.includes('mouth') ||
+      joined.includes('लाळ') ||
+      joined.includes('फोड') ||
+      joined.includes('खुर')
+    ) {
+      suspectedDisease = 'Foot-and-Mouth Disease (लाळ-खुरकूत / FMD)';
+      riskLevel = 'critical';
+      aiScore = 95.8;
+      recs = [
+        'Immediate strict quarantine of affected shed within 50m radius',
+        'Wash mouth and hoof lesions with 1:1000 KMnO4 antiseptic',
+        'Notify DAHO surveillance unit for ring vaccination',
+        'Restrict milk transport from affected animal',
+      ];
+    } else if (
+      joined.includes('nodule') ||
+      joined.includes('skin') ||
+      joined.includes('lump') ||
+      joined.includes('गाठी') ||
+      joined.includes('लम्पी')
+    ) {
+      suspectedDisease = 'Lumpy Skin Disease (लम्पी त्वचा रोग / LSD)';
+      riskLevel = 'urgent';
+      aiScore = 93.4;
+      recs = [
+        'Isolate infected cattle in mosquito-proof netting',
+        'Disinfect premises using 1% formalin or 2% sodium hypochlorite',
+        'Administer paracetamol and antihistamines as prescribed by doctor',
+      ];
+    } else if (joined.includes('diarrhea') || joined.includes('हगवण') || joined.includes('पातळ')) {
+      suspectedDisease = 'Acute Enteritis / Colibacillosis';
+      riskLevel = 'urgent';
+      aiScore = 92.0;
+      recs = [
+        'Administer Oral Rehydration Solution (ORS) 4-6 liters daily',
+        'Maintain dry bedding to prevent hypothermia',
+      ];
+    }
+
+    const report: IVRReport = {
+      id: `ivr-rep-${Date.now()}`,
+      case_id: caseId,
+      farmer_phone: params.caller_phone,
+      farmer_name: params.farmer_name || 'Shri Babanrao Babar',
+      animal_type: params.animal_type,
+      symptoms: params.symptoms,
+      suspected_disease: suspectedDisease,
+      risk_level: riskLevel,
+      assigned_hospital_name: 'Taluka Veterinary Polyclinic, Shirur',
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+      village: params.village || 'Shirapur',
+      status: 'pending_review',
+      ai_confidence_score: aiScore,
+      recommended_actions: recs,
+      audio_url: params.voice_recording_url || 'https://actions.google.com/sounds/v1/speech/farmer_voice_sample.mp3',
+      transcript: params.raw_transcript,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    localStore.ivrReports.unshift(report);
+
+    // Also register an IVR Call log
+    await this.registerIVRCall({
+      caller_phone: params.caller_phone,
+      primary_intent: 'disease_reporting',
+      language: params.detected_language || 'mr',
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+    });
+
+    // Also sync with central notifications
+    localStore.notifications.unshift({
+      id: `notif-ivr-${Date.now()}`,
+      recipient_profile_id: 'all',
+      health_report_id: report.id,
+      outbreak_event_id: null,
+      title: `New Voice Disease Report: ${caseId}`,
+      title_en: `New Voice Disease Report: ${caseId}`,
+      title_hi: `नया ध्वनि रोग रिपोर्ट: ${caseId}`,
+      title_mr: `नवीन ध्वनी आजार तक्रार: ${caseId}`,
+      message: `Farmer reported ${params.animal_type} with ${suspectedDisease} via Toll-Free IVR.`,
+      message_en: `Farmer reported ${params.animal_type} with ${suspectedDisease} via Toll-Free IVR.`,
+      message_hi: `किसान ने टोल-फ्री IVR के माध्यम से ${params.animal_type} के लिए रिपोर्ट दर्ज की।`,
+      message_mr: `पशुपालकाने टोल-फ्री IVR द्वारे ${params.animal_type} साठी तक्रार नोंदवली.`,
+      notification_type: 'health_alert',
+      is_read: false,
+      read_at: null,
+      created_at: new Date().toISOString(),
+    });
+
+    localStore.save();
+    return report;
+  },
+
+  // 3. Create Option 3 Callback Request
+  async createIVRCallbackRequest(params: {
+    caller_phone: string;
+    farmer_name?: string;
+    animal_type?: string;
+    reason?: string;
+    transcript?: string;
+    priority?: IVRPriority;
+    district?: string;
+    taluka?: string;
+  }): Promise<IVRCallbackRequest> {
+    const cb: IVRCallbackRequest = {
+      id: `cb-${Date.now()}`,
+      farmer_phone: params.caller_phone,
+      farmer_name: params.farmer_name || 'Livestock Owner',
+      animal_type: params.animal_type || 'Cattle',
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+      village: 'Shirapur',
+      reason: params.reason || 'Veterinary consultation requested via toll-free helpline',
+      transcript: params.transcript || 'डॉक्टरांशी तातडीने बोलायचे आहे, जनावराची तब्येत बरी नाही.',
+      priority: params.priority || 'urgent',
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+    localStore.ivrCallbacks.unshift(cb);
+    await this.registerIVRCall({
+      caller_phone: params.caller_phone,
+      primary_intent: 'vet_consultation',
+    });
+    localStore.save();
+    return cb;
+  },
+
+  // 4. Create Option 4 High-Priority Emergency SOS (1962 Ambulance Dispatch)
+  async createIVREmergencyCase(params: {
+    caller_phone: string;
+    farmer_name?: string;
+    animal_type: string;
+    description: string;
+    district?: string;
+    taluka?: string;
+    village?: string;
+  }): Promise<IVREmergencyCase> {
+    const emgCode = `SOS-1962-${Math.floor(1000 + Math.random() * 9000)}`;
+    const emg: IVREmergencyCase = {
+      id: `emg-${Date.now()}`,
+      emergency_code: emgCode,
+      farmer_phone: params.caller_phone,
+      farmer_name: params.farmer_name || 'Emergency Caller',
+      animal_type: params.animal_type,
+      description: params.description,
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+      village: params.village || 'Shirapur',
+      priority: 'critical',
+      dispatched_unit: 'Mobile Veterinary Clinic Van #MH-12-EM-1962',
+      response_status: 'dispatched',
+      eta_minutes: 20,
+      notified_daho: true,
+      created_at: new Date().toISOString(),
+    };
+    localStore.ivrEmergencies.unshift(emg);
+
+    // Urgent notification to Government Command Center & Vets
+    localStore.notifications.unshift({
+      id: `notif-sos-${Date.now()}`,
+      recipient_profile_id: 'all',
+      health_report_id: null,
+      outbreak_event_id: null,
+      title: `CRITICAL 1962 SOS: ${emgCode}`,
+      title_en: `CRITICAL 1962 SOS: ${emgCode}`,
+      title_hi: `गंभीर आपातकालीन 1962 SOS: ${emgCode}`,
+      title_mr: `तात्काळ आणीबाणी १९६२ SOS: ${emgCode}`,
+      message: `Emergency Van dispatched to ${emg.village}, ${emg.taluka}. Case: ${params.description}`,
+      message_en: `Emergency Van dispatched to ${emg.village}, ${emg.taluka}. Case: ${params.description}`,
+      message_hi: `आपातकालीन वैन रवाना: ${emg.village}, ${emg.taluka}.`,
+      message_mr: `मोबाईल व्हेटरनरी व्हॅन रवाना: ${emg.village}, ${emg.taluka}.`,
+      notification_type: 'escalation',
+      is_read: false,
+      read_at: null,
+      created_at: new Date().toISOString(),
+    });
+
+    await this.registerIVRCall({
+      caller_phone: params.caller_phone,
+      primary_intent: 'emergency_sos',
+      duration_seconds: 190,
+    });
+
+    localStore.save();
+    return emg;
+  },
+
+  // 5. Submit Option 6 Voice Complaint & Feedback
+  async submitIVRFeedback(params: {
+    caller_phone: string;
+    category: IVRFeedbackCategory;
+    transcript: string;
+    sentiment?: 'negative' | 'neutral' | 'positive';
+    district?: string;
+    taluka?: string;
+  }): Promise<IVRFeedback> {
+    const code = `GRV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const fb: IVRFeedback = {
+      id: `fb-${Date.now()}`,
+      feedback_code: code,
+      caller_phone: params.caller_phone,
+      category: params.category,
+      transcript: params.transcript,
+      sentiment: params.sentiment || 'negative',
+      district: params.district || 'Pune',
+      taluka: params.taluka || 'Shirur',
+      status: 'pending_review',
+      created_at: new Date().toISOString(),
+    };
+    localStore.ivrFeedback.unshift(fb);
+    await this.registerIVRCall({
+      caller_phone: params.caller_phone,
+      primary_intent: 'complaints_feedback',
+    });
+    localStore.save();
+    return fb;
+  },
+
+  // Getters
+  async getIVRCalls(): Promise<IVRCall[]> {
+    return [...localStore.ivrCalls];
+  },
+
+  async getIVRReports(): Promise<IVRReport[]> {
+    return [...localStore.ivrReports];
+  },
+
+  async getIVRCallbacks(): Promise<IVRCallbackRequest[]> {
+    return [...localStore.ivrCallbacks];
+  },
+
+  async getIVREmergencies(): Promise<IVREmergencyCase[]> {
+    return [...localStore.ivrEmergencies];
+  },
+
+  async getIVRAnnouncements(): Promise<IVRAnnouncement[]> {
+    return [...localStore.ivrAnnouncements];
+  },
+
+  async getIVRFeedback(): Promise<IVRFeedback[]> {
+    return [...localStore.ivrFeedback];
+  },
+
+  // State Updates
+  async updateIVRCallbackStatus(id: string, status: IVRCallbackStatus, notes?: string): Promise<boolean> {
+    const cb = localStore.ivrCallbacks.find((c) => c.id === id);
+    if (cb) {
+      cb.status = status;
+      if (notes) cb.resolution_notes = notes;
+      if (status === 'completed') cb.called_back_at = new Date().toISOString();
+      localStore.save();
+      return true;
+    }
+    return false;
+  },
+
+  async updateIVRReportStatus(caseId: string, status: 'pending_review' | 'accepted' | 'investigating' | 'resolved'): Promise<boolean> {
+    const rep = localStore.ivrReports.find((r) => r.case_id === caseId);
+    if (rep) {
+      rep.status = status;
+      rep.updated_at = new Date().toISOString();
+      localStore.save();
+      return true;
+    }
+    return false;
+  },
+
+  async resolveIVRFeedback(id: string, notes: string): Promise<boolean> {
+    const fb = localStore.ivrFeedback.find((f) => f.id === id);
+    if (fb) {
+      fb.status = 'resolved';
+      fb.resolution_notes = notes;
+      localStore.save();
+      return true;
+    }
+    return false;
+  },
+
+  async addIVRAnnouncement(announcement: Omit<IVRAnnouncement, 'id' | 'created_at' | 'play_count'>): Promise<IVRAnnouncement> {
+    const created: IVRAnnouncement = {
+      ...announcement,
+      id: `ann-${Date.now()}`,
+      play_count: 0,
+      created_at: new Date().toISOString(),
+    };
+    localStore.ivrAnnouncements.unshift(created);
+    localStore.save();
+    return created;
   },
 };
 

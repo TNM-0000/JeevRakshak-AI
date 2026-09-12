@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, ChevronDown, User, LogOut } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut, Phone } from 'lucide-react';
+import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
 
 interface HeaderProps {
   currentRole: UserRole;
@@ -16,6 +17,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [showIVRSimulator, setShowIVRSimulator] = useState(false);
   const currentUser = dataService.getCurrentUser();
 
   useEffect(() => {
@@ -25,7 +27,8 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <header className="top-header">
+    <>
+      <header className="top-header">
       {/* Primary Top Row: Brand & Actions */}
       <div className="header-primary-row">
         {/* Brand & Govt Badge */}
@@ -89,6 +92,32 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               style={{ position: 'absolute', right: '8px', pointerEvents: 'none', color: 'var(--text-muted)' }}
             />
           </div>
+
+          {/* Toll-Free 1800-120-JEEV IVR Hotline Button */}
+          <button
+            type="button"
+            onClick={() => setShowIVRSimulator(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+              color: '#ffffff',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(45, 106, 79, 0.25)',
+              whiteSpace: 'nowrap',
+              height: '34px',
+            }}
+            title="Toll-Free 1800-120-JEEV IVR Hotline (No internet required)"
+          >
+            <Phone size={13} color="#95d5b2" />
+            <span>1800-120-JEEV</span>
+          </button>
 
 
           {/* Notification Bell */}
@@ -186,6 +215,15 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
         </div>
       </div>
 
-    </header>
+      </header>
+
+      {/* Toll-Free IVR Phone Simulator Modal */}
+      {showIVRSimulator && (
+        <IVRPhoneSimulator
+          isOpen={showIVRSimulator}
+          onClose={() => setShowIVRSimulator(false)}
+        />
+      )}
+    </>
   );
 };

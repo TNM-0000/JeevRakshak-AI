@@ -23,6 +23,7 @@ import {
   FileText,
   UserCheck,
   Settings as SettingsIcon,
+  Phone,
 } from 'lucide-react';
 
 export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'surveillance' | 'alerts';
@@ -35,7 +36,8 @@ export type GovCleanModule =
   | 'resources'
   | 'reports'
   | 'users'
-  | 'settings';
+  | 'settings'
+  | 'ivr';
 
 interface NavigationProps {
   activeTab: ActiveTab;
@@ -112,6 +114,11 @@ export const Navigation: React.FC<NavigationProps> = ({
           id: 'emergency',
           label: language === 'mr' ? 'आणीबाणी १९६२' : language === 'hi' ? 'आपातकालीन सेवा' : 'Emergency Response',
           icon: AlertTriangle,
+        },
+        {
+          id: 'ivr',
+          label: language === 'mr' ? 'IVR व्हॉइस पाळत' : language === 'hi' ? 'IVR वॉयस सर्विलांस' : 'IVR Voice Surveillance',
+          icon: Phone,
         },
         {
           id: 'resources',

@@ -20,7 +20,9 @@ import {
   ChevronRight,
   MapPin,
   Stethoscope,
+  Phone,
 } from 'lucide-react';
+import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
 
 interface FarmerDashboardProps {
   onSelectAnimal: (animalId: string) => void;
@@ -40,6 +42,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [reports, setReports] = useState<HealthReportWithDetails[]>([]);
   const [weather, setWeather] = useState<WeatherObservation | null>(null);
   const [farmName, setFarmName] = useState<string>('');
+  const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
   const currentUser = dataService.getCurrentUser();
 
   // The name of the farmer should be displayed at [Farmer Name]'s Farm
@@ -102,6 +105,92 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
         >
           {t.dashboard.quickReport}
+        </button>
+      </div>
+
+      {/* Rural Alternative Access Channel - Toll Free IVR */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '20px 24px',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 4px 15px rgba(45, 106, 79, 0.2)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#95d5b2',
+              flexShrink: 0,
+            }}
+          >
+            <Phone size={22} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 800 }}>
+                {language === 'mr'
+                  ? 'मोफत फोन सुविधा: १८००-१२०-५३३८ (JEEV)'
+                  : language === 'hi'
+                  ? 'टोल-फ्री फोन सुविधा: 1800-120-5338 (JEEV)'
+                  : 'Toll-Free Helpline: 1800-120-JEEV (5338)'}
+              </span>
+              <span
+                style={{
+                  background: 'rgba(149, 213, 178, 0.25)',
+                  color: '#95d5b2',
+                  fontSize: '0.68rem',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                }}
+              >
+                24x7 • No Internet Needed
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#d8f3dc', margin: '4px 0 0' }}>
+              {language === 'mr'
+                ? 'स्मार्टफोन किंवा इंटरनेट नसतानाही जनावरांच्या आजारांची नोंद, डॉक्टरांचा सल्ला व १९६२ रुग्णवाहिकेसाठी कॉल करा.'
+                : language === 'hi'
+                ? 'बिना इंटरनेट या स्मार्टफोन के पशु रोग रिपोर्ट, डॉक्टर सलाह व 1962 एम्बुलेंस हेतु कॉल करें।'
+                : 'Report diseases, request vet callback & emergency 1962 ambulance via voice call in 9 Indian languages.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowPhoneSimulator(true)}
+          style={{
+            background: '#52b788',
+            color: '#081c15',
+            border: 'none',
+            padding: '10px 18px',
+            borderRadius: '12px',
+            fontSize: '0.82rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
+          }}
+        >
+          <Phone size={15} />
+          <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
         </button>
       </div>
 
@@ -388,6 +477,14 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           )}
         </div>
       </div>
+
+      {/* IVR Phone Simulator Modal */}
+      {showPhoneSimulator && (
+        <IVRPhoneSimulator
+          isOpen={showPhoneSimulator}
+          onClose={() => setShowPhoneSimulator(false)}
+        />
+      )}
     </div>
   );
 };
