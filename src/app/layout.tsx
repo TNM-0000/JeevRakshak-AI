@@ -4,7 +4,7 @@ import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 
 export const metadata: Metadata = {
   title: 'JeevRakshak AI - Livestock Disease Surveillance & Management',
-  description: 'Government of Maharashtra (Problem #26128): Early Detection, Prevention, and Rapid Management of Livestock Diseases',
+  description: 'Early Detection, Prevention, and Rapid Management of Livestock Diseases',
   icons: {
     icon: '/favicon.ico',
   },

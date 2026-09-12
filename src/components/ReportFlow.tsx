@@ -32,7 +32,7 @@ interface ReportFlowProps {
 
 export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCancel }) => {
   const { t, language } = useLanguage();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [diseases, setDiseases] = useState<DiseaseCatalogItem[]>([]);
 
@@ -93,7 +93,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
         setSelectedSymptoms(['Fever', 'Loss of appetite']);
       }
     }
-    setStep(2);
+    setStep(3);
   };
 
   const [manualTag, setManualTag] = useState<string>('');
@@ -152,9 +152,9 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
     <div style={{ maxWidth: '680px', margin: '0 auto' }}>
       {/* Step Indicator */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        {step > 1 && step < 3 && (
+        {step > 1 && step < 4 && (
           <button
-            onClick={() => setStep((step - 1) as 1 | 2)}
+            onClick={() => setStep((step - 1) as 1 | 2 | 3)}
             style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.85rem' }}
           >
             <ArrowLeft size={16} />
@@ -162,12 +162,62 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
           </button>
         )}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)', marginLeft: step === 1 ? 'auto' : 0 }}>
-          STEP {step} OF 3
+          STEP {step} OF 4
         </div>
       </div>
 
-      {/* STEP 1: What are you seeing? (Matching Wireframe Screen 7) */}
+      {/* STEP 1: Animal Selection */}
       {step === 1 && (
+        <div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px' }}>{t.reporting.selectAnimal}</h2>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+            Select an animal from your herd to report.
+          </p>
+
+          <div className="form-group">
+            {animals.length > 0 ? (
+              <select
+                value={selectedAnimalId}
+                onChange={(e) => setSelectedAnimalId(e.target.value)}
+                className="form-select"
+                required
+              >
+                {animals.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.tag_number} ({a.species} - {a.breed}, {a.sex})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter animal tag number (e.g. MH-12-PUN-0101)"
+                  value={manualTag}
+                  onChange={(e) => setManualTag(e.target.value)}
+                  className="form-input"
+                />
+                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  No livestock registered yet. This tag will be registered to your herd automatically with this report.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setStep(2)}
+            disabled={!selectedAnimalId && !manualTag}
+            className="btn-primary"
+            style={{ width: '100%', marginTop: '20px', padding: '14px', borderRadius: 'var(--radius-lg)' }}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* STEP 2: What are you seeing? (Matching Wireframe Screen 7) */}
+      {step === 2 && (
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px' }}>{t.reporting.step1Title}</h2>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
@@ -275,46 +325,13 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
         </div>
       )}
 
-      {/* STEP 2: Symptoms Selection Form (Matching Wireframe Screen 8) */}
-      {step === 2 && (
+      {/* STEP 3: Symptoms Selection Form (Matching Wireframe Screen 8) */}
+      {step === 3 && (
         <form onSubmit={handleSubmitReport}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px' }}>{t.reporting.step2Title}</h2>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
             {t.reporting.step2Subtitle}
           </p>
-
-          {/* Animal Tag Picker */}
-          <div className="form-group">
-            <label className="form-label">{t.reporting.selectAnimal}</label>
-            {animals.length > 0 ? (
-              <select
-                value={selectedAnimalId}
-                onChange={(e) => setSelectedAnimalId(e.target.value)}
-                className="form-select"
-                required
-              >
-                {animals.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.tag_number} ({a.species} - {a.breed}, {a.sex})
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter animal tag number (e.g. MH-12-PUN-0101)"
-                  value={manualTag}
-                  onChange={(e) => setManualTag(e.target.value)}
-                  className="form-input"
-                />
-                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  No livestock registered yet. This tag will be registered to your herd automatically with this report.
-                </p>
-              </div>
-            )}
-          </div>
 
           {/* Symptoms Checklist */}
           <div style={{ marginBottom: '20px' }}>
@@ -411,8 +428,8 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
         </form>
       )}
 
-      {/* STEP 3: Automated AI Triage Assessment (Matching Wireframe Screen 9) */}
-      {step === 3 && generatedReport && (
+      {/* STEP 4: Automated AI Triage Assessment (Matching Wireframe Screen 9) */}
+      {step === 4 && generatedReport && (
         <div>
           {/* Status Banner */}
           <div

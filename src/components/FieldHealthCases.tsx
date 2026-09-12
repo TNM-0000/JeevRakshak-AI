@@ -220,7 +220,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>
-                      CASE #{report.id.replace('rep-', '').toUpperCase()}
+                      CASE #{String(report.id).replace('rep-', '').substring(0, 8).toUpperCase()}
                     </span>
                     <span className={`badge ${isCrit ? 'badge-critical' : 'badge-warning'}`}>
                       {isCrit ? t.fieldHealth.urgent : status.toUpperCase()}
@@ -280,7 +280,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                    Case #{selectedCase.id.replace('rep-', '').toUpperCase()}
+                    Case #{String(selectedCase.id).replace('rep-', '').substring(0, 8).toUpperCase()}
                   </h3>
                   <span
                     className={`badge ${
@@ -524,7 +524,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             </div>
 
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Case: #{selectedCase.id.replace('rep-', '').toUpperCase()} • Animal: {selectedCase.animal?.tag_number || 'Tag'}
+              Case: #{String(selectedCase.id).replace('rep-', '').substring(0, 8).toUpperCase()} • Animal: {selectedCase.animal?.tag_number || 'Tag'}
             </div>
 
             <form onSubmit={handleCollectSample}>

@@ -62,24 +62,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                 {t.appName}
               </h1>
-              <span
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  border: '1px solid #fde68a',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                MH
-              </span>
             </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Govt. of Maharashtra • #26128
-            </p>
           </div>
         </div>
 

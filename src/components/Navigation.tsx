@@ -100,7 +100,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
             }}
           >
             <Layers size={18} />
-            <span>{t.nav.herd}</span>
+            <span>{currentRole === 'veterinarian' ? 'Farms' : t.nav.herd}</span>
           </button>
 
           <button
@@ -172,7 +172,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
             style={{ width: '100%', borderRadius: 'var(--radius-lg)', padding: '14px' }}
           >
             <Plus size={18} />
-            <span>{t.dashboard.quickReport}</span>
+            <span>{currentRole === 'veterinarian' ? 'Log Clinical Visit' : t.dashboard.quickReport}</span>
           </button>
         </div>
       </aside>
@@ -192,7 +192,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
           onClick={() => onSelectTab('herd')}
         >
           <Layers size={20} />
-          <span>{t.nav.herd}</span>
+          <span>{currentRole === 'veterinarian' ? 'Farms' : t.nav.herd}</span>
         </button>
 
         {/* Center Primary Action FAB */}

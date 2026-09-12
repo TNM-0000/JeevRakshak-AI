@@ -7,6 +7,7 @@ import { UserRole } from '@/types/database';
 import { Header } from '@/components/Header';
 import { Navigation, ActiveTab } from '@/components/Navigation';
 import { FarmerDashboard } from '@/components/FarmerDashboard';
+import { VeterinarianDashboard } from '@/components/VeterinarianDashboard';
 import { HerdHub } from '@/components/HerdHub';
 import { ReportFlow } from '@/components/ReportFlow';
 import { FieldHealthCases } from '@/components/FieldHealthCases';
@@ -41,8 +42,6 @@ export default function Home() {
     if (newRole === 'farmer' && activeTab === 'surveillance') {
       setActiveTab('home');
     } else if (newRole === 'field_worker' && (activeTab === 'home' || activeTab === 'surveillance')) {
-      setActiveTab('cases');
-    } else if (newRole === 'veterinarian' && activeTab === 'home') {
       setActiveTab('cases');
     } else if (newRole === 'government' && (activeTab === 'home' || activeTab === 'herd')) {
       setActiveTab('surveillance');
@@ -101,13 +100,22 @@ export default function Home() {
         />
 
         <main className="page-container">
-          {/* 1. Farmer Home Dashboard */}
-          {activeTab === 'home' && (
+          {/* 1a. Default/Farmer Home Dashboard */}
+          {activeTab === 'home' && currentRole !== 'veterinarian' && (
             <FarmerDashboard
               onSelectAnimal={(id) => setSelectedAnimalId(id)}
               onOpenReport={() => setActiveTab('report')}
               onOpenAdvisory={() => setActiveTab('alerts')}
               onOpenCases={() => setActiveTab('cases')}
+            />
+          )}
+
+          {/* 1b. Veterinarian Home Dashboard */}
+          {activeTab === 'home' && currentRole === 'veterinarian' && (
+            <VeterinarianDashboard
+              onOpenCases={() => setActiveTab('cases')}
+              onOpenSurveillance={() => setActiveTab('surveillance')}
+              onOpenReport={() => setActiveTab('report')}
             />
           )}
 
