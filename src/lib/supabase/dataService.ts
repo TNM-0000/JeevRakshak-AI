@@ -60,6 +60,7 @@ import {
   initialAdvisories,
   initialOutbreaks,
   initialNotifications,
+  initialDiseaseAlerts,
 } from './seedData';
 import { DiseaseAlert, AlertStatus } from '@/types/notificationSystem';
 import { notificationService } from '@/lib/notifications/notificationService';
@@ -186,6 +187,21 @@ export interface RegisteredAccount {
   hospital_name?: string;
   employee_id?: string;
   designation?: string;
+  first_login_at?: string;
+  first_account_notif_sent?: boolean;
+  first_login_notif_sent?: boolean;
+}
+
+export interface OldDataSummary {
+  fullName: string;
+  email: string;
+  farmName: string;
+  district: string;
+  block: string;
+  village: string;
+  role: UserRole;
+  animalsCount: number;
+  reportsCount: number;
 }
 
 // ------------------------------------------------------------------------------------
@@ -519,6 +535,7 @@ export class LocalStore {
   caseEscalations: CaseEscalation[] = [];
   treatments: AnimalTreatment[] = [];
   vaccinations: AnimalVaccination[] = [];
+  prescriptions: DoctorPrescriptionRecord[] = [];
   herdHealthEvents: HerdHealthEvent[] = [];
   weather: WeatherObservation[] = [...initialWeather];
   outbreaks: OutbreakEvent[] = [...initialOutbreaks];
@@ -801,6 +818,8 @@ export class LocalStore {
         localStorage.setItem('jr_ivr_emergencies', JSON.stringify(this.ivrEmergencies));
         localStorage.setItem('jr_ivr_announcements', JSON.stringify(this.ivrAnnouncements));
         localStorage.setItem('jr_ivr_feedback', JSON.stringify(this.ivrFeedback));
+        localStorage.setItem('jr_prescriptions', JSON.stringify(this.prescriptions));
+        localStorage.setItem('jr_disease_alerts', JSON.stringify(this.diseaseAlerts));
       } catch {
         // ignore
       }
@@ -1424,6 +1443,38 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
+        const ownerId = profileId;
+        const userHerds = localStore.herds.filter((h) => String(h.owner_profile_id) === String(ownerId));
+        const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
+        userHerdIds.add(`herd-${ownerId}`);
+
+        const userAnimals = localStore.animals.filter(
+          (a) =>
+            String(a.owner_profile_id) === String(ownerId) ||
+            (a.herd_id && userHerdIds.has(String(a.herd_id))) ||
+            (matched?.id === 'demo-farmer-1' && (!a.owner_profile_id || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1'))
+        );
+
+        const userReports = localStore.healthReports.filter(
+          (r) =>
+            String(r.reported_by) === String(ownerId) ||
+            (r.animal_id && userAnimals.some((a) => String(a.id) === String(r.animal_id)))
+        );
+
+        const effectiveAnimalsCount = (matched?.id === 'demo-farmer-1' && userAnimals.length === 0) ? 3 : userAnimals.length;
+
+        const summary: OldDataSummary = {
+          fullName: profile.full_name,
+          email: matched?.email || profile.email || cleanLogin,
+          farmName: profile.farm_name || (profileRole === 'veterinarian' ? (localStore.currentUser as any)?.hospital_name || 'Veterinary Polyclinic' : `${profile.full_name}'s Farm`),
+          district: profile.district || 'Pune',
+          block: profile.block || 'Shirur',
+          village: profile.village || 'Shirapur',
+          role: profileRole,
+          animalsCount: effectiveAnimalsCount,
+          reportsCount: userReports.length,
+        };
+
         localStore.save();
         return {
           profile: { ...profile, role: profileRole } as any,
@@ -1516,6 +1567,38 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
+        const ownerId = profile.id;
+        const userHerds = localStore.herds.filter((h) => String(h.owner_profile_id) === String(ownerId));
+        const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
+        userHerdIds.add(`herd-${ownerId}`);
+
+        const userAnimals = localStore.animals.filter(
+          (a) =>
+            String(a.owner_profile_id) === String(ownerId) ||
+            (a.herd_id && userHerdIds.has(String(a.herd_id))) ||
+            (matched!.id === 'demo-farmer-1' && (!a.owner_profile_id || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1'))
+        );
+
+        const userReports = localStore.healthReports.filter(
+          (r) =>
+            String(r.reported_by) === String(ownerId) ||
+            (r.animal_id && userAnimals.some((a) => String(a.id) === String(r.animal_id)))
+        );
+
+        const effectiveAnimalsCount = (matched.id === 'demo-farmer-1' && userAnimals.length === 0) ? 3 : userAnimals.length;
+
+        const summary: OldDataSummary = {
+          fullName: profile.full_name,
+          email: matched.email || profile.email || cleanLogin,
+          farmName: profile.farm_name || (matched.role === 'veterinarian' ? matched.hospital_name || 'Veterinary Polyclinic' : `${profile.full_name}'s Farm`),
+          district: profile.district || 'Pune',
+          block: profile.block || 'Shirur',
+          village: profile.village || 'Shirapur',
+          role: matched.role,
+          animalsCount: effectiveAnimalsCount,
+          reportsCount: userReports.length,
+        };
+
         localStore.save();
         return {
           profile: { ...profile, role: matched.role } as any,

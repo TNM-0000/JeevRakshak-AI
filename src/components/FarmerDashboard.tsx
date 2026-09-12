@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
-import { AnimalWithDetails, HealthReportWithDetails, WeatherObservation } from '@/types/database';
+import { AnimalWithDetails, HealthReportWithDetails, WeatherObservation, DoctorPrescriptionRecord } from '@/types/database';
 import {
   getLocalizedWeatherDescription,
   localizeSpecies,

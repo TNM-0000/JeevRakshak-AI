@@ -55,6 +55,8 @@ import {
   BadgeAlert,
   ChevronDown,
   Bell,
+  Smartphone,
+  ArrowUpDown,
 } from 'lucide-react';
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
@@ -140,6 +142,22 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const [isTriggeringScheduler, setIsTriggeringScheduler] = useState(false);
   const [showIVRPhone, setShowIVRPhone] = useState(false);
   const [ivrPhoneTarget, setIvrPhoneTarget] = useState<string>('');
+
+  // Escalation & SMS state
+  const [showEscalateModal, setShowEscalateModal] = useState(false);
+  const [selectedCaseForEscalate, setSelectedCaseForEscalate] = useState<DoctorCase | null>(null);
+  const [escalateToAuthority, setEscalateToAuthority] = useState('Dr. Sunita Patil, DAHO (District Animal Husbandry Officer)');
+  const [escalateReason, setEscalateReason] = useState('Suspected acute transboundary disease outbreak; biosafety quarantine and state lab confirmation required');
+  const [customSmsText, setCustomSmsText] = useState('');
+  const [smsAlert, setSmsAlert] = useState<{
+    recipientName: string;
+    recipientPhone: string;
+    caseNumber: string;
+    animalTag: string;
+    message: string;
+    sentAt: string;
+    gatewayRef: string;
+  } | null>(null);
 
   // Action toast / feedback banner
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
