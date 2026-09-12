@@ -252,82 +252,56 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'linear-gradient(145deg, #0a1f2c 0%, #03141f 100%)',
-        color: 'var(--text-main)',
-        position: 'relative',
-        padding: '20px 14px 40px',
-      }}
-    >
-      {/* Background radial glow */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '5%',
-          left: '10%',
-          width: '380px',
-          height: '380px',
-          background: 'radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          borderRadius: '50%',
-        }}
-      />
-
-      {/* Official Government Header */}
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
+      {/* Top Sticky Bar with Logo & Language Switcher (Exact match with Login & Farmer Herd Setup) */}
       <header
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          maxWidth: '780px',
-          width: '100%',
-          margin: '0 auto 20px',
-          padding: '12px 18px',
-          borderRadius: '16px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          padding: '12px 20px',
+          background: 'rgba(255, 255, 255, 0.96)',
+          borderBottom: '1px solid var(--border)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          backdropFilter: 'blur(8px)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '38px',
-              height: '38px',
+              width: '36px',
+              height: '36px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #059669 100%)',
+              background: 'var(--primary-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              fontWeight: 900,
-              fontSize: '1.1rem',
-              boxShadow: '0 2px 8px rgba(2,132,199,0.3)',
+              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              flexShrink: 0,
             }}
           >
-            JR
+            <Shield size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-main)' }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
                 JeevRakshak AI
               </span>
               <span
                 style={{
                   fontSize: '0.62rem',
                   fontWeight: 700,
-                  background: '#e0f2fe',
-                  color: '#0369a1',
+                  background: '#fef3c7',
+                  color: '#92400e',
                   padding: '1px 5px',
                   borderRadius: '4px',
-                  border: '1px solid #bae6fd',
+                  border: '1px solid #fde68a',
                 }}
               >
-                VET-GOVT
+                MH-GOVT
               </span>
             </div>
             <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
@@ -336,7 +310,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
           </div>
         </div>
 
-        {/* Language selector */}
+        {/* Language Switcher */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <select
             value={language}
@@ -366,23 +340,25 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
         </div>
       </header>
 
-      {/* Main Form Card */}
+      {/* Main Form Centered Container */}
       <main
         style={{
-          maxWidth: '780px',
-          width: '100%',
-          margin: '0 auto',
+          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
-          zIndex: 1,
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          padding: '24px 16px 48px',
         }}
       >
         <div
           className="modal-card"
           style={{
-            padding: '28px 24px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
-            borderRadius: '20px',
+            maxWidth: '740px',
+            width: '100%',
+            padding: '32px 28px',
+            background: '#ffffff',
+            boxShadow: 'var(--shadow-lg)',
+            borderRadius: 'var(--radius-xl)',
           }}
         >
           {/* Badge & Skip Button */}

@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   AlertTriangle,
   CheckCircle,
+  CheckCircle2,
   Plus,
   ArrowRight,
   Sparkles,
@@ -30,6 +31,11 @@ import {
   Send,
   X,
   Compass,
+  CloudRain,
+  ChevronRight,
+  Calendar,
+  Activity,
+  ClipboardList,
 } from 'lucide-react';
 
 interface VetDashboardProps {
@@ -394,257 +400,359 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '40px' }}>
-      {/* 1. Official Hospital Node Header Card */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #092c3e 0%, #03151f 100%)',
-          color: '#fff',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
-          border: '1px solid rgba(14, 165, 233, 0.25)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: '-20px',
-            right: '-20px',
-            width: '200px',
-            height: '200px',
-            background: 'radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)',
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(14, 165, 233, 0.2)',
-                color: '#38bdf8',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                marginBottom: '10px',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-              }}
-            >
-              <Building2 size={13} />
-              <span>{copy.badge}</span>
-            </div>
-
-            <h1 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.01em' }}>
-              {hospitalName}
-            </h1>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '0.82rem', color: '#cbd5e1', marginTop: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <MapPin size={15} color="#38bdf8" />
-                <span>
-                  {copy.exactLocation}: <strong style={{ color: '#fff' }}>{lat.toFixed(6)}° N, {lng.toFixed(6)}° E</strong>
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Stethoscope size={15} color="#38bdf8" />
-                <span>
-                  {copy.licenseNo}: <strong style={{ color: '#fff' }}>{license}</strong>
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Phone size={15} color="#38bdf8" />
-                <span>
-                  {copy.emergencyHelpline}: <strong style={{ color: '#fff' }}>{emergencyPhone}</strong>
-                </span>
-              </div>
-            </div>
+      {/* 1. Vet Hospital Location Header (Matches FarmerDashboard header layout) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>
+            <MapPin size={14} />
+            <span>
+              {currentUser?.hospital_district || currentUser?.district
+                ? `${currentUser.hospital_district || currentUser.district}${currentUser.hospital_block || currentUser.block ? ` (${currentUser.hospital_block || currentUser.block})` : ''} • GPS: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E`
+                : language === 'mr'
+                ? 'पुणे जिल्हा • बारामती तालुका • GPS: १८.५२०४° N, ७३.८५६७° E'
+                : language === 'hi'
+                ? 'पुणे ज़िला • बारामती ब्लॉक • GPS: 18.5204° N, 73.8567° E'
+                : 'Pune District • Baramati Block • GPS: 18.5204° N, 73.8567° E'}
+            </span>
           </div>
-
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{hospitalName}</h2>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={onEditHospitalSetup}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(255, 255, 255, 0.12)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#fff',
-              padding: '8px 16px',
-              borderRadius: '10px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              backdropFilter: 'blur(8px)',
-              transition: 'all 0.2s',
-            }}
+            className="btn-secondary"
+            style={{ padding: '8px 14px', fontSize: '0.82rem', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Compass size={15} />
             <span>{copy.editHospitalBtn}</span>
           </button>
+          <button
+            onClick={onOpenReport}
+            className="btn-primary"
+            style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Plus size={16} />
+            <span>{language === 'mr' ? 'नवीन तपासणी नोंदवा' : language === 'hi' ? 'नई केस रिपोर्ट' : 'Record Clinical Visit'}</span>
+          </button>
         </div>
       </div>
 
-      {/* 2. Clinical KPI Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-        <div
-          className="metric-card"
-          onClick={onOpenCases}
-          style={{ cursor: 'pointer', borderLeft: '4px solid #f59e0b' }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+      {/* 2. Main Clinical Stability Status Card (Matching FarmerDashboard screen 6 card) */}
+      <div
+        className="glass-card"
+        style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+          border: '1.5px solid var(--primary-border)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '24px',
+          boxShadow: 'var(--shadow-sm)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--primary)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CheckCircle2 size={18} strokeWidth={2.6} />
+            </div>
+            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
+              {language === 'mr' ? 'तालुका क्लिनिकल व आरोग्य स्थिती' : language === 'hi' ? 'ब्लॉक क्लिनिकल व स्वास्थ्य स्थिति' : 'Taluka Clinical Health Status'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.78rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+            <span>
+              {copy.licenseNo}: <strong style={{ color: 'var(--text-main)' }}>{license}</strong>
+            </span>
+            <span>•</span>
+            <span>
+              {copy.emergencyHelpline}: <strong style={{ color: 'var(--text-main)' }}>{emergencyPhone}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="status-metric-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 130px), 1fr))' }}>
+          <div
+            onClick={onOpenCases}
+            style={{
+              background: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 10px',
+              border: '1px solid var(--border-card)',
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: urgentReports.length > 0 ? 'var(--warning)' : 'var(--text-main)' }}>
+              {urgentReports.length}
+            </div>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>
               {copy.kpiPendingCases}
-            </span>
-            <AlertTriangle size={18} color="#f59e0b" />
+            </div>
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            {urgentReports.length}
-          </div>
-          <div style={{ fontSize: '0.72rem', color: '#d97706', fontWeight: 600, marginTop: '4px' }}>
-            {language === 'mr' ? 'तात्काळ तपासणी आवश्यक' : 'Awaiting veterinary triage'}
-          </div>
-        </div>
 
-        <div className="metric-card" style={{ borderLeft: '4px solid #0284c7' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 10px',
+              border: '1px solid var(--border-card)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: '#0284c7' }}>
+              {samples.length}
+            </div>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>
               {copy.kpiSamplesDispatched}
-            </span>
-            <FlaskConical size={18} color="#0284c7" />
+            </div>
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            {samples.length}
-          </div>
-          <div style={{ fontSize: '0.72rem', color: '#0369a1', fontWeight: 600, marginTop: '4px' }}>
-            {language === 'mr' ? 'जिल्हा रोग निदान प्रयोगशाळा' : 'District Lab Dispatch Pipeline'}
-          </div>
-        </div>
 
-        <div
-          className="metric-card"
-          onClick={onOpenAdvisories}
-          style={{ cursor: 'pointer', borderLeft: '4px solid #ef4444' }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          <div
+            onClick={onOpenAdvisories}
+            style={{
+              background: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 10px',
+              border: '1px solid var(--border-card)',
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--critical)' }}>
+              2
+            </div>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>
               {copy.kpiHighRiskAlerts}
-            </span>
-            <ShieldAlert size={18} color="#ef4444" />
+            </div>
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            2
-          </div>
-          <div style={{ fontSize: '0.72rem', color: '#b91c1c', fontWeight: 600, marginTop: '4px' }}>
-            {language === 'mr' ? 'FMD व लाळ्या खुरकूत सतर्कता' : 'Taluka containment active'}
-          </div>
-        </div>
 
-        <div className="metric-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 10px',
+              border: '1px solid var(--border-card)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--primary)' }}>
+              {treatments.length}
+            </div>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>
               {copy.kpiTreatmentsCount}
-            </span>
-            <Pill size={18} color="#10b981" />
-          </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            {treatments.length}
-          </div>
-          <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 600, marginTop: '4px' }}>
-            {language === 'mr' ? 'डेटाबेसमध्ये नोंद असलेले उपचार' : 'Recorded treatments'}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Urgent Clinical Triage Desk */}
-      <div className="glass-card" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Stethoscope size={20} color="var(--primary)" />
-              <span>{copy.urgentQueueTitle}</span>
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                }}
-              >
-                {urgentReports.length} {language === 'mr' ? 'केस' : 'cases'}
-              </span>
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-              {copy.urgentQueueSubtitle}
-            </p>
-          </div>
+      {/* 3. Weather & Seasonal Disease Alert Card (Exact match with FarmerDashboard) */}
+      <div
+        className="glass-card"
+        style={{
+          borderLeft: '4px solid #0284c7',
+          background: 'linear-gradient(to right, #f0f9ff 0%, #ffffff 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <CloudRain size={20} color="#0284c7" />
+          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0369a1' }}>
+            {language === 'mr'
+              ? 'हवामान व हंगामी आजार सतर्कता (शिरूर - बारामती क्लस्टर)'
+              : language === 'hi'
+              ? 'मौसम एवं मौसमी रोग सतर्कता (शिरूर - बारामती क्लस्टर)'
+              : 'Weather & Seasonal Disease Advisory (Shirur - Baramati Cluster)'}
+          </span>
+        </div>
+        <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+          {language === 'mr'
+            ? 'पावसाळी हवेतील दमट वातावरणामुळे लाळ्या खुरकूत (FMD) व घटसर्प (HS) आजाराचा संसर्ग धोका वाढला आहे. पशुपालकांना जनावरांचे तातडीने रिंग लसीकरण पूर्ण करण्याचा सल्ला द्यावा.'
+            : language === 'hi'
+            ? 'मानसूनी आर्द्रता के कारण खुरपका-मुंहपका (FMD) और एचएस रोग का प्रकोप जोखिम अधिक है। पशुपालकों को समय पर रिंग टीकाकरण पूर्ण कराने का निर्देश दें।'
+            : 'Elevated monsoon humidity in Shirur & Baramati talukas increases FMD and Haemorrhagic Septicaemia risk. Advise all local dairy farms to complete ring vaccination.'}
+        </p>
+        <div>
+          <button
+            onClick={onOpenAdvisories}
+            style={{
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: '#0284c7',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <span>{language === 'mr' ? 'सरकारी परिपत्रक पहा' : language === 'hi' ? 'सरकारी परामर्श देखें' : 'View State Advisory'}</span>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
 
+      {/* 4. Two-column Action Widgets (Matching FarmerDashboard: Outbreak Map & AI Triage Queue) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '16px' }}>
+        {/* Outbreak Warning */}
+        <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: '#fee2e2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#dc2626',
+              }}
+            >
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                {language === 'mr' ? 'प्रकोप हॉटस्पॉट सतर्कता' : language === 'hi' ? 'प्रकोप हॉटस्पॉट चेतावनी' : 'Outbreak Hotspots Warning'}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {language === 'mr' ? '२ सक्रिय क्लस्टर चिन्हांकित' : language === 'hi' ? '2 सक्रिय क्लस्टर चिह्नित' : '2 Active clusters identified'}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={onOpenAdvisories}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+          >
+            {language === 'mr' ? 'नकाशा पहा' : language === 'hi' ? 'मानचित्र देखें' : 'View GIS Map'}
+          </button>
+        </div>
+
+        {/* AI Triaged Cases Queue */}
+        <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: '#eff6ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#2563eb',
+              }}
+            >
+              <ClipboardList size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                {language === 'mr' ? 'AI तपासणी प्रलंबित केसेस' : language === 'hi' ? 'AI विश्लेषित केस सूची' : 'AI Triaged Cases Queue'}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {urgentReports.length} {language === 'mr' ? 'केस पशुवैद्यकीय पडताळणी बाकी' : language === 'hi' ? 'केस सत्यापन प्रतीक्षारत' : 'Requires Vet Validation'}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={onOpenCases}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+          >
+            {language === 'mr' ? 'सूची तपासा' : language === 'hi' ? 'सूची देखें' : 'Review Queue'}
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Cases Needing Attention List (Matches FarmerDashboard "Animals Needing Attention") */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+            {language === 'mr' ? 'तातडीच्या उपचारांची गरज असलेले रुग्ण' : language === 'hi' ? 'तत्काल उपचार की आवश्यकता वाले केस' : 'Cases Needing Clinical Attention'}
+          </h3>
           <button
             onClick={onOpenCases}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'none',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              padding: '6px 12px',
               fontSize: '0.78rem',
-              fontWeight: 600,
               color: 'var(--primary)',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
               cursor: 'pointer',
             }}
           >
             <span>{copy.allCasesBtn}</span>
-            <ArrowRight size={14} />
+            <ChevronRight size={14} />
           </button>
         </div>
 
-        {urgentReports.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-            <CheckCircle size={36} color="var(--stable)" style={{ margin: '0 auto 10px auto' }} />
-            <p style={{ fontWeight: 600 }}>{copy.noUrgentCases}</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {urgentReports.map((report) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {urgentReports.length === 0 ? (
+            <div className="glass-card" style={{ padding: '24px 20px', textAlign: 'center' }}>
               <div
-                key={report.id}
                 style={{
-                  background: '#fff',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
                 }}
               >
+                <CheckCircle2 size={22} />
+              </div>
+              <div style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '4px' }}>
+                {copy.noUrgentCases}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {language === 'mr'
+                  ? 'सर्व शेतकरी अहवाल तपासले गेले आहेत आणि कोणतीही आपत्कालीन सूचना प्रलंबित नाही.'
+                  : language === 'hi'
+                  ? 'सभी किसान रिपोर्ट की समीक्षा हो चुकी है और कोई आपातकालीन केस लंबित नहीं है।'
+                  : 'All local livestock reports have been triaged and are stable.'}
+              </div>
+            </div>
+          ) : (
+            urgentReports.map((report) => (
+              <div
+                key={report.id}
+                className="glass-card"
+                style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        background: '#e0f2fe',
-                        color: '#0284c7',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: report.mortality_count > 0 ? '#fef2f2' : '#eff6ff',
+                        color: report.mortality_count > 0 ? '#dc2626' : '#2563eb',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '0.85rem',
+                        fontSize: '1.2rem',
+                        flexShrink: 0,
                       }}
                     >
                       {report.animal?.species === 'Buffalo' ? '🐃' : report.animal?.species === 'Goat' ? '🐐' : '🐄'}
@@ -654,32 +762,40 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                         <span
                           onClick={() => onSelectAnimal(report.animal_id)}
                           style={{
-                            fontWeight: 700,
-                            fontSize: '0.92rem',
-                            color: 'var(--primary)',
+                            fontWeight: 800,
+                            fontSize: '0.98rem',
+                            color: 'var(--text-main)',
                             cursor: 'pointer',
-                            textDecoration: 'underline',
                           }}
                         >
                           {report.animal?.tag_number || report.animal_id}
-                          {report.animal?.name ? ` (${report.animal.name})` : ''}
+                          {report.animal?.name ? ` • ${report.animal.name}` : ''}
                         </span>
-                        <span style={{ fontSize: '0.74rem', background: '#f1f5f9', padding: '1px 6px', borderRadius: '4px' }}>
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            background: '#f1f5f9',
+                            color: 'var(--text-muted)',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                          }}
+                        >
                           {report.animal?.species} • {report.animal?.breed}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                        {copy.farmer}: <strong>{report.reporter?.full_name || 'Livestock Owner'}</strong> ({report.reporter?.phone || 'Shirur'})
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {copy.farmer}: <strong>{report.reporter?.full_name || 'Livestock Owner'}</strong> • {copy.village}: {report.reporter?.village || 'Shirur'}
                       </div>
                     </div>
                   </div>
 
                   <span
                     style={{
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                      background: '#fee2e2',
-                      color: '#b91c1c',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      background: report.mortality_count > 0 ? '#fee2e2' : '#fef3c7',
+                      color: report.mortality_count > 0 ? '#b91c1c' : '#92400e',
                       padding: '3px 10px',
                       borderRadius: '12px',
                       display: 'flex',
@@ -688,51 +804,34 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     }}
                   >
                     <AlertTriangle size={12} />
-                    <span>{report.assessment?.status || 'SUSPECTED'}</span>
+                    <span>{report.mortality_count > 0 ? 'MORTALITY' : (report.assessment?.status?.toUpperCase() || 'SUSPECTED')}</span>
                   </span>
                 </div>
 
                 {/* Symptoms highlight box */}
                 <div
                   style={{
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
+                    background: '#f8fafc',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '8px 12px',
                     fontSize: '0.82rem',
-                    color: '#991b1b',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
+                    color: 'var(--text-main)',
                   }}
                 >
-                  <AlertTriangle size={15} flex-shrink="0" />
-                  <div>
-                    <strong>{copy.symptoms}:</strong> {report.symptoms}
-                    {report.notes ? ` — ${report.notes}` : ''}
-                  </div>
+                  <strong>{copy.symptoms}:</strong> {report.symptoms}
+                  {report.notes ? ` — ${report.notes}` : ''}
                 </div>
 
                 {/* 1-Click Action Bar */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '4px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   <button
                     onClick={() => {
                       setActiveReport(report);
                       setShowPrescribeModal(true);
                     }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '7px 14px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className="btn-primary"
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
                     <Pill size={14} />
                     <span>{copy.prescribeBtn}</span>
@@ -743,21 +842,10 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                       setActiveReport(report);
                       setShowSampleModal(true);
                     }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'rgba(2, 132, 199, 0.1)',
-                      color: '#0284c7',
-                      border: '1px solid rgba(2, 132, 199, 0.3)',
-                      borderRadius: '6px',
-                      padding: '7px 14px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className="btn-secondary"
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <FlaskConical size={14} />
+                    <FlaskConical size={14} color="#0284c7" />
                     <span>{copy.sampleBtn}</span>
                   </button>
 
@@ -766,101 +854,99 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                       setActiveReport(report);
                       setShowEscalateModal(true);
                     }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      color: '#dc2626',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                      borderRadius: '6px',
-                      padding: '7px 14px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className="btn-secondary"
+                    style={{ padding: '6px 14px', fontSize: '0.78rem', borderRadius: 'var(--radius-full)', display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--critical)' }}
                   >
-                    <Send size={14} />
+                    <ShieldAlert size={14} color="var(--critical)" />
                     <span>{copy.escalateBtn}</span>
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
-      {/* 4. Diagnostic Samples Pipeline */}
+      {/* 6. Diagnostic Samples Pipeline */}
       <div className="glass-card" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FlaskConical size={20} color="#0284c7" />
-              <span>{copy.samplesPipelineTitle}</span>
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>
+              {copy.samplesPipelineTitle}
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               {copy.samplesSubtitle}
             </p>
           </div>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              background: '#e0f2fe',
+              color: '#0369a1',
+              padding: '2px 8px',
+              borderRadius: '12px',
+            }}
+          >
+            {samples.length} {language === 'mr' ? 'नमुने' : 'samples'}
+          </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {samples.slice(0, 4).map((sample) => (
-            <div
-              key={sample.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: '#fff',
-                border: '1px solid var(--border)',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)' }}>
-                  {sample.sample_type} • <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{sample.id}</span>
-                </div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                  {copy.collectedDate}: {sample.collected_at ? new Date(sample.collected_at).toLocaleDateString() : 'Today'}
-                  {sample.notes ? ` — ${sample.notes}` : ''}
-                </div>
-              </div>
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {samples.length === 0 ? (
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>
+              {language === 'mr' ? 'सध्या कोणतेही नमुने प्रलंबित नाहीत.' : 'No diagnostic samples currently in transit.'}
+            </p>
+          ) : (
+            samples.slice(0, 4).map((sample) => (
               <div
+                key={sample.id}
                 style={{
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                  background:
-                    sample.status === 'tested'
-                      ? 'rgba(16, 185, 129, 0.1)'
-                      : sample.status === 'received'
-                      ? 'rgba(2, 132, 199, 0.1)'
-                      : 'rgba(245, 158, 11, 0.1)',
-                  color:
-                    sample.status === 'tested'
-                      ? 'var(--stable)'
-                      : sample.status === 'received'
-                      ? '#0284c7'
-                      : '#d97706',
-                  border: '1px solid currentColor',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 14px',
+                  background: '#ffffff',
+                  border: '1px solid var(--border-card)',
+                  borderRadius: '8px',
+                  flexWrap: 'wrap',
+                  gap: '8px',
                 }}
               >
-                {sample.status === 'tested'
-                  ? copy.statusTested
-                  : sample.status === 'received'
-                  ? copy.statusReceived
-                  : sample.status === 'sent'
-                  ? copy.statusSent
-                  : copy.statusCollected}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FlaskConical size={16} color="#0284c7" />
+                  <div>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {sample.sample_type} • #{String(sample.id).substring(0, 8).toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                      {copy.collectedDate}: {sample.collected_at ? new Date(sample.collected_at).toLocaleDateString() : 'Today'}
+                      {sample.notes ? ` — ${sample.notes}` : ''}
+                    </div>
+                  </div>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    background: sample.status === 'tested' ? '#ecfdf5' : '#eff6ff',
+                    color: sample.status === 'tested' ? '#059669' : '#2563eb',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  {sample.status === 'tested'
+                    ? copy.statusTested
+                    : sample.status === 'received'
+                    ? copy.statusReceived
+                    : sample.status === 'sent'
+                    ? copy.statusSent
+                    : copy.statusCollected}
+                </span>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
