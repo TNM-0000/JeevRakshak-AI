@@ -407,12 +407,20 @@ export interface DoctorCase {
   district: string;
   symptoms: string;
   priority: 'routine' | 'urgent' | 'critical';
-  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'treated' | 'resolved' | 'rejected' | 'closed';
+  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'treated' | 'resolved' | 'rejected' | 'closed' | 'escalated';
   reported_at: string;
   accepted_at?: string;
   closed_at?: string;
   diagnosis?: string;
   treatment_notes?: string;
+  is_escalated?: boolean;
+  escalated_to?: string;
+  escalation_reason?: string;
+  escalated_at?: string;
+  sms_sent?: boolean;
+  sms_sent_at?: string;
+  sms_phone?: string;
+  sms_message?: string;
 }
 
 export interface DoctorDiagnosis {

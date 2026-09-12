@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { dataService } from '@/lib/supabase/dataService';
+import { dataService, OldDataSummary } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage } from '@/types/database';
 import {
   Shield,
@@ -30,6 +30,7 @@ import {
   Home,
   AlertOctagon,
   UserPlus,
+  X,
 } from 'lucide-react';
 import { GoogleMapLocationPicker, LocationData } from './GoogleMapLocationPicker';
 
@@ -451,6 +452,57 @@ const ONBOARDING_I18N = {
   },
 };
 
+const ACCOUNT_MODAL_I18N = {
+  en: {
+    badge: 'Existing Account Verified • जुने खाते ओळखले',
+    title: 'You already have an account',
+    loginAgainDesc: 'An account registered with {email} was recognized. Welcome back, {name}! Your saved livestock records, farm details, and health history have been restored.',
+    registerDuplicateDesc: 'The email {email} is already registered with JeevRakshak AI. You already have an account! Your existing data and livestock records are safe.',
+    accountHolder: 'Account Owner',
+    farmName: 'Farm / Station',
+    location: 'Registered Location',
+    livestock: 'Livestock Animals',
+    reports: 'Health Reports',
+    animalsCountText: '{count} animal(s) on file',
+    reportsCountText: '{count} report(s) on file',
+    proceedBtn: 'Proceed to Dashboard',
+    signInExistingBtn: 'Sign In to Existing Account',
+    cancelBtn: 'Close',
+  },
+  mr: {
+    badge: 'नोंदणीकृत खाते आढळले • जुने खाते उपलब्ध',
+    title: 'आपले आधीच खाते आहे',
+    loginAgainDesc: '{email} या ईमेलवर आधीच खाते अस्तित्वात आहे. पुन्हा स्वागत आहे, {name}! आपले फार्म, जनावरांचे रेकॉर्ड आणि आरोग्य नोंदी यशस्वीपणे लोड करण्यात आल्या आहेत.',
+    registerDuplicateDesc: '{email} हा ईमेल जीवरक्षक AI मध्ये आधीच नोंदणीकृत आहे. आपले आधीच खाते आहे! आपला जुना डेटा व जनावरांचे रेकॉर्ड सुरक्षित आहेत.',
+    accountHolder: 'खातेधारक शेतकरी',
+    farmName: 'फार्म / संस्था',
+    location: 'नोंदणीकृत ठिकाण',
+    livestock: 'नोंदणीकृत जनावरे',
+    reports: 'आरोग्य अहवाल',
+    animalsCountText: '{count} जनावरे उपलब्ध',
+    reportsCountText: '{count} आरोग्य अहवाल उपलब्ध',
+    proceedBtn: 'डॅशबोर्डवर जा',
+    signInExistingBtn: 'जुने खाते वापरून लॉगिन करा',
+    cancelBtn: 'बंद करा',
+  },
+  hi: {
+    badge: 'मौजूदा खाता सत्यापित • पुराना खाता उपलब्ध',
+    title: 'आपका पहले से एक खाता है',
+    loginAgainDesc: '{email} के लिए पहले से खाता मौजूद है। वापसी पर स्वागत है, {name}! आपके फार्म, पशुधन रिकॉर्ड और स्वास्थ्य रिपोर्ट लोड कर दिए गए हैं।',
+    registerDuplicateDesc: '{email} जीवरक्षक AI में पहले से पंजीकृत है। आपका पहले से एक खाता है! आपका पुराना डेटा और पशुधन रिकॉर्ड सुरक्षित हैं।',
+    accountHolder: 'खाताधारक किसान',
+    farmName: 'फार्म / संस्था',
+    location: 'पंजीकृत स्थान',
+    livestock: 'पंजीकृत पशुधन',
+    reports: 'स्वास्थ्य रिपोर्ट',
+    animalsCountText: '{count} पशु उपलब्ध',
+    reportsCountText: '{count} स्वास्थ्य रिपोर्ट उपलब्ध',
+    proceedBtn: 'डैशबोर्ड पर जाएं',
+    signInExistingBtn: 'मौजूदा खाते से लॉगिन करें',
+    cancelBtn: 'बंद करें',
+  },
+};
+
 export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onComplete }) => {
   const { language, setLanguage } = useLanguage();
   const copy = ONBOARDING_I18N[language] || ONBOARDING_I18N.en;
@@ -501,6 +553,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Pop up modal for existing account detection
+  const [existingAccountModal, setExistingAccountModal] = useState<{
+    isOpen: boolean;
+    type: 'login_again' | 'register_duplicate';
+    summary: OldDataSummary;
+    onProceed: () => void;
+  } | null>(null);
+
   // Validation functions
   const isValidMobile = (val: string): boolean => {
     const clean = val.replace(/[\s\-\(\)]/g, '');
@@ -547,6 +607,38 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       return;
     }
 
+    // Check if account with this email already exists
+    if (email.trim()) {
+      const existingCheck = dataService.checkEmailExists(email.trim());
+      if (existingCheck.exists && existingCheck.summary) {
+        setLoading(false);
+        setExistingAccountModal({
+          isOpen: true,
+          type: 'register_duplicate',
+          summary: existingCheck.summary,
+          onProceed: () => {
+            setExistingAccountModal(null);
+            if (password.trim() && existingCheck.account?.password === password.trim()) {
+              setLoading(true);
+              dataService.signInUser({
+                login: existingCheck.summary!.email,
+                password: password.trim(),
+                role: existingCheck.summary!.role,
+              }).then(() => {
+                setLoading(false);
+                onComplete(existingCheck.summary!.role);
+              });
+            } else {
+              setSignInLogin(existingCheck.summary!.email);
+              setSignInRole(existingCheck.summary!.role);
+              setViewMode('signin');
+            }
+          },
+        });
+        return;
+      }
+    }
+
     const cleanBlock = (locationData.block || selectedBlock || 'shirur').toLowerCase().replace(/\s+/g, '_');
     const cleanDist = (locationData.district || selectedDistrict || 'pune').toLowerCase().replace(/\s+/g, '_');
     const cleanState = (locationData.state || 'maharashtra').toLowerCase().replace(/\s+/g, '_');
@@ -582,13 +674,13 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
   const handleQuickFillDemo = (role: UserRole) => {
     setSignInRole(role);
     if (role === 'farmer') {
-      setSignInLogin('9823012345');
+      setSignInLogin('farmer@jeevrakshak.org');
       setSignInPassword('Farmer@123');
     } else if (role === 'veterinarian') {
-      setSignInLogin('MSVC-18492');
+      setSignInLogin('vet@jeevrakshak.org');
       setSignInPassword('Vet@12345');
     } else {
-      setSignInLogin('MH-DAHD-0412');
+      setSignInLogin('govt@jeevrakshak.org');
       setSignInPassword('Govt@12345');
     }
     setErrorMsg(null);
@@ -653,7 +745,21 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       setViewMode('auth_error');
     } else {
       const assignedRole = (res.profile as any)?.role || dataService.getCurrentRole() || signInRole;
-      onComplete(assignedRole);
+
+      // If logging in again with an existing account / email, show pop up box saying "You already have an account"
+      if (res.alreadyHadAccount && res.oldDataSummary) {
+        setExistingAccountModal({
+          isOpen: true,
+          type: 'login_again',
+          summary: res.oldDataSummary,
+          onProceed: () => {
+            setExistingAccountModal(null);
+            onComplete(assignedRole);
+          },
+        });
+      } else {
+        onComplete(assignedRole);
+      }
     }
   };
 
@@ -2055,6 +2161,205 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               >
                 <UserPlus size={15} />
                 <span>{copy.createNewAccountBtn}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP UP BOX: "You already have an account" / जुने खाते ओळखले */}
+      {existingAccountModal && existingAccountModal.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '30px 28px',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+              border: '2px solid rgba(16, 185, 129, 0.4)',
+              position: 'relative',
+              textAlign: 'left',
+            }}
+          >
+            {/* Top Accent Icon & Badge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  color: '#065f46',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  border: '1px solid #a7f3d0',
+                }}
+              >
+                <CheckCircle2 size={15} color="#059669" />
+                <span>
+                  {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.badge || ACCOUNT_MODAL_I18N.en.badge}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setExistingAccountModal(null)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Heading */}
+            <h2
+              style={{
+                fontSize: '1.45rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                marginBottom: '8px',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
+              }}
+            >
+              {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.title || ACCOUNT_MODAL_I18N.en.title}
+            </h2>
+
+            {/* Subtitle / Description */}
+            <p
+              style={{
+                fontSize: '0.88rem',
+                color: '#475569',
+                lineHeight: 1.5,
+                marginBottom: '18px',
+              }}
+            >
+              {existingAccountModal.type === 'login_again'
+                ? (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.loginAgainDesc || ACCOUNT_MODAL_I18N.en.loginAgainDesc)
+                    .replace('{email}', existingAccountModal.summary.email)
+                    .replace('{name}', existingAccountModal.summary.fullName)
+                : (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.registerDuplicateDesc || ACCOUNT_MODAL_I18N.en.registerDuplicateDesc)
+                    .replace('{email}', existingAccountModal.summary.email)}
+            </p>
+
+            {/* Old Data Summary Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                border: '1.5px solid #bbf7d0',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '20px',
+              }}
+            >
+              <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={13} />
+                <span>RESTORED ACCOUNT DATA / पुनर्संचयित जुना डेटा</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.accountHolder || 'Account Owner'}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 700, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {existingAccountModal.summary.fullName}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.farmName || 'Farm / Station'}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: '#047857', fontWeight: 700, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {existingAccountModal.summary.farmName}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.livestock || 'Livestock Animals'}
+                  </div>
+                  <div style={{ fontSize: '0.92rem', color: '#059669', fontWeight: 800, marginTop: '2px' }}>
+                    {existingAccountModal.summary.animalsCount} {language === 'mr' ? 'जनावरे' : language === 'hi' ? 'पशु' : 'Cattle/Animals'}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.reports || 'Health Reports'}
+                  </div>
+                  <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 800, marginTop: '2px' }}>
+                    {existingAccountModal.summary.reportsCount} {language === 'mr' ? 'नोंदी' : language === 'hi' ? 'रिपोर्ट' : 'Records'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '10px', fontSize: '0.76rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <MapPin size={13} color="#059669" />
+                <span>
+                  {existingAccountModal.summary.village}, {existingAccountModal.summary.block}, {existingAccountModal.summary.district}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={existingAccountModal.onProceed}
+                style={{
+                  width: '100%',
+                  padding: '13px 20px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                }}
+              >
+                <span>
+                  {existingAccountModal.type === 'login_again'
+                    ? (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.proceedBtn || ACCOUNT_MODAL_I18N.en.proceedBtn)
+                    : (ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.signInExistingBtn || ACCOUNT_MODAL_I18N.en.signInExistingBtn)}
+                </span>
+                <ArrowRight size={18} />
               </button>
             </div>
           </div>
