@@ -9,7 +9,7 @@ export type LocationLevel = 'district' | 'block' | 'village';
 
 export type ReportSource = 'web' | 'mobile' | 'ivr';
 
-export type CaseStatus = 'suspected' | 'probable' | 'confirmed' | 'ruled_out';
+export type CaseStatus = 'suspected' | 'probable' | 'confirmed' | 'ruled_out' | 'treated' | 'resolved';
 
 export type TriageMethod = 'rule_based' | 'ai_assisted' | 'manual';
 
@@ -407,7 +407,7 @@ export interface DoctorCase {
   district: string;
   symptoms: string;
   priority: 'routine' | 'urgent' | 'critical';
-  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'resolved' | 'rejected' | 'closed';
+  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'treated' | 'resolved' | 'rejected' | 'closed';
   reported_at: string;
   accepted_at?: string;
   closed_at?: string;

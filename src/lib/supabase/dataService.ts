@@ -2501,10 +2501,11 @@ export const dataService = {
           district: 'Pune',
           symptoms: 'Swollen quarter, reduced milk yield, clots in milk',
           priority: 'routine' as const,
-          status: 'treatment_ongoing' as const,
+          status: 'treated' as const,
           reported_at: new Date(Date.now() - 86400000).toISOString(),
           accepted_at: new Date(Date.now() - 43200000).toISOString(),
           diagnosis: 'Acute Clinical Mastitis (Staphylococcus aureus)',
+          treatment_notes: 'Ceftiofur Sodium 1g IM OD x 3 Days, Melonex 15ml IM, Cloxacillin Intramammary',
         },
       ],
       diagnoses: [
@@ -2684,7 +2685,7 @@ export const dataService = {
     if (item) {
       item.status = status;
       if (treatmentNotes) item.treatment_notes = treatmentNotes;
-      if (status === 'resolved' || status === 'closed') {
+      if (status === 'resolved' || status === 'closed' || status === 'treated') {
         item.closed_at = new Date().toISOString();
       }
       this._saveDoctorStore(doctorId, store);

@@ -57,6 +57,10 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
     return true;
   });
 
+  const isReportTreated = (r: HealthReportWithDetails) => {
+    return r.assessment?.status === 'resolved' || r.assessment?.status === 'ruled_out';
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header & Attention Counter (Matching Screen 10) */}
@@ -152,10 +156,29 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>
                       {formatDailyCaseNumber(report, reports, language)}
                     </span>
+                    {isReportTreated(report) && (
+                      <span
+                        style={{
+                          fontSize: '0.74rem',
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          border: '1px solid #86efac',
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          fontWeight: 800,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <CheckCircle2 size={12} color="#16a34a" />
+                        {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                      </span>
+                    )}
                     <span className={`badge ${isCrit ? 'badge-critical' : 'badge-warning'}`}>
                       {isCrit ? t.fieldHealth.urgent : status.toUpperCase()}
                     </span>
@@ -212,10 +235,29 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
                     {formatDailyCaseNumber(selectedCase, reports, language)}
                   </h3>
+                  {isReportTreated(selectedCase) && (
+                    <span
+                      style={{
+                        fontSize: '0.76rem',
+                        background: '#dcfce7',
+                        color: '#15803d',
+                        border: '1.5px solid #86efac',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontWeight: 800,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <CheckCircle2 size={13} color="#16a34a" />
+                      {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                    </span>
+                  )}
                   <span
                     className={`badge ${
                       selectedCase.riskAssessment?.risk_level === 'critical' ? 'badge-critical' : 'badge-warning'

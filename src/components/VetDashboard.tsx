@@ -258,6 +258,10 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
     }
   };
 
+  const isCaseTreated = (c: DoctorCase): boolean => {
+    return c.status === 'treated' || c.status === 'resolved' || Boolean(c.treatment_notes);
+  };
+
   const handleUpdateStatus = async (caseId: string, newStatus: DoctorCase['status']) => {
     const updated = await dataService.updateDoctorCaseStatus(doctorId, caseId, newStatus);
     if (updated) {
@@ -269,6 +273,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSaveDiagnosis = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowDiagnosisModal(false);
+      return;
+    }
 
     await dataService.createDoctorDiagnosis(doctorId, {
       doctor_id: doctorId,
@@ -289,6 +298,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSaveTreatment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowTreatmentModal(false);
+      return;
+    }
 
     await dataService.createDoctorTreatment(doctorId, {
       doctor_id: doctorId,
@@ -304,6 +318,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       status: 'ongoing',
     });
 
+    // Mark case as treated
+    await dataService.updateDoctorCaseStatus(doctorId, selectedCaseForAction.id, 'treated', treatPlan);
+
     showToast(`Treatment regimen recorded permanently for ${selectedCaseForAction.animal_tag}.`);
     setShowTreatmentModal(false);
     setTreatPlan('');
@@ -315,6 +332,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const handleSavePrescription = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCaseForAction) return;
+    if (isCaseTreated(selectedCaseForAction)) {
+      showToast(language === 'mr' ? 'ही केस आधीच उपचारित आहे.' : 'This case has already been treated.');
+      setShowPrescriptionModal(false);
+      return;
+    }
 
     await dataService.createDoctorPrescription(doctorId, {
       doctor_id: doctorId,
@@ -328,6 +350,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       medicines: rxMedicines,
       clinical_instructions: rxInstructions,
     });
+
+    // Mark case as treated
+    await dataService.updateDoctorCaseStatus(doctorId, selectedCaseForAction.id, 'treated', rxInstructions);
 
     showToast(`Official digital prescription generated and signed for ${selectedCaseForAction.animal_tag}.`);
     setShowPrescriptionModal(false);
@@ -669,10 +694,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) {
-                  showToast('Please accept or claim a case first to record diagnosis.');
+                const untreated = cases.filter((c) => !isCaseTreated(c));
+                if (untreated.length === 0) {
+                  showToast('All cases are already treated. No active cases require diagnosis.');
                 } else {
-                  setSelectedCaseForAction(cases[0]);
+                  setSelectedCaseForAction(untreated[0]);
                   setShowDiagnosisModal(true);
                 }
               }}
@@ -854,6 +880,25 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                         >
                           {c.priority.toUpperCase()}
                         </span>
+                        {isCaseTreated(c) && (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                          >
+                            <CheckCircle2 size={11} color="#16a34a" />
+                            {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          </span>
+                        )}
                         <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                           • {c.animal_species}
                         </span>
@@ -863,47 +908,69 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCaseForAction(c);
-                          setShowDiagnosisModal(true);
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: '1px solid #0284c7',
-                          background: '#f0f9ff',
-                          color: '#0284c7',
-                          fontSize: '0.76rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        AI Diagnosis
-                      </button>
+                    {isCaseTreated(c) ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '5px 12px',
+                            borderRadius: '20px',
+                            background: '#ecfdf5',
+                            color: '#047857',
+                            border: '1.5px solid #10b981',
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <CheckCircle2 size={13} color="#059669" />
+                          <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowDiagnosisModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #0284c7',
+                            background: '#f0f9ff',
+                            color: '#0284c7',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          AI Diagnosis
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCaseForAction(c);
-                          setShowTreatmentModal(true);
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          background: '#2d6a4f',
-                          color: '#ffffff',
-                          fontSize: '0.76rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Prescribe Rx
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowTreatmentModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: '#2d6a4f',
+                            color: '#ffffff',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Prescribe Rx
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1015,6 +1082,25 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                         <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
                           {c.case_number}
                         </span>
+                        {isCaseTreated(c) && (
+                          <span
+                            style={{
+                              fontSize: '0.74rem',
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              fontWeight: 800,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <CheckCircle2 size={12} color="#16a34a" />
+                            {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          </span>
+                        )}
                         <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                           • {c.animal_species}
                         </span>
@@ -1025,19 +1111,40 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <select
-                        value={c.status}
-                        onChange={(e) => handleUpdateStatus(c.id, e.target.value as DoctorCase['status'])}
-                        className="form-select"
-                        style={{ fontSize: '0.74rem', padding: '4px 8px', height: '32px', minHeight: '32px', fontWeight: 700 }}
-                      >
-                        <option value="assigned">Assigned</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="in_diagnosis">In Diagnosis</option>
-                        <option value="treatment_ongoing">Treatment Ongoing</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
-                      </select>
+                      {isCaseTreated(c) ? (
+                        <span
+                          style={{
+                            fontSize: '0.74rem',
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            border: '1.5px solid #86efac',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontWeight: 800,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <CheckCircle2 size={13} color="#16a34a" />
+                          <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                        </span>
+                      ) : (
+                        <select
+                          value={c.status}
+                          onChange={(e) => handleUpdateStatus(c.id, e.target.value as DoctorCase['status'])}
+                          className="form-select"
+                          style={{ fontSize: '0.74rem', padding: '4px 8px', height: '32px', minHeight: '32px', fontWeight: 700 }}
+                        >
+                          <option value="assigned">Assigned</option>
+                          <option value="accepted">Accepted</option>
+                          <option value="in_diagnosis">In Diagnosis</option>
+                          <option value="treatment_ongoing">Treatment Ongoing</option>
+                          <option value="treated">Treated</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      )}
                     </div>
                   </div>
 
@@ -1055,84 +1162,106 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowDiagnosisModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#f0f9ff',
-                        border: '1px solid #bae6fd',
-                        color: '#0369a1',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Record Diagnosis
-                    </button>
+                  {isCaseTreated(c) ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          background: '#ecfdf5',
+                          color: '#047857',
+                          border: '1.5px solid #10b981',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                        }}
+                      >
+                        <CheckCircle2 size={14} color="#059669" />
+                        <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCaseForAction(c);
+                          setShowDiagnosisModal(true);
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          background: '#f0f9ff',
+                          border: '1px solid #bae6fd',
+                          color: '#0369a1',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Record Diagnosis
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowTreatmentModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#f0fdf4',
-                        border: '1px solid #bbf7d0',
-                        color: '#15803d',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Add Treatment
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCaseForAction(c);
+                          setShowTreatmentModal(true);
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          background: '#f0fdf4',
+                          border: '1px solid #bbf7d0',
+                          color: '#15803d',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Add Treatment
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowPrescriptionModal(true);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#fff',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-main)',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Issue Digital Rx
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCaseForAction(c);
+                          setShowPrescriptionModal(true);
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          background: '#fff',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text-main)',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Issue Digital Rx
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateStatus(c.id, 'resolved')}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        background: '#ecfdf5',
-                        border: '1px solid #6ee7b7',
-                        color: '#047857',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Mark Resolved
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateStatus(c.id, 'treated')}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          background: '#ecfdf5',
+                          border: '1px solid #6ee7b7',
+                          color: '#047857',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Mark Treated
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1158,10 +1287,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) {
-                  showToast('Please claim or accept a case first.');
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
                 } else {
-                  setSelectedCaseForAction(cases[0]);
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowDiagnosisModal(true);
                 }
               }}
@@ -1256,9 +1386,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) showToast('Claim a case first.');
-                else {
-                  setSelectedCaseForAction(cases[0]);
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
+                } else {
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowTreatmentModal(true);
                 }
               }}
@@ -1356,9 +1488,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (cases.length === 0) showToast('Claim a case first.');
-                else {
-                  setSelectedCaseForAction(cases[0]);
+                const untreatedCases = cases.filter((c) => !isCaseTreated(c));
+                if (untreatedCases.length === 0) {
+                  showToast(language === 'mr' ? 'सर्व केसेस उपचारित आहेत किंवा अनुपचारित केस उपलब्ध नाही.' : 'All cases are treated or no untreated cases available.');
+                } else {
+                  setSelectedCaseForAction(untreatedCases[0]);
                   setShowPrescriptionModal(true);
                 }
               }}
@@ -1594,36 +1728,77 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.94rem', color: '#dc2626' }}>
-                        CRITICAL ALERT: {c.animal_tag} ({c.animal_species})
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.94rem', color: isCaseTreated(c) ? '#166534' : '#dc2626' }}>
+                          {isCaseTreated(c) ? 'RESOLVED ALERT:' : 'CRITICAL ALERT:'} {c.animal_tag} ({c.animal_species})
+                        </span>
+                        {isCaseTreated(c) && (
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                          >
+                            <CheckCircle2 size={11} color="#16a34a" />
+                            {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', marginTop: '2px' }}>
                         Farmer: {c.farmer_name} • Phone: {c.farmer_phone} • {c.village}
                       </div>
-                      <div style={{ fontSize: '0.74rem', color: '#991b1b', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.74rem', color: isCaseTreated(c) ? 'var(--text-muted)' : '#991b1b', marginTop: '2px' }}>
                         Symptoms: {c.symptoms}
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCaseForAction(c);
-                        setShowTreatmentModal(true);
-                      }}
-                      style={{
-                        background: '#dc2626',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Deploy Immediate Response
-                    </button>
+                    {isCaseTreated(c) ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          background: '#ecfdf5',
+                          color: '#047857',
+                          border: '1.5px solid #10b981',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                        }}
+                      >
+                        <CheckCircle2 size={14} color="#059669" />
+                        <span>{language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}</span>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCaseForAction(c);
+                          setShowTreatmentModal(true);
+                        }}
+                        style={{
+                          background: '#dc2626',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Deploy Immediate Response
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
@@ -1885,7 +2060,28 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               {cases.map((c) => (
                 <div key={c.id} style={{ background: '#fff', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{c.animal_tag} • {c.animal_species}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{c.animal_tag} • {c.animal_species}</span>
+                      {isCaseTreated(c) && (
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            padding: '1px 6px',
+                            borderRadius: '8px',
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            border: '1px solid #86efac',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          <CheckCircle2 size={10} color="#16a34a" />
+                          {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                        </span>
+                      )}
+                    </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Owner: {c.farmer_name} • {c.village}</div>
                   </div>
                   <button
@@ -2101,89 +2297,128 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveDiagnosis}>
-              <div style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Animal & Case</label>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
                   Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
                 </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Suspected Primary Disease *</label>
-                <select
-                  value={diagDisease}
-                  onChange={(e) => setDiagDisease(e.target.value)}
-                  className="form-select"
-                  style={{ fontSize: '0.84rem' }}
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार पूर्ण झालेले आहेत. नवीन निदान नोंदवण्याची किंवा बदल करण्याची आवश्यकता नाही.'
+                    : 'This case has been completed and marked as treated. New clinical diagnoses and modifications are disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDiagnosisModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
                 >
-                  <option value="Foot and Mouth Disease (FMD)">Foot and Mouth Disease (FMD)</option>
-                  <option value="Lumpy Skin Disease (LSD)">Lumpy Skin Disease (LSD)</option>
-                  <option value="Clinical Mastitis">Clinical Mastitis (Staphylococcus/Streptococcus)</option>
-                  <option value="Anthrax (Bacillus anthracis)">Anthrax (Bacillus anthracis)</option>
-                  <option value="Haemorrhagic Septicaemia (HS)">Haemorrhagic Septicaemia (HS)</option>
-                  <option value="Black Quarter (BQ)">Black Quarter (BQ)</option>
-                  <option value="Bovine Babesiosis (Tick Fever)">Bovine Babesiosis (Tick Fever)</option>
-                  <option value="Peste des Petits Ruminants (PPR)">Peste des Petits Ruminants (PPR)</option>
-                </select>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>AI Model Confidence Score (%)</label>
-                <input
-                  type="number"
-                  min={50}
-                  max={99}
-                  value={diagConfidence}
-                  onChange={(e) => setDiagConfidence(Number(e.target.value))}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Observations & Symptoms Analyzed *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={diagSymptoms}
-                  onChange={(e) => setDiagSymptoms(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Diagnostic Lab Tests</label>
-                <input
-                  type="text"
-                  value={diagTests}
-                  onChange={(e) => setDiagTests(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Initial Treatment</label>
-                <textarea
-                  rows={2}
-                  value={diagRx}
-                  onChange={(e) => setDiagRx(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowDiagnosisModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save Diagnosis
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSaveDiagnosis}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Animal & Case</label>
+                  <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+                    Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Suspected Primary Disease *</label>
+                  <select
+                    value={diagDisease}
+                    onChange={(e) => setDiagDisease(e.target.value)}
+                    className="form-select"
+                    style={{ fontSize: '0.84rem' }}
+                  >
+                    <option value="Foot and Mouth Disease (FMD)">Foot and Mouth Disease (FMD)</option>
+                    <option value="Lumpy Skin Disease (LSD)">Lumpy Skin Disease (LSD)</option>
+                    <option value="Clinical Mastitis">Clinical Mastitis (Staphylococcus/Streptococcus)</option>
+                    <option value="Anthrax (Bacillus anthracis)">Anthrax (Bacillus anthracis)</option>
+                    <option value="Haemorrhagic Septicaemia (HS)">Haemorrhagic Septicaemia (HS)</option>
+                    <option value="Black Quarter (BQ)">Black Quarter (BQ)</option>
+                    <option value="Bovine Babesiosis (Tick Fever)">Bovine Babesiosis (Tick Fever)</option>
+                    <option value="Peste des Petits Ruminants (PPR)">Peste des Petits Ruminants (PPR)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>AI Model Confidence Score (%)</label>
+                  <input
+                    type="number"
+                    min={50}
+                    max={99}
+                    value={diagConfidence}
+                    onChange={(e) => setDiagConfidence(Number(e.target.value))}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Observations & Symptoms Analyzed *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    value={diagSymptoms}
+                    onChange={(e) => setDiagSymptoms(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Diagnostic Lab Tests</label>
+                  <input
+                    type="text"
+                    value={diagTests}
+                    onChange={(e) => setDiagTests(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Recommended Initial Treatment</label>
+                  <textarea
+                    rows={2}
+                    value={diagRx}
+                    onChange={(e) => setDiagRx(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowDiagnosisModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save Diagnosis
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -2203,73 +2438,112 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveTreatment}>
-              <div style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Target Animal</label>
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
-                  {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • {selectedCaseForAction.farmer_name}
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
                 </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication Name(s) *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Inj. Ceftiofur Sodium 1g + Melonex 15ml"
-                  value={treatMedicines}
-                  onChange={(e) => setTreatMedicines(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Dosage & Route *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 1 vial IM daily for 3 days"
-                  value={treatDosage}
-                  onChange={(e) => setTreatDosage(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Treatment Plan *</label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder="e.g. Broad spectrum antibiotic course with NSAID anti-inflammatory support."
-                  value={treatPlan}
-                  onChange={(e) => setTreatPlan(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Follow-Up Date</label>
-                <input
-                  type="date"
-                  value={treatFollowUp}
-                  onChange={(e) => setTreatFollowUp(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.84rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowTreatmentModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save Treatment
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
+                  {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                </div>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार आधीच यशस्वीरित्या नोंदवले गेले आहेत. अतिरिक्त उपचार बदल करण्याची आवश्यकता नाही.'
+                    : 'This case has been completed and marked as treated. Additional treatment planning and edits are disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowTreatmentModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
+                >
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSaveTreatment}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Target Animal</label>
+                  <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#166534' }}>
+                    {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • {selectedCaseForAction.farmer_name}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication Name(s) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Inj. Ceftiofur Sodium 1g + Melonex 15ml"
+                    value={treatMedicines}
+                    onChange={(e) => setTreatMedicines(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Dosage & Route *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 1 vial IM daily for 3 days"
+                    value={treatDosage}
+                    onChange={(e) => setTreatDosage(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Treatment Plan *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="e.g. Broad spectrum antibiotic course with NSAID anti-inflammatory support."
+                    value={treatPlan}
+                    onChange={(e) => setTreatPlan(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Follow-Up Date</label>
+                  <input
+                    type="date"
+                    value={treatFollowUp}
+                    onChange={(e) => setTreatFollowUp(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.84rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowTreatmentModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save Treatment
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -2289,85 +2563,124 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSavePrescription}>
-              <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', fontSize: '0.8rem' }}>
-                <div><strong>Doctor:</strong> {doctorName} (Lic: {doctorLicense})</div>
-                <div><strong>Hospital:</strong> {doctorHospital}</div>
-                <div><strong>Animal:</strong> {selectedCaseForAction.animal_tag} • <strong>Owner:</strong> {selectedCaseForAction.farmer_name}</div>
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication List</label>
-                {rxMedicines.map((m, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
-                    <input
-                      type="text"
-                      value={m.name}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].name = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.dosage}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].dosage = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.frequency}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].frequency = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                    <input
-                      type="text"
-                      value={m.duration}
-                      onChange={(e) => {
-                        const updated = [...rxMedicines];
-                        updated[idx].duration = e.target.value;
-                        setRxMedicines(updated);
-                      }}
-                      className="form-input"
-                      style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Advisory for Farmer</label>
-                <textarea
-                  rows={2}
-                  value={rxInstructions}
-                  onChange={(e) => setRxInstructions(e.target.value)}
-                  className="form-input"
-                  style={{ fontSize: '0.82rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={() => setShowPrescriptionModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                  Save & Sign Rx
+            {isCaseTreated(selectedCaseForAction) ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '24px',
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1.5px solid #10b981',
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    marginBottom: '14px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#059669" />
+                  <span>{language === 'mr' ? 'केस आधीच उपचारित आहे (Treated)' : 'Case Already Treated'}</span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#166534', marginBottom: '8px' }}>
+                  Tag: {selectedCaseForAction.animal_tag} ({selectedCaseForAction.animal_species}) • Farmer: {selectedCaseForAction.farmer_name}
+                </div>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '0 auto 20px', maxWidth: '420px', lineHeight: 1.5 }}>
+                  {language === 'mr'
+                    ? 'या केसवर उपचार आधीच पूर्ण झाले आहेत. नवीन डिजिटल प्रिस्क्रिप्शन जारी करण्याची परवानगी नाही.'
+                    : 'This case has been completed and marked as treated. Generating additional prescriptions is disabled.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPrescriptionModal(false)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '8px 24px', borderRadius: '8px' }}
+                >
+                  {language === 'mr' ? 'बंद करा' : 'Close'}
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSavePrescription}>
+                <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', fontSize: '0.8rem' }}>
+                  <div><strong>Doctor:</strong> {doctorName} (Lic: {doctorLicense})</div>
+                  <div><strong>Hospital:</strong> {doctorHospital}</div>
+                  <div><strong>Animal:</strong> {selectedCaseForAction.animal_tag} • <strong>Owner:</strong> {selectedCaseForAction.farmer_name}</div>
+                </div>
+
+                <div style={{ marginBottom: '14px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication List</label>
+                  {rxMedicines.map((m, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                      <input
+                        type="text"
+                        value={m.name}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].name = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.dosage}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].dosage = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.frequency}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].frequency = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                      <input
+                        type="text"
+                        value={m.duration}
+                        onChange={(e) => {
+                          const updated = [...rxMedicines];
+                          updated[idx].duration = e.target.value;
+                          setRxMedicines(updated);
+                        }}
+                        className="form-input"
+                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Clinical Advisory for Farmer</label>
+                  <textarea
+                    rows={2}
+                    value={rxInstructions}
+                    onChange={(e) => setRxInstructions(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setShowPrescriptionModal(false)} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '8px 14px' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
+                    Save & Sign Rx
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
