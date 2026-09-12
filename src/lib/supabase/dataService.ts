@@ -220,8 +220,8 @@ class LocalStore {
     if (typeof window !== 'undefined') {
       try {
         // Purge legacy mock data
-        const isCleanV2 = localStorage.getItem('jr_clean_db_v2');
-        if (!isCleanV2) {
+        const isCleanV3 = localStorage.getItem('jr_clean_db_v3');
+        if (!isCleanV3) {
           localStorage.removeItem('jr_animals');
           localStorage.removeItem('jr_herds');
           localStorage.removeItem('jr_health_reports');
@@ -229,7 +229,7 @@ class LocalStore {
           localStorage.removeItem('jr_escalations');
           localStorage.removeItem('jr_treatments');
           localStorage.removeItem('jr_vaccinations');
-          localStorage.setItem('jr_clean_db_v2', 'true');
+          localStorage.setItem('jr_clean_db_v3', 'true');
         }
 
         const savedProfiles = localStorage.getItem('jr_profiles');
@@ -456,7 +456,14 @@ export const dataService = {
   },
 
   hasCompletedHerdSetup(): boolean {
-    return localStore.herdSetupDone || localStore.animals.length > 0;
+    if (localStore.herdSetupDone) return true;
+    if (localStore.currentUser && localStore.currentRole === 'farmer') {
+      const userHerdIds = localStore.herds
+        .filter((h) => h.owner_profile_id === localStore.currentUser?.id)
+        .map((h) => String(h.id));
+      return localStore.animals.some((a) => userHerdIds.includes(String(a.herd_id)));
+    }
+    return false;
   },
 
   setHerdSetupCompleted(completed: boolean) {
@@ -998,23 +1005,75 @@ export const dataService = {
   async getAnimals(herdId?: string): Promise<AnimalWithDetails[]> {
     let rawAnimals: Animal[] = [];
 
-    // 1. Fetch from Supabase
-    try {
-      let query = supabase.from('animals').select('*');
-      if (herdId && !isNaN(Number(herdId))) {
-        query = query.eq('herd_id', Number(herdId));
-      }
-      const { data, error } = await query;
-      if (!error && data) {
-        rawAnimals = data as Animal[];
-      }
-    } catch {
-      // ignore
-    }
+    // If farmer, strictly scope animals to the farmer's herd(s)
+    if (localStore.currentRole === 'farmer' && localStore.currentUser) {
+      const userHerds = await this.getHerds(localStore.currentUser.id);
+      const userHerdIds = userHerds.map((h) => String(h.id));
 
-    // 2. Fallback to localStore
-    if (rawAnimals.length === 0) {
-      rawAnimals = herdId ? localStore.animals.filter((a) => String(a.herd_id) === String(herdId)) : localStore.animals;
+      if (userHerdIds.length === 0) {
+        return [];
+      }
+
+      if (herdId && !userHerdIds.includes(String(herdId))) {
+        return [];
+      }
+
+      const targetHerdIds = herdId ? [String(herdId)] : userHerdIds;
+      const numericHerdIds = targetHerdIds
+        .map((id) => Number(id))
+        .filter((n) => !isNaN(n) && n > 0);
+
+      if (numericHerdIds.length > 0) {
+        try {
+          const { data, error } = await supabase
+            .from('animals')
+            .select('*')
+            .in('herd_id', numericHerdIds);
+          if (!error && data) {
+            rawAnimals = data as Animal[];
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // Merge matching animals from localStore for this user's herds only
+      const localMatching = localStore.animals.filter((a) =>
+        targetHerdIds.includes(String(a.herd_id))
+      );
+      const seenIds = new Set(rawAnimals.map((a) => String(a.id)));
+      for (const a of localMatching) {
+        if (!seenIds.has(String(a.id))) {
+          rawAnimals.push(a);
+          seenIds.add(String(a.id));
+        }
+      }
+
+      // If user has not registered any animals yet, return empty database!
+      if (rawAnimals.length === 0) {
+        return [];
+      }
+    } else {
+      // Veterinarian or Government or general overview
+      try {
+        let query = supabase.from('animals').select('*');
+        if (herdId && !isNaN(Number(herdId))) {
+          query = query.eq('herd_id', Number(herdId));
+        }
+        const { data, error } = await query;
+        if (!error && data) {
+          rawAnimals = data as Animal[];
+        }
+      } catch {
+        // ignore
+      }
+
+      // Fallback to localStore
+      if (rawAnimals.length === 0) {
+        rawAnimals = herdId
+          ? localStore.animals.filter((a) => String(a.herd_id) === String(herdId))
+          : localStore.animals;
+      }
     }
 
     // Hydrate status, treatments, vaccinations
@@ -1103,17 +1162,55 @@ export const dataService = {
   // 5. Health Reports & AI Triage Assessments
   async getHealthReports(): Promise<HealthReportWithDetails[]> {
     let reports: HealthReport[] = [];
-    try {
-      const { data, error } = await supabase.from('health_reports').select('*').order('reported_at', { ascending: false });
-      if (!error && data) {
-        reports = data as HealthReport[];
-      }
-    } catch {
-      // ignore
-    }
 
-    if (reports.length === 0) {
-      reports = localStore.healthReports;
+    if (localStore.currentRole === 'farmer' && localStore.currentUser) {
+      const currentUserId = localStore.currentUser.id;
+      // 1. Fetch reports created by this farmer from Supabase
+      try {
+        const { data, error } = await supabase
+          .from('health_reports')
+          .select('*')
+          .eq('reported_by', currentUserId)
+          .order('reported_at', { ascending: false });
+        if (!error && data) {
+          reports = data as HealthReport[];
+        }
+      } catch {
+        // ignore
+      }
+
+      // 2. Also check local reports for this user and their animals
+      const userAnimals = await this.getAnimals();
+      const userAnimalIds = new Set(userAnimals.map((a) => String(a.id)));
+
+      const localUserReports = localStore.healthReports.filter(
+        (r) => r.reported_by === currentUserId || (r.animal_id && userAnimalIds.has(String(r.animal_id)))
+      );
+
+      const seenIds = new Set(reports.map((r) => String(r.id)));
+      for (const rep of localUserReports) {
+        if (!seenIds.has(String(rep.id))) {
+          reports.push(rep);
+          seenIds.add(String(rep.id));
+        }
+      }
+    } else {
+      // Veterinarian or Government or general overview
+      try {
+        const { data, error } = await supabase
+          .from('health_reports')
+          .select('*')
+          .order('reported_at', { ascending: false });
+        if (!error && data) {
+          reports = data as HealthReport[];
+        }
+      } catch {
+        // ignore
+      }
+
+      if (reports.length === 0) {
+        reports = localStore.healthReports;
+      }
     }
 
     return reports.map((rep) => {
@@ -1215,6 +1312,13 @@ export const dataService = {
 
   // 6. Clinical Treatments
   async getTreatments(animalId?: string): Promise<AnimalTreatment[]> {
+    if (localStore.currentRole === 'farmer' && localStore.currentUser && !animalId) {
+      const userAnimals = await this.getAnimals();
+      const userAnimalIds = new Set(userAnimals.map((a) => String(a.id)));
+      if (userAnimalIds.size === 0) return [];
+      return localStore.treatments.filter((t) => userAnimalIds.has(String(t.animal_id)));
+    }
+
     try {
       let query = supabase.from('animal_treatments').select('*');
       if (animalId && !isNaN(Number(animalId))) {
@@ -1294,6 +1398,13 @@ export const dataService = {
 
   // 7. Vaccinations
   async getVaccinations(animalId?: string): Promise<AnimalVaccination[]> {
+    if (localStore.currentRole === 'farmer' && localStore.currentUser && !animalId) {
+      const userAnimals = await this.getAnimals();
+      const userAnimalIds = new Set(userAnimals.map((a) => String(a.id)));
+      if (userAnimalIds.size === 0) return [];
+      return localStore.vaccinations.filter((v) => userAnimalIds.has(String(v.animal_id)));
+    }
+
     try {
       let query = supabase.from('animal_vaccinations').select('*');
       if (animalId && !isNaN(Number(animalId))) {
@@ -1533,6 +1644,13 @@ export const dataService = {
 
   // 13. Herd Health Events (Table 13: herd_health_events)
   async getHerdHealthEvents(herdId?: string): Promise<HerdHealthEvent[]> {
+    if (localStore.currentRole === 'farmer' && localStore.currentUser && !herdId) {
+      const userHerds = await this.getHerds(localStore.currentUser.id);
+      const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
+      if (userHerdIds.size === 0) return [];
+      return localStore.herdHealthEvents.filter((e) => userHerdIds.has(String(e.herd_id)));
+    }
+
     try {
       let query = supabase.from('herd_health_events').select('*');
       if (herdId && !isNaN(Number(herdId))) {

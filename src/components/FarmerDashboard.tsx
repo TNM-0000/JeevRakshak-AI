@@ -79,6 +79,11 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const totalMonitored = animals.length;
   const criticalCount = animals.filter((a) => a.currentStatus === 'critical').length;
   const underTreatmentCount = animals.filter((a) => a.currentStatus === 'treatment').length;
+  const vaccinationsDue = animals.reduce((acc, a) => {
+    const dueFromRecords = a.vaccinations?.filter((v) => !!v.next_due_date).length || 0;
+    const dueFromStatus = a.vaccination_status === 'due' ? 1 : 0;
+    return acc + (dueFromRecords || dueFromStatus);
+  }, 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -127,7 +132,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <CheckCircle2 size={18} strokeWidth={2.6} />
           </div>
           <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
-            {t.dashboard.lookingStable}
+            {totalMonitored === 0
+              ? (language === 'mr' ? 'पशुधन नोंदणी आवश्यक' : language === 'hi' ? 'पशुधन पंजीकरण आवश्यक' : 'Livestock Registration Pending')
+              : t.dashboard.lookingStable}
           </span>
         </div>
 
@@ -143,7 +150,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.criticalIssues}</div>
           </div>
           <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
-            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--warning)' }}>2</div>
+            <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: vaccinationsDue > 0 ? 'var(--warning)' : 'var(--text-main)' }}>
+              {vaccinationsDue}
+            </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.vaccinationsDue}</div>
           </div>
         </div>
@@ -209,16 +218,26 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <div>
               <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{t.dashboard.vaccinationAlert}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                COW-023 • {language === 'mr' ? 'बूस्टर डोस' : language === 'hi' ? 'बूस्टर खुराक' : 'Booster dose'}
+                {animals.length > 0 ? (
+                  `${animals[0].tag_number} • ${language === 'mr' ? 'बूस्टर डोस' : language === 'hi' ? 'बूस्टर खुराक' : 'Booster dose'}`
+                ) : (
+                  language === 'mr' ? 'कोणतेही प्रलंबित लसीकरण नाही' : language === 'hi' ? 'कोई लंबित टीकाकरण नहीं' : 'No pending vaccinations'
+                )}
               </div>
             </div>
           </div>
           <button
-            onClick={() => onSelectAnimal('anim-1')}
+            onClick={() => {
+              if (animals.length > 0) {
+                onSelectAnimal(animals[0].id);
+              } else {
+                onOpenReport();
+              }
+            }}
             className="btn-secondary"
             style={{ padding: '6px 12px', fontSize: '0.78rem' }}
           >
-            {t.dashboard.scheduleVaccination}
+            {animals.length > 0 ? t.dashboard.scheduleVaccination : (language === 'mr' ? 'नोंदणी करा' : language === 'hi' ? 'पंजीकरण करें' : 'Register Livestock')}
           </button>
         </div>
 
