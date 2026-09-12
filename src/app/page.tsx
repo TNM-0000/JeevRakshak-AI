@@ -7,6 +7,7 @@ import { UserRole } from '@/types/database';
 import { Header } from '@/components/Header';
 import { Navigation, ActiveTab } from '@/components/Navigation';
 import { FarmerDashboard } from '@/components/FarmerDashboard';
+import { VeterinarianDashboard } from '@/components/VeterinarianDashboard';
 import { HerdHub } from '@/components/HerdHub';
 import { ReportFlow } from '@/components/ReportFlow';
 import { FieldHealthCases } from '@/components/FieldHealthCases';
@@ -151,7 +152,7 @@ export default function Home() {
           {/* ======================================================== */}
           {/* A. VETERINARIAN DEDICATED INTERFACE                       */}
           {/* ======================================================== */}
-          {currentRole === 'veterinarian' && activeTab === 'vet_desk' && (
+          {currentRole === 'veterinarian' && (activeTab === 'vet_desk' || activeTab === 'home') && (
             <VetDashboard
               onOpenCases={() => setActiveTab('cases')}
               onOpenReport={() => setActiveTab('report')}

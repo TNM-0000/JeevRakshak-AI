@@ -234,7 +234,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>
-                      {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'CASE'} #{report.id.replace('rep-', '').toUpperCase()}
+                      {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'CASE'} #{String(report.id).replace('rep-', '').substring(0, 8).toUpperCase()}
                     </span>
                     <span className={`badge ${isCrit ? 'badge-critical' : 'badge-warning'}`}>
                       {isCrit ? t.fieldHealth.urgent : status.toUpperCase()}
@@ -294,7 +294,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                    {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'} #{selectedCase.id.replace('rep-', '').toUpperCase()}
+                    {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'} #{String(selectedCase.id).replace('rep-', '').substring(0, 8).toUpperCase()}
                   </h3>
                   <span
                     className={`badge ${
@@ -571,7 +571,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             </div>
 
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'}: #{selectedCase.id.replace('rep-', '').toUpperCase()} • {language === 'mr' ? 'जनावर' : language === 'hi' ? 'पशु' : 'Animal'}: {selectedCase.animal?.tag_number || (language === 'mr' ? 'टॅग' : language === 'hi' ? 'टैग' : 'Tag')}
+              {language === 'mr' ? 'केस' : language === 'hi' ? 'केस' : 'Case'}: #{String(selectedCase.id).replace('rep-', '').substring(0, 8).toUpperCase()} • {language === 'mr' ? 'जनावर' : language === 'hi' ? 'पशु' : 'Animal'}: {selectedCase.animal?.tag_number || (language === 'mr' ? 'टॅग' : language === 'hi' ? 'टैग' : 'Tag')}
             </div>
 
             <form onSubmit={handleCollectSample}>

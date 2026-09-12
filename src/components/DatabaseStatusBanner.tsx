@@ -118,43 +118,7 @@ export const DatabaseStatusBanner: React.FC = () => {
 
   // Case 2: Connected & Write Permitted!
   if (status.writePermitted) {
-    return (
-      <div style={{
-        background: '#ecfdf5',
-        borderBottom: '1px solid #a7f3d0',
-        padding: '8px 16px',
-        fontSize: '0.78rem',
-        color: '#065f46',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        fontWeight: 600,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CheckCircle2 size={16} color="#059669" />
-          <span>
-            {language === 'mr'
-              ? 'सुपाबेस थेट समक्रमण सक्रिय: सर्व १९ डेटाबेस टेबल्स लेखनक्षम आणि समक्रमित आहेत!'
-              : language === 'hi'
-              ? 'सुपाबेस लाइव सिंक सक्रिय: सभी 19 डेटाबेस टेबल लिखने योग्य और सिंक्रनाइज़ हैं!'
-              : 'Supabase Live Sync Active: All 19 database tables are writable and synchronized!'}
-          </span>
-        </div>
-        <button
-          onClick={() => setDismissed(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#065f46',
-            cursor: 'pointer',
-            fontSize: '0.75rem',
-            textDecoration: 'underline',
-          }}
-        >
-          {language === 'mr' ? 'बंद करा' : language === 'hi' ? 'हटाएं' : 'Dismiss'}
-        </button>
-      </div>
-    );
+    return null;
   }
 
   // Case 3: RLS is blocking writes (The exact root cause of 0 rows in Supabase)

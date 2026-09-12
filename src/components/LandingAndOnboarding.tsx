@@ -103,7 +103,7 @@ const ONBOARDING_I18N = {
     livestockCount: 'Approximate Number of Livestock',
     livestockPlaceholder: 'e.g. 10',
     finishBtn: 'Finish Setup & Launch',
-    authenticating: 'Authenticating with Supabase...',
+    authenticating: 'Signing in...',
     signInTitle: 'Sign in to JeevRakshak',
     signInSub: 'Enter your registered mobile number or email and password.',
     loginLabel: 'Mobile Number or Email',
@@ -204,7 +204,7 @@ const ONBOARDING_I18N = {
     livestockCount: 'कुल पशुओं की संख्या',
     livestockPlaceholder: 'उदा. 10',
     finishBtn: 'पंजीकरण पूरा करें और शुरू करें',
-    authenticating: 'सुपाबेस से प्रमाणित किया जा रहा है...',
+    authenticating: 'प्रमाणित किया जा रहा है...',
     signInTitle: 'जीवरक्षक में साइन इन करें',
     signInSub: 'अपना पंजीकृत मोबाइल नंबर या ईमेल और पासवर्ड दर्ज करें।',
     loginLabel: 'मोबाइल नंबर या ईमेल',
@@ -305,7 +305,7 @@ const ONBOARDING_I18N = {
     livestockCount: 'एकूण पशुधन संख्या',
     livestockPlaceholder: 'उदा. 10',
     finishBtn: 'नोंदणी पूर्ण करा आणि सुरू करा',
-    authenticating: 'सुपाबेस द्वारे प्रमाणीकरण सुरू आहे...',
+    authenticating: 'प्रमाणीकरण सुरू आहे...',
     signInTitle: 'जीवरक्षक मध्ये लॉग इन करा',
     signInSub: 'आपला नोंदणीकृत मोबाईल नंबर किंवा ईमेल आणि पासवर्ड टाका.',
     loginLabel: 'मोबाईल नंबर किंवा ईमेल',
@@ -559,23 +559,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
                 JeevRakshak AI
               </span>
-              <span
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  border: '1px solid #fde68a',
-                }}
-              >
-                MH-GOVT
-              </span>
             </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              {copy.govtSubtitle}
-            </p>
           </div>
         </div>
 
@@ -640,7 +624,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 fontWeight: 800,
                 lineHeight: 1.15,
                 color: 'var(--text-main)',
-                marginBottom: '14px',
+                marginBottom: '40px',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -648,17 +632,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               <span style={{ color: 'var(--primary)' }}>{copy.heroTitle2}</span>
             </h1>
 
-            <p
-              style={{
-                fontSize: 'clamp(0.92rem, 2.5vw, 1.1rem)',
-                color: 'var(--text-muted)',
-                maxWidth: '680px',
-                margin: '0 auto 28px auto',
-                lineHeight: 1.55,
-              }}
-            >
-              {copy.heroSub}
-            </p>
+
 
             {/* Primary Action Buttons */}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
@@ -687,87 +661,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               </button>
             </div>
 
-            {/* Real-time State Stats Counter Strip */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
-                gap: '10px',
-                marginBottom: '32px',
-                padding: '14px 16px',
-                background: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>1,420+</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.stat1Label}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2563eb' }}>98.4%</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.stat2Label}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#d97706' }}>13</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.stat3Label}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#059669' }}>&lt; 2 hrs</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.stat4Label}</div>
-              </div>
-            </div>
-
-            {/* 4 Pillars Feature Cards */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))',
-                gap: '14px',
-                textAlign: 'left',
-              }}
-            >
-              <div className="glass-card" style={{ padding: '18px 16px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', marginBottom: '12px' }}>
-                  <Activity size={20} />
-                </div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px' }}>{copy.pillar1Title}</h4>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  {copy.pillar1Desc}
-                </p>
-              </div>
-
-              <div className="glass-card" style={{ padding: '18px 16px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', marginBottom: '12px' }}>
-                  <MapPin size={20} />
-                </div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px' }}>{copy.pillar2Title}</h4>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  {copy.pillar2Desc}
-                </p>
-              </div>
-
-              <div className="glass-card" style={{ padding: '18px 16px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706', marginBottom: '12px' }}>
-                  <Layers size={20} />
-                </div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px' }}>{copy.pillar3Title}</h4>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  {copy.pillar3Desc}
-                </p>
-              </div>
-
-              <div className="glass-card" style={{ padding: '18px 16px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', marginBottom: '12px' }}>
-                  <Globe size={20} />
-                </div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px' }}>{copy.pillar4Title}</h4>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  {copy.pillar4Desc}
-                </p>
-              </div>
-            </div>
 
             {/* Quick Demo Bypass */}
             <div style={{ marginTop: '32px' }}>

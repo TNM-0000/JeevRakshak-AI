@@ -235,7 +235,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
               }}
             >
               <Plus size={18} />
-              <span>{language === 'mr' ? 'नवीन तपासणी नोंदवा' : language === 'hi' ? 'नई केस रिपोर्ट' : 'New Clinical Report'}</span>
+              <span>{language === 'mr' ? 'नवीन तपासणी नोंदवा' : language === 'hi' ? 'नई केस रिपोर्ट' : 'Log Clinical Visit'}</span>
             </button>
           )}
 
