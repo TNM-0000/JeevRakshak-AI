@@ -58,6 +58,8 @@ import {
 } from 'lucide-react';
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
+import { VetIVRMonitor } from '@/components/VetIVRMonitor';
+import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
 
 
 interface VetDashboardProps {
@@ -85,7 +87,8 @@ export type VetModuleTab =
   | 'analytics'
   | 'reports'
   | 'notifications'
-  | 'profile';
+  | 'profile'
+  | 'ivr_cases';
 
 export const VetDashboard: React.FC<VetDashboardProps> = ({
   onEditHospitalSetup,
@@ -135,6 +138,9 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const [diseaseAlerts, setDiseaseAlerts] = useState<DiseaseAlert[]>([]);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [isTriggeringScheduler, setIsTriggeringScheduler] = useState(false);
+  const [showIVRPhone, setShowIVRPhone] = useState(false);
+  const [ivrPhoneTarget, setIvrPhoneTarget] = useState<string>('');
+
 
   // Action toast / feedback banner
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -421,6 +427,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
     { id: 'reports', label: language === 'mr' ? 'अहवाल निर्यात' : language === 'hi' ? 'रिपोर्ट्स केंद्र' : 'Reports Center', icon: Download },
     { id: 'notifications', label: language === 'mr' ? 'सूचना केंद्र' : language === 'hi' ? 'अधिसूचनाएं' : 'Notifications', icon: BadgeAlert },
     { id: 'profile', label: language === 'mr' ? 'माझे प्रोफाइल' : language === 'hi' ? 'डॉक्टर प्रोफ़ाइल' : 'Doctor Profile', icon: UserCheck },
+    { id: 'ivr_cases', label: language === 'mr' ? 'IVR व्हॉइस डेस्क' : language === 'hi' ? 'IVR वॉयस डेस्क' : 'IVR Voice Desk', icon: Phone },
   ];
 
   return (
@@ -2389,6 +2396,18 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       )}
 
       {/* ========================================================================= */}
+      {/* MODULE 18: IVR VOICE DESK & TELE-CONSULTATION                             */}
+      {/* ========================================================================= */}
+      {activeTab === 'ivr_cases' && (
+        <VetIVRMonitor
+          onOpenPhoneSimulator={(phone) => {
+            setIvrPhoneTarget(phone || '');
+            setShowIVRPhone(true);
+          }}
+        />
+      )}
+
+      {/* ========================================================================= */}
       {/* MODAL 1: CLAIM INCOMING FARMER CASES                                      */}
       {/* ========================================================================= */}
       {showClaimModal && (
@@ -3011,6 +3030,16 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
         onClose={() => setShowPreferencesModal(false)}
         userId={doctorId}
       />
+
+      {/* IVR Phone Simulator Modal */}
+      {showIVRPhone && (
+        <IVRPhoneSimulator
+          isOpen={showIVRPhone}
+          onClose={() => setShowIVRPhone(false)}
+          initialCallerPhone={ivrPhoneTarget || undefined}
+        />
+      )}
+
     </div>
   );
 };

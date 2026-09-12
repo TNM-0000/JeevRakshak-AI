@@ -52,6 +52,8 @@ import {
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { AdminDiseaseAlertModal } from './notifications/AdminDiseaseAlertModal';
 import { NotificationHistoryTable } from './notifications/NotificationHistoryTable';
+import { GovernmentIVRAnalytics } from '@/components/GovernmentIVRAnalytics';
+
 
 export type GovCleanModule =
   | 'dashboard'
@@ -61,7 +63,8 @@ export type GovCleanModule =
   | 'resources'
   | 'reports'
   | 'users'
-  | 'settings';
+  | 'settings'
+  | 'ivr';
 
 interface GovernmentOfficialDashboardProps {
   activeModule?: GovCleanModule;
@@ -1486,6 +1489,23 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9. DEDICATED MODULE: IVR VOICE SURVEILLANCE & GRIEVANCES                  */}
+      {/* ========================================================================= */}
+      {activeModule === 'ivr' && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '24px',
+            border: '1px solid rgba(82, 183, 136, 0.25)',
+            boxShadow: '0 4px 20px rgba(45, 106, 79, 0.05)',
+          }}
+        >
+          <GovernmentIVRAnalytics />
         </div>
       )}
 

@@ -206,7 +206,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'Next action',
       roleSwitcher: 'Switch Role (Demonstration)',
       switchRoleNotice: 'You are currently viewing as',
-      quickReport: 'Report Sick Animal',
+      quickReport: 'Register Animal',
     },
     reporting: {
       newReport: 'New Health Report',
@@ -370,7 +370,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'अगला कदम',
       roleSwitcher: 'भूमिका बदलें (डेमो)',
       switchRoleNotice: 'आप इस रूप में देख रहे हैं:',
-      quickReport: 'बीमार पशु की रिपोर्ट करें',
+      quickReport: 'पशु पंजीकृत करें',
     },
     reporting: {
       newReport: 'नई स्वास्थ्य रिपोर्ट',
@@ -534,7 +534,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'पुढील कृती',
       roleSwitcher: 'भूमिका बदला (डेमो)',
       switchRoleNotice: 'तुम्ही सध्या या भूमिकेत आहात:',
-      quickReport: 'आजारी जनावराची नोंद करा',
+      quickReport: 'पशू नोंदणी करा',
     },
     reporting: {
       newReport: 'नवीन आरोग्य अहवाल',

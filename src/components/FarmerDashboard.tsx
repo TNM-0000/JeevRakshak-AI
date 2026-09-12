@@ -23,9 +23,14 @@ import {
   Bell,
   ShieldAlert,
   Syringe,
+  Phone,
+  Plus,
+  X,
 } from 'lucide-react';
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
+import { IVRPhoneSimulator } from '@/components/IVRPhoneSimulator';
+
 
 interface FarmerDashboardProps {
   onSelectAnimal: (animalId: string) => void;
@@ -47,7 +52,54 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [farmName, setFarmName] = useState<string>('');
   const [diseaseAlerts, setDiseaseAlerts] = useState<DiseaseAlert[]>([]);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [regTagNumber, setRegTagNumber] = useState('');
+  const [regSpecies, setRegSpecies] = useState('Cattle');
+  const [regBreed, setRegBreed] = useState('Gir');
+  const [regSex, setRegSex] = useState<'female' | 'male'>('female');
+  const [regDob, setRegDob] = useState('2023-01-01');
+  const [regSubmitting, setRegSubmitting] = useState(false);
+
   const currentUser = dataService.getCurrentUser();
+
+  const handleRegisterAnimal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regTagNumber.trim()) return;
+    setRegSubmitting(true);
+
+    try {
+      const userHerds = await dataService.getHerds();
+      let targetHerdId = userHerds[0]?.id;
+      if (!targetHerdId && currentUser) {
+        const newHerd = await dataService.createHerd({
+          name: currentUser.full_name ? `${currentUser.full_name}'s Farm` : 'My Livestock Farm',
+          owner_profile_id: currentUser.id,
+          location_id: currentUser.location_id || '1',
+        });
+        targetHerdId = newHerd.id;
+      }
+
+      await dataService.createAnimal({
+        herd_id: targetHerdId || (currentUser ? `herd-${currentUser.id}` : 'herd-default'),
+        tag_number: regTagNumber.trim().toUpperCase(),
+        species: regSpecies,
+        breed: regBreed,
+        sex: regSex,
+        date_of_birth: regDob,
+      });
+
+      const updatedAnimals = await dataService.getAnimals();
+      setAnimals(updatedAnimals);
+      setShowRegisterModal(false);
+      setRegTagNumber('');
+    } catch (err) {
+      console.error('Failed to register animal:', err);
+    } finally {
+      setRegSubmitting(false);
+    }
+  };
+
 
   // The name of the farmer should be displayed at [Farmer Name]'s Farm
   const defaultFarmName =
@@ -132,7 +184,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => setShowPreferencesModal(true)}
@@ -154,6 +206,23 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <span>Alerts & SMS</span>
           </button>
           <button
+            type="button"
+            onClick={() => setShowRegisterModal(true)}
+            className="btn-primary"
+            style={{
+              padding: "8px 18px",
+              fontSize: "0.85rem",
+              borderRadius: "var(--radius-full)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontWeight: 700,
+            }}
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
+          </button>
+          <button
             onClick={onOpenReport}
             className="btn-primary"
             style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
@@ -161,6 +230,81 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             {t.dashboard.quickReport}
           </button>
         </div>
+      </div>
+
+      {/* Rural Alternative Access Channel - Toll Free IVR */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '20px 24px',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 4px 15px rgba(45, 106, 79, 0.2)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#52b788',
+            }}
+          >
+            <Phone size={22} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.74rem', background: '#52b788', color: '#1b4332', padding: '2px 8px', borderRadius: '12px', fontWeight: 800 }}>
+                {language === 'mr' ? 'मोफत टोल-फ्री हेल्पलाइन' : language === 'hi' ? 'टोल-फ्री हेल्पलाइन' : 'TOLL FREE 24x7'}
+              </span>
+              <span style={{ fontSize: '0.75rem', color: '#a7f3d0' }}>
+                {language === 'mr' ? 'इंटरनेट नसतानाही उपयुक्त' : language === 'hi' ? 'बिना इंटरनेट के भी उपलब्ध' : 'Works without internet'}
+              </span>
+            </div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, marginTop: '2px' }}>
+              1800-120-JEEV (1800-120-5338)
+            </div>
+            <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#d1fae5' }}>
+              {language === 'mr'
+                ? 'कोणत्याही साध्या फोनवरून कॉल करा, मराठी, हिंदी किंवा इंग्रजीत बोला आणि तत्काळ मार्गदर्शन मिळवा.'
+                : language === 'hi'
+                ? 'किसी भी सामान्य फोन से कॉल करें, अपनी भाषा में बोलें और तत्काल प्राथमिक उपचार सलाह प्राप्त करें।'
+                : 'Dial from any feature phone, speak symptoms in Hindi, Marathi or English, and get immediate AI triage.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowPhoneSimulator(true)}
+          style={{
+            background: '#52b788',
+            color: '#1b4332',
+            border: 'none',
+            padding: '10px 18px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.84rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(82, 183, 136, 0.4)',
+          }}
+        >
+          <Phone size={15} />
+          <span>{language === 'mr' ? 'फोन डायल करा' : language === 'hi' ? 'कॉल लगाएं' : 'Dial Helpline Now'}</span>
+        </button>
       </div>
 
       {/* Main Stability Status Card (Matching Wireframe Screen 6) */}
@@ -610,6 +754,146 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         userId={currentUser?.id || 'demo-farmer-1'}
         onClose={() => setShowPreferencesModal(false)}
       />
+
+      {/* Register Animal Modal */}
+      {showRegisterModal && (
+        <div className="modal-backdrop" onClick={() => setShowRegisterModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px", width: "100%", borderRadius: "24px", padding: "28px 24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <div>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, color: "var(--text-main)" }}>
+                  {language === 'mr' ? 'नवीन पशू नोंदणी' : language === 'hi' ? 'नया पशु पंजीकृत करें' : 'Register Animal'}
+                </h3>
+                <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
+                  {language === 'mr' ? 'आपल्या कळपात नवीन पशुधन जोडा' : language === 'hi' ? 'अपने झुंड में नया पशु जोड़ें' : 'Add livestock to your personal herd registry'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(false)}
+                style={{ background: "#f1f5f9", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-muted)" }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleRegisterAnimal} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                  {language === 'mr' ? 'टॅग क्रमांक (RFID / INAPH)' : language === 'hi' ? 'टैग नंबर (RFID / INAPH)' : 'Ear Tag Number (RFID / INAPH)'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. IN-9824-7102"
+                  value={regTagNumber}
+                  onChange={(e) => setRegTagNumber(e.target.value)}
+                  className="form-input"
+                  style={{ height: "44px", borderRadius: "12px" }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                    {language === 'mr' ? 'प्रजाती' : language === 'hi' ? 'प्रजाति' : 'Species'}
+                  </label>
+                  <select
+                    value={regSpecies}
+                    onChange={(e) => setRegSpecies(e.target.value)}
+                    className="form-select"
+                    style={{ height: "44px", borderRadius: "12px" }}
+                  >
+                    <option value="Cattle">{language === 'mr' ? 'गाय / बैल (Cattle)' : language === 'hi' ? 'गाय / बैल (Cattle)' : 'Cattle (Cow / Bull)'}</option>
+                    <option value="Buffalo">{language === 'mr' ? 'म्हैस (Buffalo)' : language === 'hi' ? 'भैंस (Buffalo)' : 'Buffalo'}</option>
+                    <option value="Goat">{language === 'mr' ? 'शेळी (Goat)' : language === 'hi' ? 'बकरी (Goat)' : 'Goat'}</option>
+                    <option value="Sheep">{language === 'mr' ? 'मेंढी (Sheep)' : language === 'hi' ? 'भेड़ (Sheep)' : 'Sheep'}</option>
+                    <option value="Camel">{language === 'mr' ? 'उंट (Camel)' : language === 'hi' ? 'ऊंट (Camel)' : 'Camel'}</option>
+                    <option value="Horse">{language === 'mr' ? 'घोडा / खच्चर (Horse / Equine)' : language === 'hi' ? 'घोड़ा / खच्चर (Horse / Equine)' : 'Horse / Equine'}</option>
+                    <option value="Pig">{language === 'mr' ? 'डुक्कर (Pig / Swine)' : language === 'hi' ? 'सूअर (Pig / Swine)' : 'Pig / Swine'}</option>
+                    <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken / Duck)'}</option>
+                    <option value="Yak">{language === 'mr' ? 'याक / मिथुन (Yak / Mithun)' : language === 'hi' ? 'याक / मिथुन (Yak / Mithun)' : 'Yak / Mithun'}</option>
+                    <option value="Donkey">{language === 'mr' ? 'गाढव (Donkey)' : language === 'hi' ? 'गधा (Donkey)' : 'Donkey'}</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                    {language === 'mr' ? 'जात' : language === 'hi' ? 'नस्ल' : 'Breed'}
+                  </label>
+                  <input
+                    type="text"
+                    value={regBreed}
+                    onChange={(e) => setRegBreed(e.target.value)}
+                    placeholder="e.g. Gir, Murrah"
+                    className="form-input"
+                    style={{ height: "44px", borderRadius: "12px" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                    {language === 'mr' ? 'लिंग' : language === 'hi' ? 'लिंग' : 'Sex'}
+                  </label>
+                  <select
+                    value={regSex}
+                    onChange={(e) => setRegSex(e.target.value as 'female' | 'male')}
+                    className="form-select"
+                    style={{ height: "44px", borderRadius: "12px" }}
+                  >
+                    <option value="female">{language === 'mr' ? 'मादी (Female)' : language === 'hi' ? 'मादा (Female)' : 'Female'}</option>
+                    <option value="male">{language === 'mr' ? 'नर (Male)' : language === 'hi' ? 'नर (Male)' : 'Male'}</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                    {language === 'mr' ? 'जन्म तारीख' : language === 'hi' ? 'जन्म तिथि' : 'Date of Birth'}
+                  </label>
+                  <input
+                    type="date"
+                    value={regDob}
+                    onChange={(e) => setRegDob(e.target.value)}
+                    className="form-input"
+                    style={{ height: "44px", borderRadius: "12px" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterModal(false)}
+                  className="btn-secondary"
+                  style={{ flex: 1, height: "44px", borderRadius: "12px" }}
+                >
+                  {language === 'mr' ? 'रद्द करा' : language === 'hi' ? 'रद्द करें' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={regSubmitting || !regTagNumber.trim()}
+                  className="btn-primary"
+                  style={{ flex: 1.5, height: "44px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                  <span>{regSubmitting ? '...' : (language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal')}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* IVR Phone Simulator Modal */}
+      {showPhoneSimulator && (
+        <IVRPhoneSimulator
+          isOpen={showPhoneSimulator}
+          onClose={() => setShowPhoneSimulator(false)}
+        />
+      )}
+
     </div>
   );
 };

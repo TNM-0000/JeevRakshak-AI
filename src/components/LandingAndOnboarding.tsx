@@ -668,16 +668,17 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       {/* Top Navbar */}
       <header
         style={{
-          background: 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--border-subtle)',
+          background: 'transparent',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
           padding: '12px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           position: 'sticky',
           top: 0,
-          zIndex: 30,
+          zIndex: 40,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1235,7 +1236,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
           </div>
 
           {/* 2. HERO PAGE HEADER */}
-          <div style={{ maxWidth: '1280px', width: '100%', margin: '28px auto 0', padding: '0 24px' }}>
+          <div style={{ maxWidth: '680px', width: '100%', margin: '28px auto 0', padding: '0 20px' }}>
             <div
               style={{
                 display: 'inline-flex',
@@ -1272,28 +1273,22 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
             </p>
           </div>
 
-          {/* 3. TWO-COLUMN RESPONSIVE LAYOUT */}
+          {/* 3. CLEAN SINGLE-COLUMN REGISTRATION FORM */}
           <div
             style={{
-              maxWidth: '1280px',
+              maxWidth: '680px',
               width: '100%',
               margin: '24px auto 60px',
-              padding: '0 24px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '28px',
-              alignItems: 'flex-start',
+              padding: '0 20px',
             }}
           >
-            {/* LEFT COLUMN: COMPREHENSIVE REGISTRATION FORM */}
             <div
               style={{
-                flex: '1 1 680px',
-                minWidth: '320px',
+                width: '100%',
                 background: '#ffffff',
                 borderRadius: '24px',
                 border: '1px solid #e2e8f0',
-                padding: '36px 36px',
+                padding: '36px 32px',
                 boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
               }}
             >
@@ -1492,59 +1487,30 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   </div>
 
                   {selectedRole === 'farmer' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 600,
-                              background: '#f1f5f9',
-                              color: 'var(--text-muted)',
-                              padding: '1px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {copy.optionalBadge}
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder={copy.farmNamePlaceholder}
-                          value={farmName}
-                          onChange={(e) => setFarmName(e.target.value)}
-                          className="form-input"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        />
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 600,
+                            background: '#f1f5f9',
+                            color: 'var(--text-muted)',
+                            padding: '1px 8px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {copy.optionalBadge}
+                        </span>
                       </div>
-
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.livestockCount}</label>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 600,
-                              background: '#f1f5f9',
-                              color: 'var(--text-muted)',
-                              padding: '1px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {copy.optionalBadge}
-                          </span>
-                        </div>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder={copy.livestockPlaceholder}
-                          value={herdSize}
-                          onChange={(e) => setHerdSize(e.target.value)}
-                          className="form-input"
-                          style={{ height: '44px', borderRadius: '10px' }}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder={copy.farmNamePlaceholder}
+                        value={farmName}
+                        onChange={(e) => setFarmName(e.target.value)}
+                        className="form-input"
+                        style={{ height: '44px', borderRadius: '10px' }}
+                      />
                     </div>
                   )}
 
@@ -1832,189 +1798,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   </div>
                 </div>
               </form>
-            </div>
-
-            {/* RIGHT COLUMN: PROFILE DOSSIER & JURISDICTION SUMMARY */}
-            <div style={{ flex: '1 1 360px', maxWidth: '440px', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* CARD 1: SELECTED ROLE & ACCOUNT PROFILE */}
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  border: '1px solid #e2e8f0',
-                  padding: '24px',
-                  boxShadow: '0 4px 15px -2px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '12px',
-                        background: '#ecfdf5',
-                        color: '#065f46',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.25rem',
-                      }}
-                    >
-                      {selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {selectedRole === 'farmer'
-                          ? copy.roles.farmer.title
-                          : selectedRole === 'veterinarian'
-                          ? copy.roles.veterinarian.title
-                          : copy.roles.government.title}
-                      </h4>
-                      <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
-                        {copy.selectedRoleCardTitle || 'Selected Registration Role'}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOnboardingStep(2);
-                      setErrorMsg(null);
-                    }}
-                    style={{
-                      background: '#f1f5f9',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '5px 12px',
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {copy.changeRoleBtn || 'Change Role'}
-                  </button>
-                </div>
-
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    border: '1px solid #f1f5f9',
-                    fontSize: '0.8rem',
-                    color: 'var(--text-muted)',
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {selectedRole === 'farmer'
-                    ? copy.roles.farmer.desc
-                    : selectedRole === 'veterinarian'
-                    ? copy.roles.veterinarian.desc
-                    : copy.roles.government.desc}
-                </div>
-              </div>
-
-              {/* CARD 2: ROLE ENTITLEMENTS & UNLOCKED TOOLS */}
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  border: '1px solid #e2e8f0',
-                  padding: '24px',
-                  boxShadow: '0 4px 15px -2px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '10px',
-                      background: '#ecfdf5',
-                      color: '#065f46',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.1rem',
-                    }}
-                  >
-                    {selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                      {copy.rolePrivilegesTitle || 'Role Privileges & Access Scope'}
-                    </h4>
-                    <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
-                      {selectedRole.toUpperCase()} • Immediate system entitlements
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {(selectedRole === 'farmer'
-                    ? [
-                        { icon: '🩺', title: 'AI Symptom Scanner', desc: 'Instant disease risk triage in English, Hindi & Marathi' },
-                        { icon: '📍', title: '15km Outbreak Alert', desc: 'Real-time contagious alerts in your taluka' },
-                        { icon: '📋', title: 'Livestock Health Passport', desc: 'Digital vaccination tracker & medical history' },
-                        { icon: '📞', title: '1962 Veterinary SOS', desc: 'One-touch emergency mobile clinic dispatch' },
-                      ]
-                    : selectedRole === 'veterinarian'
-                    ? [
-                        { icon: '🏥', title: 'Clinical Triage Queue', desc: 'Review, prioritize and respond to incoming livestock cases' },
-                        { icon: '🔬', title: 'Diagnostic Lab Orders', desc: 'Digital requisition and specimen tracking' },
-                        { icon: '💊', title: 'Prescription Records', desc: 'Standardized pharmacological regimens' },
-                        { icon: '⚡', title: 'Surveillance Escalation', desc: 'Direct alert channel to DAHO & state epidemiologists' },
-                      ]
-                    : [
-                        { icon: '🗺️', title: 'Geospatial Outbreak Heatmaps', desc: 'Village and taluka-level clustering at 50m resolution' },
-                        { icon: '📊', title: 'Surveillance Analytics', desc: 'Prevalence rates, mortality indices & vaccine coverage' },
-                        { icon: '📄', title: 'Official PDF Reports', desc: 'Exportable clinical dossiers and audit records' },
-                        { icon: '🛡️', title: 'Containment SOPs', desc: 'Quarantine zones, checkpoints & ring vaccination protocols' },
-                      ]
-                  ).map((feat, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '10px',
-                        padding: '8px 10px',
-                        background: '#f8fafc',
-                        borderRadius: '10px',
-                      }}
-                    >
-                      <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '1px' }}>{feat.icon}</span>
-                      <div>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>{feat.title}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{feat.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* CARD 3: REGULATORY COMPLIANCE & DATA SECURITY */}
-              <div
-                style={{
-                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-                  borderRadius: '20px',
-                  border: '1px solid #bbf7d0',
-                  padding: '20px 24px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#166534' }}>
-                  <Shield size={18} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>
-                    {copy.govSecurityTitle || 'National Animal Disease Security'}
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.74rem', color: '#166534', lineHeight: 1.4, margin: 0 }}>
-                  {copy.govSecurityDesc || 'Protected by 256-bit encryption under National Animal Disease Control Programme (NADCP) and State Animal Husbandry Guidelines.'}
-                </p>
-              </div>
             </div>
           </div>
         </div>
