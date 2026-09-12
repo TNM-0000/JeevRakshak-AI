@@ -150,6 +150,12 @@ export interface RegisteredAccount {
   password: string;
   role: UserRole;
   full_name: string;
+  farm_name?: string;
+  district?: string;
+  block?: string;
+  village?: string;
+  state?: string;
+  herd_size?: number;
 }
 
 class LocalStore {
@@ -161,6 +167,11 @@ class LocalStore {
       password: 'Farmer@123',
       role: 'farmer',
       full_name: 'Suresh Rambhau Shinde',
+      farm_name: "Suresh Rambhau Shinde's Farm",
+      district: 'Pune',
+      block: 'Shirur',
+      village: 'Shirapur',
+      state: 'Maharashtra',
     },
     {
       id: 'demo-vet-1',
@@ -621,9 +632,15 @@ export const dataService = {
     role: UserRole;
     location_id?: string;
     farm_name?: string;
+    district?: string;
+    block?: string;
+    village?: string;
+    state?: string;
+    herd_size?: number;
   }): Promise<{ profile: Profile; error?: string }> {
     let profileId = generateUUID();
     const cleanPhone = params.phone.replace(/[^0-9]/g, '');
+    const farmerFarmName = `${params.full_name}'s Farm`;
 
     // 1. Try Supabase Auth
     try {
@@ -650,7 +667,13 @@ export const dataService = {
       id: profileId,
       full_name: params.full_name,
       phone: params.phone,
+      email: params.email?.trim() || undefined,
       location_id: params.location_id || null,
+      district: params.district,
+      block: params.block,
+      village: params.village,
+      state: params.state || 'Maharashtra',
+      farm_name: farmerFarmName,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -681,7 +704,7 @@ export const dataService = {
     localStore.currentRole = params.role;
     localStore.onboardingDone = true;
 
-    // Track registered user account for strict credential matching
+    // Track registered user account for strict credential matching and preserving signup data
     const registeredAccount: RegisteredAccount = {
       id: profileId,
       phone: cleanPhone,
@@ -689,15 +712,21 @@ export const dataService = {
       password: params.password.trim(),
       role: params.role,
       full_name: params.full_name.trim(),
+      farm_name: farmerFarmName,
+      district: params.district,
+      block: params.block,
+      village: params.village,
+      state: params.state || 'Maharashtra',
+      herd_size: params.herd_size,
     };
     localStore.registeredAccounts = localStore.registeredAccounts.filter(
       (a) => a.phone !== cleanPhone && (!params.email || a.email !== params.email.trim())
     );
     localStore.registeredAccounts.unshift(registeredAccount);
 
-    // 3. If farmer, create herd in Supabase
+    // 3. If farmer, create herd in Supabase & localStore titled "[Farmer Name]'s Farm"
     if (params.role === 'farmer') {
-      const herdName = params.farm_name?.trim() || `${params.full_name}'s Livestock Farm`;
+      const herdName = farmerFarmName;
       await this.createHerd({
         owner_profile_id: profileId,
         name: herdName,
@@ -761,15 +790,41 @@ export const dataService = {
       if (!error && data?.user) {
         const profileId = data.user.id;
         const profileRole = (data.user.user_metadata?.role as UserRole) || 'farmer';
+        const matched = localStore.registeredAccounts.find(
+          (acc) => acc.id === profileId || (acc.email && acc.email.toLowerCase() === authEmail.toLowerCase())
+        );
+        const resolvedName = matched?.full_name || data.user.user_metadata?.full_name || 'Livestock Owner';
         const profile: Profile = {
           id: profileId,
-          full_name: data.user.user_metadata?.full_name || 'Livestock Owner',
-          phone: data.user.user_metadata?.phone || cleanLogin,
+          full_name: resolvedName,
+          phone: matched?.phone || data.user.user_metadata?.phone || cleanLogin,
+          email: matched?.email || authEmail,
           location_id: null,
+          district: matched?.district,
+          block: matched?.block,
+          village: matched?.village,
+          state: matched?.state || 'Maharashtra',
+          farm_name: `${resolvedName}'s Farm`,
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+        if (profileRole === 'farmer') {
+          const herdTitle = `${resolvedName}'s Farm`;
+          const existingHerd = localStore.herds.find((h) => h.owner_profile_id === profileId);
+          if (existingHerd) {
+            existingHerd.name = herdTitle;
+          } else {
+            localStore.herds.unshift({
+              id: `herd-${profileId}`,
+              owner_profile_id: profileId,
+              name: herdTitle,
+              location_id: '1',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+        }
         localStore.currentUser = profile;
         localStore.currentRole = profileRole;
         localStore.onboardingDone = true;
@@ -797,13 +852,46 @@ export const dataService = {
             id: matched.id,
             full_name: matched.full_name,
             phone: matched.phone,
+            email: matched.email,
             location_id: null,
+            district: matched.district,
+            block: matched.block,
+            village: matched.village,
+            state: matched.state || 'Maharashtra',
+            farm_name: `${matched.full_name}'s Farm`,
             is_active: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
           localStore.profiles.unshift(profile);
+        } else {
+          profile.full_name = matched.full_name;
+          if (matched.email) profile.email = matched.email;
+          if (matched.district) profile.district = matched.district;
+          if (matched.block) profile.block = matched.block;
+          if (matched.village) profile.village = matched.village;
+          if (matched.state) profile.state = matched.state;
+          profile.farm_name = `${matched.full_name}'s Farm`;
         }
+
+        // Ensure user's herd is titled with farmer's name's farm
+        if (matched.role === 'farmer') {
+          const herdTitle = `${matched.full_name}'s Farm`;
+          const userHerd = localStore.herds.find((h) => h.owner_profile_id === profile!.id);
+          if (userHerd) {
+            userHerd.name = herdTitle;
+          } else {
+            localStore.herds.unshift({
+              id: `herd-${matched.id}`,
+              owner_profile_id: profile.id,
+              name: herdTitle,
+              location_id: profile.location_id || '1',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+        }
+
         localStore.currentUser = profile;
         localStore.currentRole = matched.role;
         localStore.onboardingDone = true;
@@ -851,13 +939,30 @@ export const dataService = {
         query = query.eq('owner_profile_id', activeOwnerId);
       }
       const { data, error } = await query;
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         return data as Herd[];
       }
     } catch {
       // ignore
     }
-    return activeOwnerId ? localStore.herds.filter((h) => h.owner_profile_id === activeOwnerId) : localStore.herds;
+    const filtered = activeOwnerId ? localStore.herds.filter((h) => h.owner_profile_id === activeOwnerId) : localStore.herds;
+    if (filtered.length > 0) {
+      return filtered;
+    }
+    if (localStore.currentUser && localStore.currentRole === 'farmer') {
+      const synthHerd: Herd = {
+        id: `herd-${localStore.currentUser.id}`,
+        owner_profile_id: localStore.currentUser.id,
+        name: `${localStore.currentUser.full_name}'s Farm`,
+        location_id: localStore.currentUser.location_id || '1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      localStore.herds.unshift(synthHerd);
+      localStore.save();
+      return [synthHerd];
+    }
+    return [];
   },
 
   async createHerd(herd: Omit<Herd, 'id'>): Promise<Herd> {

@@ -97,7 +97,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
     loadData();
   };
 
-  const currentHerdName = herds[0]?.name || (dataService.getCurrentUser()?.full_name ? `${dataService.getCurrentUser()?.full_name}'s Dairy` : (language === 'mr' ? 'माझा पशू कळप' : language === 'hi' ? 'मेरा पशु झुंड' : 'My Livestock Herd'));
+  const currentHerdName = herds[0]?.name || (dataService.getCurrentUser()?.full_name ? `${dataService.getCurrentUser()?.full_name}'s Farm` : (language === 'mr' ? 'माझा पशू कळप' : language === 'hi' ? 'मेरा पशु झुंड' : 'My Livestock Herd'));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

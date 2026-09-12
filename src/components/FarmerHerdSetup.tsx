@@ -17,6 +17,7 @@ import {
   Heart,
   Calendar,
   ShieldCheck,
+  Shield,
   X,
 } from 'lucide-react';
 
@@ -221,7 +222,9 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
   const copy = translations[language] || translations.mr;
 
   const currentUser = dataService.getCurrentUser();
-  const defaultFarmName = currentUser?.full_name ? `${currentUser.full_name}'s Dairy` : '';
+  const defaultFarmName = currentUser?.full_name
+    ? (language === 'mr' ? `${currentUser.full_name} यांचे फार्म` : language === 'hi' ? `${currentUser.full_name} का फार्म` : `${currentUser.full_name}'s Farm`)
+    : '';
 
   const [farmName, setFarmName] = useState(defaultFarmName);
   const [loading, setLoading] = useState(false);
@@ -322,8 +325,9 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
     setLoading(true);
 
     try {
+      const finalHerdName = farmName.trim() || (currentUser?.full_name ? `${currentUser.full_name}'s Farm` : 'My Livestock Farm');
       await dataService.saveHerdWithAnimals({
-        herdName: farmName.trim() || `${currentUser?.full_name || 'My'} Livestock Herd`,
+        herdName: finalHerdName,
         animals: animals.map((a) => ({
           tag_number: a.tag_number.trim() || `TAG-${Date.now()}`,
           name: a.name.trim(),
@@ -353,80 +357,41 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'linear-gradient(145deg, #09261d 0%, #03140f 100%)',
-        color: 'var(--text-main)',
-        position: 'relative',
-        padding: '20px 14px 40px',
-      }}
-    >
-      {/* Background glow effects */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '5%',
-          left: '10%',
-          width: '380px',
-          height: '380px',
-          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          borderRadius: '50%',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '10%',
-          right: '8%',
-          width: '420px',
-          height: '420px',
-          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          borderRadius: '50%',
-        }}
-      />
-
-      {/* Official Government Top Header */}
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
+      {/* Top Navbar matching Login Page */}
       <header
         style={{
+          background: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border-subtle)',
+          padding: '12px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          maxWidth: '820px',
-          width: '100%',
-          margin: '0 auto 20px',
-          padding: '12px 18px',
-          borderRadius: '16px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #f97316 0%, #059669 100%)',
+              background: 'var(--primary-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              fontWeight: 900,
-              fontSize: '1.1rem',
-              boxShadow: '0 2px 8px rgba(5,150,105,0.3)',
+              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
             }}
           >
-            JR
+            <Shield size={20} strokeWidth={2.4} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-main)' }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
                 JeevRakshak AI
               </span>
               <span
@@ -480,22 +445,17 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
       </header>
 
       {/* Main Container Card (matching login & onboarding modal design) */}
-      <main
-        style={{
-          maxWidth: '820px',
-          width: '100%',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 1,
-        }}
-      >
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '24px 16px 48px' }}>
         <div
           className="modal-card"
           style={{
+            maxWidth: '720px',
+            width: '100%',
             padding: '28px 24px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-            borderRadius: '20px',
+            boxShadow: 'var(--shadow-lg)',
+            borderRadius: 'var(--radius-xl)',
+            background: '#ffffff',
+            border: '1px solid var(--border-subtle)',
           }}
         >
           {/* Card Top Pill Badge & Skip Button */}
@@ -1042,7 +1002,7 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
             </div>
           </form>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

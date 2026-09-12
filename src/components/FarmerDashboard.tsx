@@ -42,6 +42,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   const [farmName, setFarmName] = useState<string>('');
   const currentUser = dataService.getCurrentUser();
 
+  // The name of the farmer should be displayed at [Farmer Name]'s Farm
   const defaultFarmName =
     language === 'mr'
       ? (currentUser?.full_name ? `${currentUser.full_name} यांचे फार्म` : 'माझे पशुधन फार्म')
@@ -51,7 +52,10 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
 
   useEffect(() => {
     dataService.getHerds().then((herds) => {
-      if (herds.length > 0 && herds[0].name) {
+      // Prioritize the farmer's name entered during signup: "[Farmer's Name]'s Farm"
+      if (currentUser?.full_name) {
+        setFarmName(defaultFarmName);
+      } else if (herds.length > 0 && herds[0].name) {
         setFarmName(herds[0].name);
       } else {
         setFarmName(defaultFarmName);
@@ -64,6 +68,14 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
     });
   }, [currentUser, language, defaultFarmName]);
 
+  const locationLabel = currentUser?.district
+    ? `${currentUser.state || (language === 'mr' ? 'महाराष्ट्र' : language === 'hi' ? 'महाराष्ट्र' : 'Maharashtra')} • ${currentUser.district}${currentUser.block ? ` (${currentUser.block})` : ''}`
+    : language === 'mr'
+    ? 'महाराष्ट्र • पुणे जिल्हा'
+    : language === 'hi'
+    ? 'महाराष्ट्र • पुणे जिला'
+    : 'Maharashtra • Pune District';
+
   const totalMonitored = animals.length;
   const criticalCount = animals.filter((a) => a.currentStatus === 'critical').length;
   const underTreatmentCount = animals.filter((a) => a.currentStatus === 'treatment').length;
@@ -75,7 +87,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>
             <MapPin size={14} />
-            <span>{language === 'mr' ? 'महाराष्ट्र • पुणे जिल्हा' : language === 'hi' ? 'महाराष्ट्र • पुणे जिला' : 'Maharashtra • Pune District'}</span>
+            <span>{locationLabel}</span>
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
         </div>

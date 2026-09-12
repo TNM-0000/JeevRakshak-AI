@@ -446,7 +446,12 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
       password: password.trim(),
       role: selectedRole,
       location_id: locationId,
-      farm_name: selectedRole === 'farmer' ? (farmName.trim() || undefined) : undefined,
+      farm_name: selectedRole === 'farmer' ? (farmName.trim() || `${fullName.trim()}'s Farm`) : undefined,
+      district: locationData.district || selectedDistrict || 'Pune',
+      block: locationData.block || selectedBlock || 'Shirur',
+      village: locationData.village || selectedVillage || 'Shirapur',
+      state: locationData.state || 'Maharashtra',
+      herd_size: herdSize ? parseInt(herdSize, 10) : undefined,
     });
 
     setLoading(false);
