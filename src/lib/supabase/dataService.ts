@@ -45,6 +45,8 @@ import {
   initialOutbreaks,
   initialNotifications,
 } from './seedData';
+import { DiseaseAlert, AlertStatus } from '@/types/notificationSystem';
+import { notificationService } from '@/lib/notifications/notificationService';
 
 import {
   getLocalizedField,
@@ -168,7 +170,50 @@ export interface RegisteredAccount {
   hospital_name?: string;
   employee_id?: string;
   designation?: string;
+  first_login_at?: string;
+  first_account_notif_sent?: boolean;
+  first_login_notif_sent?: boolean;
 }
+
+const initialDiseaseAlerts: DiseaseAlert[] = [
+  {
+    id: 'alert-fmd-pune-1',
+    disease_id: 'dis-1',
+    disease_name: 'Foot and Mouth Disease (FMD)',
+    region_level: 'block',
+    district: 'Pune',
+    block: 'Shirur',
+    village: 'Shirapur',
+    risk_level: 'high',
+    case_count: 4,
+    reported_date: new Date(Date.now() - 86400000).toISOString(),
+    alert_start_date: new Date(Date.now() - 86400000).toISOString(),
+    alert_expiry_date: new Date(Date.now() + 86400000 * 14).toISOString(),
+    recommended_action: 'Isolate affected cattle immediately, apply 4% sodium carbonate footbaths, and initiate ring vaccination within 5km radius.',
+    source_authority: 'District Animal Husbandry Office, Pune',
+    status: 'active',
+    target_audience: 'both',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'alert-lsd-haveli-2',
+    disease_id: 'dis-2',
+    disease_name: 'Lumpy Skin Disease (LSD)',
+    region_level: 'block',
+    district: 'Pune',
+    block: 'Haveli',
+    risk_level: 'moderate',
+    case_count: 2,
+    reported_date: new Date(Date.now() - 86400000 * 2).toISOString(),
+    alert_start_date: new Date(Date.now() - 86400000 * 2).toISOString(),
+    alert_expiry_date: new Date(Date.now() + 86400000 * 10).toISOString(),
+    recommended_action: 'Control vector ticks and biting flies with cypermethrin spray. Restrict cattle movement across taluka borders.',
+    source_authority: 'Taluka Veterinary Polyclinic, Haveli',
+    status: 'active',
+    target_audience: 'both',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+];
 
 class LocalStore {
   registeredAccounts: RegisteredAccount[] = [
@@ -233,6 +278,7 @@ class LocalStore {
   outbreaks: OutbreakEvent[] = [...initialOutbreaks];
   advisories: HealthAdvisory[] = [...initialAdvisories];
   notifications: AppNotification[] = [...initialNotifications];
+  diseaseAlerts: DiseaseAlert[] = [...initialDiseaseAlerts];
   currentRole: UserRole = 'farmer';
   currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
@@ -294,6 +340,13 @@ class LocalStore {
           this.notifications = [...initialNotifications];
         }
 
+        const savedAlerts = localStorage.getItem('jr_disease_alerts');
+        if (savedAlerts) {
+          this.diseaseAlerts = JSON.parse(savedAlerts);
+        } else {
+          this.diseaseAlerts = [...initialDiseaseAlerts];
+        }
+
         const savedRole = localStorage.getItem('jr_current_role') as UserRole;
         if (savedRole && (savedRole === 'farmer' || savedRole === 'veterinarian' || savedRole === 'government')) {
           this.currentRole = savedRole;
@@ -348,6 +401,7 @@ class LocalStore {
         localStorage.setItem('jr_escalations', JSON.stringify(this.caseEscalations));
         localStorage.setItem('jr_outbreaks', JSON.stringify(this.outbreaks));
         localStorage.setItem('jr_notifications', JSON.stringify(this.notifications));
+        localStorage.setItem('jr_disease_alerts', JSON.stringify(this.diseaseAlerts));
         localStorage.setItem('jr_current_role', this.currentRole);
         localStorage.setItem('jeevrakshak_lang', this.currentLanguage);
         if (this.currentUser) {
@@ -804,6 +858,31 @@ export const dataService = {
       is_read: false,
     }]);
 
+    // 5. FIRST-TIME ACCOUNT CREATION NOTIFICATION (SMS + EMAIL)
+    // Strictly idempotent: only triggers if not previously sent
+    if (!registeredAccount.first_account_notif_sent) {
+      registeredAccount.first_account_notif_sent = true;
+      newProfile.first_account_notif_sent = true;
+      notificationService.dispatch({
+        type: 'ACCOUNT_CREATED',
+        userId: profileId,
+        userName: params.full_name,
+        userPhone: cleanPhone,
+        userEmail: params.email?.trim() || undefined,
+        userRole: params.role,
+        region: [params.village, params.block, params.district].filter(Boolean).join(', ') || 'Maharashtra',
+        relatedEventId: `account_created_${profileId}`,
+        preferredChannels: ['sms', 'email'],
+        variables: {
+          user_name: params.full_name,
+          user_role: params.role === 'farmer' ? 'Farmer (पशुपालक)' : params.role === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+          region: params.district || 'Maharashtra',
+        },
+      }).catch((e) => console.warn('[AccountCreated Notification Exception]:', e));
+
+      dbUpdate('profiles', { first_account_notif_sent: true }, { id: profileId }).catch(() => {});
+    }
+
     localStore.save();
     return { profile: newProfile };
   },
@@ -873,9 +952,38 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
+
+        // Trigger Login Notification (SMS & Email)
+        const loginTime = new Date().toISOString();
+        const isFirst = !matched?.first_login_at && !matched?.first_login_notif_sent;
+        if (isFirst && matched) {
+          matched.first_login_at = loginTime;
+          matched.first_login_notif_sent = true;
+          profile.first_login_at = loginTime;
+          profile.first_login_notif_sent = true;
+        }
+
+        notificationService.dispatch({
+          type: 'FIRST_LOGIN',
+          userId: profile.id,
+          userName: profile.full_name,
+          userPhone: profile.phone || undefined,
+          userEmail: profile.email || undefined,
+          userRole: profileRole,
+          region: [profile.village, profile.block, profile.district].filter(Boolean).join(', ') || 'Maharashtra',
+          relatedEventId: isFirst ? `first_login_${profile.id}` : `login_${profile.id}_${Date.now()}`,
+          preferredChannels: ['sms', 'email'],
+          variables: {
+            user_name: profile.full_name,
+            user_role: profileRole === 'farmer' ? 'Farmer (पशुपालक)' : profileRole === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+            region: profile.district || 'Maharashtra',
+          },
+        }).catch((e) => console.warn('[Login Notification Exception]:', e));
+
         localStore.save();
         return { profile: { ...profile, role: profileRole } as any };
       }
+
     } catch {
       // ignore
     }
@@ -960,6 +1068,39 @@ export const dataService = {
             (localStore.currentUser as any).hospital_name = matched.hospital_name;
           }
         }
+
+        // SUCCESSFUL LOGIN NOTIFICATION (SMS + EMAIL)
+        const loginTime = new Date().toISOString();
+        const isFirstLogin = !matched.first_login_at && !matched.first_login_notif_sent;
+        if (isFirstLogin) {
+          matched.first_login_at = loginTime;
+          matched.first_login_notif_sent = true;
+          profile.first_login_at = loginTime;
+          profile.first_login_notif_sent = true;
+        }
+
+        notificationService.dispatch({
+          type: 'FIRST_LOGIN',
+          userId: profile.id,
+          userName: profile.full_name,
+          userPhone: profile.phone || undefined,
+          userEmail: profile.email || undefined,
+          userRole: matched.role,
+          region: [profile.village, profile.block, profile.district].filter(Boolean).join(', ') || 'Maharashtra',
+          relatedEventId: isFirstLogin ? `first_login_${profile.id}` : `login_${profile.id}_${Date.now()}`,
+          preferredChannels: ['sms', 'email'],
+          variables: {
+            user_name: profile.full_name,
+            user_role: matched.role === 'farmer' ? 'Farmer (पशुपालक)' : matched.role === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+            region: profile.district || 'Maharashtra',
+          },
+        }).catch((e) => console.warn('[FirstLogin Notification Exception]:', e));
+
+        if (isFirstLogin) {
+          dbUpdate('profiles', { first_login_at: loginTime, first_login_notif_sent: true }, { id: profile.id }).catch(() => {});
+        }
+
+
         localStore.save();
         return { profile: { ...profile, role: matched.role } as any };
       } else {
@@ -2396,5 +2537,93 @@ export const dataService = {
     this._saveDoctorStore(doctorId, store);
     return claimed;
   },
+
+  // 17. Regional Disease Alerts System
+  async getDiseaseAlerts(): Promise<DiseaseAlert[]> {
+    try {
+      const { data, error } = await supabase.from('disease_alerts').select('*');
+      if (!error && data && data.length > 0) {
+        return data as DiseaseAlert[];
+      }
+    } catch {
+      // ignore
+    }
+    return localStore.diseaseAlerts;
+  },
+
+  async createDiseaseAlert(alert: Omit<DiseaseAlert, 'id' | 'created_at' | 'status'>): Promise<DiseaseAlert> {
+    let alertId = `alert-${Date.now()}`;
+    const newAlert: DiseaseAlert = {
+      ...alert,
+      id: alertId,
+      status: 'active',
+      created_at: new Date().toISOString(),
+    };
+
+    const res = await dbInsert('disease_alerts', [{
+      disease_id: newAlert.disease_id,
+      disease_name: newAlert.disease_name,
+      region_level: newAlert.region_level,
+      district: newAlert.district,
+      block: newAlert.block || null,
+      village: newAlert.village || null,
+      risk_level: newAlert.risk_level,
+      case_count: newAlert.case_count,
+      reported_date: newAlert.reported_date,
+      alert_start_date: newAlert.alert_start_date,
+      alert_expiry_date: newAlert.alert_expiry_date,
+      recommended_action: newAlert.recommended_action,
+      source_authority: newAlert.source_authority,
+      status: newAlert.status,
+      target_audience: newAlert.target_audience,
+    }]);
+
+    if (res.data && res.data[0]) {
+      newAlert.id = String(res.data[0].id);
+    }
+
+    localStore.diseaseAlerts.unshift(newAlert);
+    localStore.save();
+    return newAlert;
+  },
+
+  async updateDiseaseAlertStatus(id: string, status: AlertStatus): Promise<DiseaseAlert | null> {
+    await dbUpdate('disease_alerts', { status, updated_at: new Date().toISOString() }, { id });
+    const item = localStore.diseaseAlerts.find((a) => a.id === id);
+    if (item) {
+      item.status = status;
+      item.updated_at = new Date().toISOString();
+      localStore.save();
+      return item;
+    }
+    return null;
+  },
+
+  async getAllProfiles(): Promise<Profile[]> {
+    const list = [...localStore.profiles];
+    for (const acc of localStore.registeredAccounts) {
+      if (!list.some((p) => p.id === acc.id || p.phone === acc.phone)) {
+        list.push({
+          id: acc.id,
+          full_name: acc.full_name,
+          phone: acc.phone,
+          email: acc.email,
+          location_id: null,
+          district: acc.district || 'Pune',
+          block: acc.block || 'Shirur',
+          village: acc.village || 'Shirapur',
+          state: acc.state || 'Maharashtra',
+          is_active: true,
+          hospital_name: acc.hospital_name,
+          license_number: acc.license_number,
+          first_login_at: acc.first_login_at,
+          first_account_notif_sent: acc.first_account_notif_sent,
+          first_login_notif_sent: acc.first_login_notif_sent,
+        });
+      }
+    }
+    return list;
+  },
 };
+
 

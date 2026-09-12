@@ -70,6 +70,9 @@ export interface Profile {
   hospital_district?: string;
   hospital_block?: string;
   emergency_phone?: string;
+  first_login_at?: string;
+  first_account_notif_sent?: boolean;
+  first_login_notif_sent?: boolean;
   created_at?: string;
   updated_at?: string;
 }
