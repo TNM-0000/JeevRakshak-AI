@@ -542,6 +542,7 @@ export class LocalStore {
   currentRole: UserRole = 'farmer';
   currentLanguage: AppLanguage = 'en';
   currentUser: Profile | null = null;
+  loggedInEmail: string | null = null;
   onboardingDone: boolean = false;
   herdSetupDone: boolean = false;
   vetHospitalSetupDone: boolean = false;
@@ -552,6 +553,9 @@ export class LocalStore {
         // Purge legacy mock data
         // Preserve user data across reloads
         localStorage.setItem('jr_clean_db_v3', 'true');
+
+        const savedEmail = localStorage.getItem('jr_logged_in_email');
+        if (savedEmail) this.loggedInEmail = savedEmail;
 
         const savedProfiles = localStorage.getItem('jr_profiles');
         if (savedProfiles) this.profiles = JSON.parse(savedProfiles);
@@ -784,6 +788,11 @@ export class LocalStore {
         } else {
           localStorage.removeItem('jr_current_user');
         }
+        if (this.loggedInEmail) {
+          localStorage.setItem('jr_logged_in_email', this.loggedInEmail);
+        } else {
+          localStorage.removeItem('jr_logged_in_email');
+        }
         localStorage.setItem('jr_onboarding_done', JSON.stringify(this.onboardingDone));
         localStorage.setItem('jr_herd_setup_done', JSON.stringify(this.herdSetupDone));
         localStorage.setItem('jr_vet_setup_done', JSON.stringify(this.vetHospitalSetupDone));
@@ -911,6 +920,9 @@ export const dataService = {
   },
 
   hasCompletedOnboarding(): boolean {
+    if (localStore.currentUser && (localStore.currentUser.email || localStore.loggedInEmail)) {
+      return true;
+    }
     if (localStore.onboardingDone && !localStore.currentUser) {
       const fallback: Profile = localStore.profiles[0] || {
         id: 'prof-local-farmer',
@@ -928,6 +940,21 @@ export const dataService = {
       localStore.save();
     }
     return localStore.onboardingDone && !!localStore.currentUser;
+  },
+
+  getLoggedInEmail(): string | null {
+    if (localStore.loggedInEmail) return localStore.loggedInEmail;
+    if (localStore.currentUser?.email) return localStore.currentUser.email;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('jr_logged_in_email') || null;
+    }
+    return null;
+  },
+
+  isEmailLoggedIn(): boolean {
+    const user = this.getCurrentUser();
+    const email = this.getLoggedInEmail();
+    return Boolean(email || (user && (user.email || user.phone)));
   },
 
   setOnboardingCompleted(completed: boolean) {
@@ -1099,9 +1126,19 @@ export const dataService = {
 
   signOut() {
     localStore.currentUser = null;
+    localStore.loggedInEmail = null;
     localStore.onboardingDone = false;
     localStore.herdSetupDone = false;
     localStore.vetHospitalSetupDone = false;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('jr_logged_in_email');
+        localStorage.removeItem('jr_current_user');
+        localStorage.removeItem('jr_onboarding_done');
+      } catch {
+        // ignore
+      }
+    }
     localStore.save();
     try {
       supabase.auth.signOut().catch(() => {});
@@ -1217,6 +1254,7 @@ export const dataService = {
     }
 
     localStore.currentUser = newProfile;
+    localStore.loggedInEmail = cleanEmail || params.email?.trim() || null;
     localStore.currentRole = params.role;
     localStore.onboardingDone = true;
 
