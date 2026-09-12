@@ -246,6 +246,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const doctorDistrict = currentUser?.district || currentUser?.hospital_district || 'Pune';
   const doctorBlock = currentUser?.block || currentUser?.hospital_block || 'Baramati';
 
+  // Case status identification helpers (declared early before useMemos)
+  const isCaseTreated = (c: DoctorCase): boolean => {
+    return c.status === 'treated' || c.status === 'resolved' || Boolean(c.treatment_notes);
+  };
+
+  const isCaseEscalated = (c: DoctorCase): boolean => {
+    return c.status === 'escalated' || Boolean(c.is_escalated);
+  };
+
   // Helper to arrange cases in ascending order (Case #1, Case #2, Case #3... and FIFO timestamp)
   const sortCasesAscending = (a: DoctorCase, b: DoctorCase): number => {
     // 1. Try parsing numeric index from case_number (e.g. "Case #1" -> 1, "Case #2" -> 2, "MH-12-0101" -> 101)
@@ -352,14 +361,6 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       setShowClaimModal(false);
       await loadDoctorData();
     }
-  };
-
-  const isCaseTreated = (c: DoctorCase): boolean => {
-    return c.status === 'treated' || c.status === 'resolved' || Boolean(c.treatment_notes);
-  };
-
-  const isCaseEscalated = (c: DoctorCase): boolean => {
-    return c.status === 'escalated' || Boolean(c.is_escalated);
   };
 
   const handleOpenEscalateModal = (c: DoctorCase) => {
