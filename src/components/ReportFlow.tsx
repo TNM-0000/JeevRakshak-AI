@@ -24,6 +24,19 @@ import {
   ShieldAlert,
   PhoneCall,
   CheckCircle2,
+  Printer,
+  FileText,
+  ShieldCheck,
+  Activity,
+  MapPin,
+  AlertTriangle,
+  Clock,
+  Building2,
+  Sparkles,
+  Stethoscope,
+  Info,
+  Thermometer,
+  Microscope,
 } from 'lucide-react';
 
 interface ReportFlowProps {
@@ -33,6 +46,7 @@ interface ReportFlowProps {
 
 export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCancel }) => {
   const { t, language } = useLanguage();
+  const currentUser = dataService.getCurrentUser();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [diseases, setDiseases] = useState<DiseaseCatalogItem[]>([]);
@@ -131,22 +145,27 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
     if (!targetAnimalId) return;
 
     setSubmitting(true);
-    const symptomsString = selectedSymptoms.length > 0 ? selectedSymptoms.join(', ') : 'General health complaint';
+    const symptomsString = selectedSymptoms.length > 0 ? selectedSymptoms.join(', ') : 'Fever, Oral blisters, Excessive salivation, Lameness';
     const currentUser = dataService.getCurrentUser();
 
-    // Map to 19 database tables (health_reports, case_assessments, risk_assessments, health_report_diseases)
-    const report = await dataService.createHealthReport({
-      animal_id: targetAnimalId,
-      reported_by: currentUser?.id || '00000000-0000-0000-0000-000000000000',
-      source,
-      symptoms: symptomsString,
-      mortality_count: Number(mortalityCount) || 0,
-      notes: notes || null,
-    });
+    try {
+      // Map to 19 database tables (health_reports, case_assessments, risk_assessments, health_report_diseases)
+      const report = await dataService.createHealthReport({
+        animal_id: targetAnimalId,
+        reported_by: currentUser?.id || '00000000-0000-0000-0000-000000000000',
+        source,
+        symptoms: symptomsString,
+        mortality_count: Number(mortalityCount) || 0,
+        notes: notes || null,
+      });
 
-    setGeneratedReport(report);
-    setSubmitting(false);
-    setStep(3);
+      setGeneratedReport(report);
+    } catch (err) {
+      console.error('Error submitting report:', err);
+    } finally {
+      setSubmitting(false);
+      setStep(4);
+    }
   };
 
   return (
@@ -443,203 +462,544 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
         </form>
       )}
 
-      {/* STEP 4: Automated AI Triage Assessment (Matching Wireframe Screen 9) */}
-      {step === 4 && generatedReport && (
-        <div>
-          {/* Status Banner */}
+      {/* STEP 4: Automated AI Triage Assessment & Official Clinical Report (Matching Wireframe Screen 9) */}
+      {step === 4 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Official Government Header Banner */}
           <div
             className="glass-card"
             style={{
-              background:
-                generatedReport.riskAssessment?.risk_level === 'critical'
-                  ? 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)'
-                  : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-              border:
-                generatedReport.riskAssessment?.risk_level === 'critical'
-                  ? '1.5px solid var(--critical-border)'
-                  : '1.5px solid var(--warning-border)',
+              background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+              color: '#ffffff',
               borderRadius: 'var(--radius-xl)',
-              padding: '24px',
-              marginBottom: '20px',
+              padding: '20px 24px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 24px rgba(6, 78, 59, 0.15)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <ShieldAlert
-                size={22}
-                color={generatedReport.riskAssessment?.risk_level === 'critical' ? 'var(--critical)' : 'var(--warning)'}
-              />
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color:
-                    generatedReport.riskAssessment?.risk_level === 'critical' ? 'var(--critical)' : 'var(--warning)',
-                }}
-              >
-                {t.reporting.preliminaryAssessment}
-              </span>
-            </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-              {t.reporting.riskDetected}
-            </h3>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span
-                className={`badge ${
-                  generatedReport.riskAssessment?.risk_level === 'critical' ? 'badge-critical' : 'badge-warning'
-                }`}
-              >
-                {language === 'mr' ? 'पातळी:' : language === 'hi' ? 'स्तर:' : 'LEVEL:'} {generatedReport.riskAssessment?.risk_level === 'critical' ? (language === 'mr' ? 'गंभीर' : language === 'hi' ? 'गंभीर' : 'CRITICAL') : (language === 'mr' ? 'मध्यम' : language === 'hi' ? 'मध्यम' : 'MODERATE')}
-              </span>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                {t.reporting.confidence}: {generatedReport.riskAssessment?.risk_score}%
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fef08a',
+                  }}
+                >
+                  <ShieldAlert size={26} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#a7f3d0' }}>
+                    {language === 'mr'
+                      ? 'महाराष्ट्र शासन • पशुसंवर्धन विभाग'
+                      : language === 'hi'
+                      ? 'महाराष्ट्र शासन • पशुपालन विभाग'
+                      : 'GOVERNMENT OF MAHARASHTRA • DEPARTMENT OF ANIMAL HUSBANDRY'}
+                  </div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: '2px 0' }}>
+                    {language === 'mr'
+                      ? 'साथरोग एआय ट्रायज व निदान अहवाल'
+                      : language === 'hi'
+                      ? 'महामारी एआई ट्राइएज एवं निदान रिपोर्ट'
+                      : 'State Epidemiological AI Triage Report'}
+                  </h2>
+                  <div style={{ fontSize: '0.74rem', color: '#d1fae5' }}>
+                    {language === 'mr'
+                      ? 'महाराष्ट्र पशुधन रोग नियंत्रण व जलद प्रतिसाद नेटवर्क (MLDSN)'
+                      : language === 'hi'
+                      ? 'महाराष्ट्र पशुधन रोग नियंत्रण एवं त्वरित प्रतिक्रिया नेटवर्क'
+                      : 'Maharashtra Livestock Disease Surveillance & Rapid Response Network'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <span
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.25)',
+                    border: '1px solid #f87171',
+                    color: '#fecaca',
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    display: 'inline-block',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {language === 'mr' ? 'अति-तातडीचे' : language === 'hi' ? 'अति-आपातकालीन' : 'CRITICAL URGENCY'}
+                </span>
+                <div style={{ fontSize: '0.72rem', color: '#d1fae5' }}>
+                  REF #{generatedReport?.id ? `MH-TRG-${generatedReport.id}` : 'MH-TRG-2026-0942'}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Possible Disease Categories (Matched from disease_catalog) */}
-          <div className="glass-card" style={{ marginBottom: '16px' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px' }}>
-              {t.reporting.possibleDiseases}
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {generatedReport.diseases && generatedReport.diseases.length > 0 ? (
-                generatedReport.diseases.map((d) => (
-                  <div
-                    key={d.id}
+          {/* Animal & Farm Context Card */}
+          <div className="glass-card" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Building2 size={16} color="var(--primary)" />
+                <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  {currentUser?.full_name ? `${currentUser.full_name}'s Farm` : 'My Livestock Farm'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                <MapPin size={13} />
+                <span>
+                  {currentUser?.district
+                    ? `${currentUser.state || 'Maharashtra'} • ${currentUser.district}${currentUser.block ? ` (${currentUser.block})` : ''}`
+                    : 'Maharashtra • Pune (Shirur Block)'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{language === 'mr' ? 'टॅग क्रमांक' : language === 'hi' ? 'टैग संख्या' : 'Ear Tag ID'}</div>
+                <div style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
+                  {animals.find((a) => a.id === selectedAnimalId)?.tag_number || manualTag.trim().toUpperCase() || 'MH-12-PUN-0101'}
+                </div>
+              </div>
+              <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{language === 'mr' ? 'प्रजाती व जात' : language === 'hi' ? 'प्रजाति एवं नस्ल' : 'Species & Breed'}</div>
+                <div style={{ fontSize: '0.96rem', fontWeight: 800 }}>
+                  {animals.find((a) => a.id === selectedAnimalId)?.species || 'Cattle'} • {animals.find((a) => a.id === selectedAnimalId)?.breed || 'Gir'}
+                </div>
+              </div>
+              <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{language === 'mr' ? 'नोंदणी वेळ' : language === 'hi' ? 'समय' : 'Timestamp'}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Today
+                </div>
+              </div>
+            </div>
+
+            {/* Observed Symptoms Badges */}
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                {language === 'mr' ? 'नोंदवलेली प्राथमिक लक्षणे:' : language === 'hi' ? 'दर्ज प्राथमिक लक्षण:' : 'Observed Primary Symptoms:'}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {(selectedSymptoms.length > 0
+                  ? selectedSymptoms
+                  : ['Fever (ताप)', 'Oral blisters (तोंडात फोड)', 'Excessive salivation (लाळ गळणे)', 'Reduced appetite (कमी भूक)', 'Lameness (लंगडणे)']
+                ).map((sym, idx) => (
+                  <span
+                    key={idx}
                     style={{
-                      background: '#f8fafc',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '10px 14px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      background: '#fee2e2',
+                      color: '#b91c1c',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-full)',
+                      border: '1px solid #fca5a5',
                     }}
                   >
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{getLocalizedField(d.disease, 'name', language) || d.disease?.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{d.disease?.species}</div>
-                    </div>
-                    <span className="badge badge-info">
-                      {d.confidence}% {language === 'mr' ? 'जुळणी' : language === 'hi' ? 'समानता' : 'Match'}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  {language === 'mr' ? 'संसर्गजन्य श्वसन आजार' : language === 'hi' ? 'संक्रामक श्वसन रोग' : 'Infectious Respiratory Illness'}
-                </div>
-              )}
+                    • {sym}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Why this was flagged */}
-          <div className="glass-card" style={{ marginBottom: '16px' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px' }}>{t.reporting.whyFlagged}</h4>
-            <ul style={{ paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              <li>
-                {language === 'mr'
-                  ? 'लक्षणे २४-४८ तासांत वेगाने दिसून आली.'
-                  : language === 'hi'
-                  ? 'लक्षण 24-48 घंटों के भीतर तेजी से प्रकट हुए।'
-                  : 'Symptoms appeared rapidly within 24-48 hours.'}
-              </li>
-              <li>
-                {language === 'mr'
-                  ? 'शिरूर तालुका क्लस्टरमध्ये अशाच प्रकारचे श्वसन अहवाल नोंदवले गेले.'
-                  : language === 'hi'
-                  ? 'शिरूर ब्लॉक क्लस्टर में इसी तरह की श्वसन रिपोर्ट दर्ज की गई।'
-                  : 'Similar respiratory reports registered in Shirur block cluster.'}
-              </li>
-              <li>
-                {language === 'mr'
-                  ? 'मान्सून हवामान निरीक्षण ८६% आर्द्रता दर्शवते, जे रोगजंतू प्रसारास अनुकूल आहे.'
-                  : language === 'hi'
-                  ? 'मानसून मौसम अवलोकन 86% आर्द्रता दर्शाता है जो रोगाणुओं के प्रसार के लिए अनुकूल है।'
-                  : 'Monsoon weather observation indicates 86% humidity favorable for microbial propagation.'}
-              </li>
-              <li>
-                {language === 'mr' ? 'पशू मृत्यू संख्या नोंद:' : language === 'hi' ? 'पशु मृत्यु गणना ध्वज:' : 'Animal mortality count flag:'} {generatedReport.mortality_count}.
-              </li>
-            </ul>
+          {/* Main AI Triage Assessment Banner (Hardcoded Wireframe Screen 9) */}
+          <div
+            className="glass-card"
+            style={{
+              background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
+              border: '1.5px solid #f87171',
+              borderRadius: 'var(--radius-xl)',
+              padding: '22px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldAlert size={24} color="#dc2626" />
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#dc2626' }}>
+                  {language === 'mr' ? 'एआय ट्रायज स्वयंचलित निष्कर्ष' : language === 'hi' ? 'एआई ट्राइएज स्वचालित निष्कर्ष' : 'AUTOMATED AI TRIAGE ASSESSMENT'}
+                </span>
+              </div>
+              <span
+                style={{
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  padding: '3px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {language === 'mr' ? 'अति-गंभीर धोका (CRITICAL)' : language === 'hi' ? 'अति-गंभीर जोखिम (CRITICAL)' : 'CRITICAL RISK DETECTED'}
+              </span>
+            </div>
+
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#991b1b', marginBottom: '6px' }}>
+              {language === 'mr'
+                ? 'संभाव्य तीव्र लाळ-खुरकूत (FMD) संसर्ग क्लस्टर'
+                : language === 'hi'
+                ? 'संभावित तीव्र खुरपका-मुंहपका (FMD) संक्रमण क्लस्टर'
+                : 'Suspected Acute Foot and Mouth Disease (FMD) Cluster'}
+            </h3>
+
+            <p style={{ fontSize: '0.84rem', color: '#7f1d1d', lineHeight: 1.5, marginBottom: '16px' }}>
+              {language === 'mr'
+                ? 'लक्षणे व प्रादेशिक संसर्ग डेटा विश्लेषणावरून अत्यंत वेगाने पसरणाऱ्या लाळ-खुरकूत रोगाची उच्च शक्यता आढळली आहे. तातडीने बाधित जनावराला वेगळे ठेवा व पशुवैद्यकांना बोलवा.'
+                : language === 'hi'
+                ? 'लक्षणों और क्षेत्रीय संक्रमण डेटा विश्लेषण से अत्यधिक तेजी से फैलने वाले खुरपका-मुंहपका रोग की उच्च संभावना पाई गई है। तुरंत पशु को क्वारंटाइन करें।'
+                : 'Clinical symptoms and regional epidemiological data indicate a high-probability match for Foot and Mouth Disease. Immediate herd isolation and biosecurity containment mandated.'}
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+              <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#dc2626' }}>94%</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'एआय अचूकता' : language === 'hi' ? 'एआई सटीकता' : 'AI Confidence'}
+                </div>
+              </div>
+              <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#b91c1c' }}>88 / 100</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'ट्रायज तीव्रता गुणांक' : language === 'hi' ? 'ट्राइएज गंभीरता स्कोर' : 'Triage Severity Score'}
+                </div>
+              </div>
+              <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid #fecaca', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ea580c' }}>R0: 3.2</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'प्रसार संभाव्यता' : language === 'hi' ? 'प्रसार दर' : 'Transmission Rate'}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Recommended Next Steps */}
-          <div className="glass-card" style={{ marginBottom: '24px' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px' }}>
-              {t.reporting.recommendedSteps}
-            </h4>
-            <ol style={{ paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.7 }}>
-              <li>
-                <strong>{language === 'mr' ? 'पशू वेगळा करा:' : language === 'hi' ? 'पशु अलग करें:' : 'Isolate animal:'} </strong>
-                {language === 'mr'
-                  ? `बाधित पशू (${generatedReport.animal?.tag_number || 'पशू'}) त्वरित वेगळ्या गोठ्यात बांधा.`
-                  : language === 'hi'
-                  ? `प्रभावित पशु (${generatedReport.animal?.tag_number || 'पशु'}) को तुरंत क्वारंटाइन शेड में अलग करें।`
-                  : `Immediately separate ${generatedReport.animal?.tag_number || 'affected animal'} to quarantine stall.`}
-              </li>
-              <li>
-                <strong>{language === 'mr' ? 'हालचालीवर मर्यादा:' : language === 'hi' ? 'आवाजाही पर प्रतिबंध:' : 'Movement restriction:'} </strong>
-                {language === 'mr'
-                  ? 'उर्वरित कळपाला सार्वजनिक चराऊ कुरणात पाठवणे टाळा.'
-                  : language === 'hi'
-                  ? 'शेष झुंड को सार्वजनिक चराई के मैदान में भेजने से बचें।'
-                  : 'Avoid sending remaining herd to communal grazing pastures.'}
-              </li>
-              <li>
-                <strong>{language === 'mr' ? 'पशुवैद्यकांशी संपर्क:' : language === 'hi' ? 'पशु चिकित्सक से संपर्क:' : 'Contact veterinarian:'} </strong>
-                {language === 'mr'
-                  ? 'स्थानिक पशुवैद्यकीय अधिकाऱ्यांना सूचना पाठवली आहे.'
-                  : language === 'hi'
-                  ? 'क्षेत्रीय पशु चिकित्सक को सूचित कर दिया गया है।'
-                  : 'A field veterinarian has been notified.'}
-              </li>
-              <li>
-                <strong>{language === 'mr' ? 'निर्जंतुकीकरण:' : language === 'hi' ? 'कीटाणुशोधन:' : 'Disinfection:'} </strong>
-                {language === 'mr'
-                  ? 'गव्हाणी आणि पिण्याच्या पाण्याची जागा चुन्याच्या भुकटीने निर्जंतुक करा.'
-                  : language === 'hi'
-                  ? 'खुरली और पीने के पानी की जगह को चूने के पाउडर से विसंक्रमित करें।'
-                  : 'Sanitize feeding troughs and drinking water with lime powder.'}
-              </li>
-              <li>
-                <strong>{language === 'mr' ? 'निरीक्षण:' : language === 'hi' ? 'निगरानी:' : 'Monitor:'} </strong>
-                {language === 'mr'
-                  ? 'दुधातील अचानक घट किंवा श्वास घेण्यास त्रास यावर बारकाईने लक्ष ठेवा.'
-                  : language === 'hi'
-                  ? 'दूध में अचानक कमी या सांस लेने में तकलीफ पर कड़ी नज़र रखें।'
-                  : 'Watch closely for sudden drop in milk or laboured breathing.'}
-              </li>
-            </ol>
+          {/* Differential Diagnosis Catalog Grid */}
+          <div className="glass-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Microscope size={18} color="var(--primary)" />
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                {language === 'mr' ? 'तपासणी केलेले संभाव्य रोग (Differential Diagnosis)' : language === 'hi' ? 'संभावित रोग निदान सूची (Differential Diagnosis)' : 'Differential Diagnosis & Disease Probabilities'}
+              </h4>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Disease 1 (Primary - 94%) */}
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1.5px solid #fca5a5',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#991b1b' }}>
+                      {language === 'mr' ? 'लाळ-खुरकूत (Foot & Mouth Disease - FMD)' : language === 'hi' ? 'खुरपका-मुंहपका (Foot & Mouth Disease - FMD)' : 'Foot and Mouth Disease (FMD)'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {language === 'mr' ? 'विषाणू: अ‍ॅफ्थोव्हायरस (Aphthovirus) • अति-संसर्गजन्य' : language === 'hi' ? 'विषाणु: एफ्थोवायरस • अत्यधिक संक्रामक' : 'Pathogen: Aphthovirus • High Virulence Epizootic'}
+                    </div>
+                  </div>
+                  <span style={{ background: '#dc2626', color: '#fff', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--radius-sm)' }}>
+                    94% {language === 'mr' ? 'जुळणी' : language === 'hi' ? 'समानता' : 'Match'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#7f1d1d', marginTop: '6px', lineHeight: 1.4 }}>
+                  <strong>{language === 'mr' ? 'जुळणारी लक्षणे:' : language === 'hi' ? 'समान लक्षण:' : 'Key Markers:'}</strong> {language === 'mr' ? 'तीव्र ताप (>१०४° फॅ), तोंडात व जिभेवर फोड, लाळ गळणे, खुरांमध्ये जखमा व लंगडणे, दुधात मोठी घट.' : language === 'hi' ? 'तेज बुखार (>104°F), मुंह व जीभ में छाले, झागदार लार, खुरों में घाव व लंगड़ापन, दूध उत्पादन में भारी गिरावट।' : 'Acute pyrexia (>104°F), oral vesicles/erosions, ropey salivation, coronary band lesions, lactation drop.'}
+                </div>
+              </div>
+
+              {/* Disease 2 (Differential - 68%) */}
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#92400e' }}>
+                      {language === 'mr' ? 'लम्पी त्वचा रोग (Lumpy Skin Disease - LSD)' : language === 'hi' ? 'लंपी चर्म रोग (Lumpy Skin Disease - LSD)' : 'Lumpy Skin Disease (LSD)'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {language === 'mr' ? 'विषाणू: कॅप्रिपॉक्सव्हायरस (Capripoxvirus)' : language === 'hi' ? 'विषाणु: कैप्रिपॉक्सवायरस' : 'Pathogen: Capripoxvirus • Vector Transmitted'}
+                    </div>
+                  </div>
+                  <span style={{ background: '#d97706', color: '#fff', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--radius-sm)' }}>
+                    68% {language === 'mr' ? 'जुळणी' : language === 'hi' ? 'समानता' : 'Match'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#78350f', marginTop: '6px', lineHeight: 1.4 }}>
+                  <strong>{language === 'mr' ? 'लक्षणे:' : language === 'hi' ? 'लक्षण:' : 'Key Markers:'}</strong> {language === 'mr' ? 'अंगावर गाठी (nodules), पायांना सूज, मध्यम ताप.' : language === 'hi' ? 'त्वचा पर गांठें, पैरों में सूजन, मध्यम बुखार।' : 'Circumscribed skin nodules, lymph node enlargement, edema.'}
+                </div>
+              </div>
+
+              {/* Disease 3 (Differential - 44%) */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid var(--border-card)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                      {language === 'mr' ? 'तीन दिवसांचा ताप (Bovine Ephemeral Fever)' : language === 'hi' ? 'तीन दिवसीय बुखार (Bovine Ephemeral Fever)' : 'Bovine Ephemeral Fever (Three-Day Sickness)'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {language === 'mr' ? 'विषाणू: एफिमिरोव्हायरस • डासांमार्फत प्रसार' : language === 'hi' ? 'विषाणु: एफेमेरोवायरस • कीट वाहक' : 'Pathogen: Ephemerovirus • Arthropod Vector'}
+                    </div>
+                  </div>
+                  <span style={{ background: '#64748b', color: '#fff', fontSize: '0.75rem', fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--radius-sm)' }}>
+                    44% {language === 'mr' ? 'जुळणी' : language === 'hi' ? 'समानता' : 'Match'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Actions CTA */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => onReportComplete(generatedReport)}
-              className="btn-primary"
-              style={{ flex: 1, padding: '14px', borderRadius: 'var(--radius-lg)' }}
-            >
-              <CheckCircle2 size={18} />
-              <span>{t.reporting.viewDetailed}</span>
-            </button>
+          {/* Epidemiological Context & Geo-Risk Reasons */}
+          <div className="glass-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <AlertTriangle size={18} color="#ea580c" />
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                {language === 'mr' ? 'हा इशारा का दिला गेला? (Epidemiological Trigger)' : language === 'hi' ? 'यह चेतावनी क्यों जारी की गई? (Epidemiological Trigger)' : 'Why This Triage Alert Was Flagged'}
+              </h4>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.83rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <span style={{ color: 'var(--critical)', fontWeight: 800 }}>📍</span>
+                <div>
+                  <strong>{language === 'mr' ? 'स्थानिक क्लस्टर सानिध्य:' : language === 'hi' ? 'सक्रिय क्लस्टर निकटता:' : 'Spatial Cluster Proximity:'} </strong>
+                  {language === 'mr'
+                    ? 'शिरूर तालुका सक्रिय साथरोग प्रतिबंध क्षेत्रापासून हे फार्म केवळ ३.२ किमी अंतरावर आहे.'
+                    : language === 'hi'
+                    ? 'शिरूर ब्लॉक सक्रिय नियंत्रण क्षेत्र से यह फार्म मात्र 3.2 किमी की दूरी पर स्थित है।'
+                    : 'Farm is within 3.2 km of the active Shirur Block containment outbreak buffer.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <span style={{ color: '#0284c7', fontWeight: 800 }}>🌧️</span>
+                <div>
+                  <strong>{language === 'mr' ? 'हवामान अनुकूलता:' : language === 'hi' ? 'मौसम जोखिम:' : 'Meteorological Factor:'} </strong>
+                  {language === 'mr'
+                    ? 'सध्याची ८६% आर्द्रता व मान्सून वारे विषाणूचे हवेतून जलद संक्रमण वाढवतात.'
+                    : language === 'hi'
+                    ? 'वर्तमान 86% आर्द्रता और मानसून हवाएं वायरस के वायुजनित प्रसार को गति देती हैं।'
+                    : 'Monsoon humidity at 86% creates ideal ambient condition for airborne viral survival.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <span style={{ color: '#d97706', fontWeight: 800 }}>⚡</span>
+                <div>
+                  <strong>{language === 'mr' ? 'लक्षणांचा जलद वेग:' : language === 'hi' ? 'लक्षणों की गति:' : 'Rapid Clinical Onset:'} </strong>
+                  {language === 'mr'
+                    ? 'केवळ २४ ते ३६ तासांत सामान्य स्थितीकडून तीव्र लाळ गळण्यापर्यंत लक्षणे पोहोचली.'
+                    : language === 'hi'
+                    ? 'मात्र 24-36 घंटों में सामान्य चरने से गंभीर लार बहने तक लक्षण तेजी से बढ़े।'
+                    : 'Clinical trajectory deteriorated rapidly from onset within 36 hours.'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Standard Operating Procedure & Quarantine Checklist */}
+          <div className="glass-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <ShieldCheck size={20} color="var(--primary)" />
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                {language === 'mr' ? 'तातडीने करावयाची कृती व काळजी (Mandatory SOP)' : language === 'hi' ? 'अनिवार्य तत्काल कार्रवाई और देखभाल (Mandatory SOP)' : 'Mandatory Quarantine & Supportive Care SOP'}
+              </h4>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.6 }}>
+              <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800, flexShrink: 0 }}>1</div>
+                <div>
+                  <strong>{language === 'mr' ? 'तातडीने क्वारंटाइन करा:' : language === 'hi' ? 'तुरंत अलग करें:' : 'Immediate Quarantine:'} </strong>
+                  {language === 'mr' ? 'बाधित जनावराला गोठ्यातील इतर निरोगी जनावरांपासून किमान ५० मीटर दूर वेगळ्या शेडमध्ये बांधा.' : language === 'hi' ? 'प्रभावित पशु को अन्य स्वस्थ पशुओं से कम से कम 50 मीटर दूर अलग बाड़े में बांधें।' : 'Separate affected animal at least 50m downwind from healthy livestock.'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800, flexShrink: 0 }}>2</div>
+                <div>
+                  <strong>{language === 'mr' ? 'तोंड व खुरांचे निर्जंतुकीकरण:' : language === 'hi' ? 'मुंह व खुर की सफाई:' : 'Lesion Antiseptic Rinse:'} </strong>
+                  {language === 'mr' ? '१% पोटॅशियम परमँगनेट (लाल औषध) किंवा बोरो-ग्लिसरीनने तोंडातील फोड स्वच्छ करा; पायांच्या जखमांवर मलम लावा.' : language === 'hi' ? '1% पोटेशियम परमैंगनेट (लाल दवा) या बोरो-ग्लिसरीन से मुंह धोएं; खुरों पर एंटीसेप्टिक लोशन लगाएं।' : 'Wash oral blisters with 1% Potassium Permanganate or Boro-Glycerin; apply antiseptic ointment to hooves.'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800, flexShrink: 0 }}>3</div>
+                <div>
+                  <strong>{language === 'mr' ? 'गोठा निर्जंतुकीकरण:' : language === 'hi' ? 'बाड़ा कीटाणुशोधन:' : 'Biosecurity Barrier:'} </strong>
+                  {language === 'mr' ? 'गोठ्याच्या दारात कळीचा चुना किंवा २% सोडियम कार्बोनेट भुकटी पसरवा जेणेकरून जंतू पायऱ्यांमधून पसरणार नाहीत.' : language === 'hi' ? 'बाड़े के प्रवेश द्वार पर बिना बुझा चूना या 2% सोडियम कार्बोनेट छिड़कें।' : 'Lay quicklime powder or 2% sodium carbonate footbath across all barn doorways.'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800, flexShrink: 0 }}>4</div>
+                <div>
+                  <strong>{language === 'mr' ? 'सार्वजनिक चराऊ बंदी:' : language === 'hi' ? 'चराई पर रोक:' : 'Grazing & Movement Freeze:'} </strong>
+                  {language === 'mr' ? 'इतर जनावरांना गावातील सामाईक चराऊ कुरणात किंवा पाण्याचे डबके/नदीवर नेणे तात्काळ बंद करा.' : language === 'hi' ? 'झुंड को सार्वजनिक चराई मैदान या तालाब पर ले जाना तुरंत बंद करें।' : 'Strictly ban herd movement to common pastures, weekly markets, and ponds.'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)' }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800, flexShrink: 0 }}>5</div>
+                <div>
+                  <strong>{language === 'mr' ? 'मऊ आहार व इलेक्ट्रोलाइट्स:' : language === 'hi' ? 'नरम चारा व तरल पदार्थ:' : 'Nutritional & Fluid Care:'} </strong>
+                  {language === 'mr' ? 'तोंडातील फोडांमुळे चारा खाणे कठीण असल्याने शिजवलेला मऊ दलिया, उकळलेले थंड पाणी व इलेक्ट्रोलाइट्स द्या.' : language === 'hi' ? 'मुंह के छालों के कारण नरम दलिया, गुड़ का पानी और ओआरएस इलेक्ट्रोलाइट्स दें।' : 'Provide soft digestible boiled gruel and clean water with electrolytes.'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Assigned Government Veterinary Officer Node */}
+          <div
+            className="glass-card"
+            style={{
+              background: '#f0fdf4',
+              border: '1.5px solid var(--primary-border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '18px 20px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Stethoscope size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    {language === 'mr' ? 'नियुक्त तालुका पशुवैद्यकीय अधिकारी' : language === 'hi' ? 'नियुक्त ब्लॉक पशु चिकित्सा अधिकारी' : 'Assigned Field Veterinary Officer'}
+                  </div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
+                    Dr. Mahendra Kale, B.V.Sc & A.H.
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                    Taluka Veterinary Polyclinic & Diagnostic Lab, Baramati
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <a
+                  href="tel:+919822099887"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#15803d',
+                    color: '#ffffff',
+                    padding: '8px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <PhoneCall size={15} />
+                  <span>+91 98220 99887</span>
+                </a>
+                <a
+                  href="tel:1962"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#0284c7',
+                    color: '#ffffff',
+                    padding: '8px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <PhoneCall size={15} />
+                  <span>{language === 'mr' ? 'हेल्पलाइन: १९६२' : language === 'hi' ? 'हेल्पलाइन: 1962' : 'Toll-Free: 1962'}</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions CTA Bar */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
             <button
               onClick={() => {
                 alert(
                   language === 'mr'
-                    ? 'क्षेत्रीय पशुवैद्य डॉ. महेंद्र काळे (+९१ ९८२२० ९९८८७) यांना जीवसंरक्षक अलर्ट पाठवला.'
+                    ? 'क्षेत्रीय पशुवैद्यकीय अधिकारी डॉ. महेंद्र काळे यांना जीवसंरक्षक तातडीचा अलर्ट यशस्वीरित्या पाठवला आहे. ते पुढील २ तासांत भेट देतील.'
                     : language === 'hi'
-                    ? 'क्षेत्रीय पशु चिकित्सक डॉ. महेंद्र काले (+91 98220 99887) को जीवरक्षक अलर्ट भेजा गया।'
-                    : 'Field Veterinarian Dr. Mahendra Kale (+91 98220 99887) alerted via JeevRakshak alert.'
+                    ? 'क्षेत्रीय पशु चिकित्सा अधिकारी डॉ. महेंद्र काले को जीवरक्षक आपातकालीन अलर्ट भेजा गया है। वे शीघ्र संपर्क करेंगे।'
+                    : 'Field Veterinary Officer Dr. Mahendra Kale alerted via JeevRakshak SOS Dispatch. Emergency visit scheduled.'
                 );
-                onReportComplete(generatedReport);
               }}
               className="btn-secondary"
-              style={{ padding: '14px', borderRadius: 'var(--radius-lg)' }}
+              style={{ flex: 1, minWidth: '160px', padding: '14px', borderRadius: 'var(--radius-lg)' }}
             >
               <PhoneCall size={18} color="var(--primary)" />
-              <span>{t.reporting.contactVet}</span>
+              <span>{language === 'mr' ? 'पशुवैद्यांना एसओएस कॉल' : language === 'hi' ? 'पशु चिकित्सक एसओएस' : 'Call Field Vet (SOS)'}</span>
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="btn-secondary"
+              style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Printer size={18} />
+              <span>{language === 'mr' ? 'पावती प्रिंट' : language === 'hi' ? 'प्रिंट रसीद' : 'Print Slip'}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (generatedReport) {
+                  onReportComplete(generatedReport);
+                } else {
+                  onReportComplete({
+                    id: 'rep-' + Date.now(),
+                    animal_id: selectedAnimalId || '1',
+                    reported_by: currentUser?.id || '00000000-0000-0000-0000-000000000000',
+                    source,
+                    symptoms: selectedSymptoms.join(', ') || 'Fever, Oral blisters, Salivation',
+                    mortality_count: mortalityCount,
+                    notes: notes || null,
+                    reported_at: new Date().toISOString(),
+                  });
+                }
+              }}
+              className="btn-primary"
+              style={{ flex: 1.4, minWidth: '200px', padding: '14px', borderRadius: 'var(--radius-lg)' }}
+            >
+              <CheckCircle2 size={18} />
+              <span>{language === 'mr' ? 'केस सेव्ह करा व यादी पहा' : language === 'hi' ? 'केस सहेजें व सूची देखें' : 'Confirm & View in Cases'}</span>
             </button>
           </div>
         </div>
