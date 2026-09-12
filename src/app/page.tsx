@@ -15,7 +15,6 @@ import { DistrictSurveillance } from '@/components/DistrictSurveillance';
 import { AdvisoriesAlerts } from '@/components/AdvisoriesAlerts';
 import { AnimalDetailModal } from '@/components/AnimalDetailModal';
 import { LandingAndOnboarding } from '@/components/LandingAndOnboarding';
-import { FarmerHerdSetup } from '@/components/FarmerHerdSetup';
 import { VetHospitalSetup } from '@/components/VetHospitalSetup';
 import { VetDashboard } from '@/components/VetDashboard';
 import { GovernmentOfficialDashboard } from '@/components/GovernmentOfficialDashboard';
@@ -27,7 +26,6 @@ export default function Home() {
   const [govModule, setGovModule] = useState<GovCleanModule>('dashboard');
   const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
   const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
-  const [herdSetupDone, setHerdSetupDone] = useState<boolean>(false);
   const [vetHospitalSetupDone, setVetHospitalSetupDone] = useState<boolean>(false);
   const [isEditingHospital, setIsEditingHospital] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -47,7 +45,6 @@ export default function Home() {
       }
     }
     setIsOnboarded(dataService.hasCompletedOnboarding());
-    setHerdSetupDone(dataService.hasCompletedHerdSetup());
     setVetHospitalSetupDone(dataService.hasCompletedVetHospitalSetup());
   }, []);
 
@@ -62,14 +59,12 @@ export default function Home() {
       setActiveTab('surveillance');
     } else {
       setActiveTab('home');
-      setHerdSetupDone(dataService.hasCompletedHerdSetup());
     }
   };
 
   const handleSignOut = () => {
     dataService.signOut();
     setIsOnboarded(false);
-    setHerdSetupDone(false);
     setVetHospitalSetupDone(false);
     setIsEditingHospital(false);
   };
@@ -93,22 +88,6 @@ export default function Home() {
         onComplete={(role) => {
           handleRoleChange(role);
           setIsOnboarded(true);
-        }}
-      />
-    );
-  }
-
-  // STEP 2: Farmer Herd Setup Page (Post-login onboarding - Skippable)
-  if (currentRole === 'farmer' && !herdSetupDone) {
-    return (
-      <FarmerHerdSetup
-        onComplete={() => {
-          setHerdSetupDone(true);
-          setActiveTab('home');
-        }}
-        onSkip={() => {
-          setHerdSetupDone(true);
-          setActiveTab('home');
         }}
       />
     );
