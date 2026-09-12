@@ -131,15 +131,18 @@ const DISTRICTS_BY_STATE: Record<string, string[]> = {
 
 const translations = {
   en: {
-    badge: 'GOOGLE MAPS PAN-INDIA GEOLOCATION ENGINE',
+    badge: 'LOCATION SETUP • PAN-INDIA GEOLOCATION',
     title: 'Select Location Anywhere in India',
-    subtitle: 'Search any village, town, taluka, city, or pin code across all 28 states & 8 union territories of India with live Google Maps integration.',
+    subtitle: 'Search any village, town, taluka, city, or pin code across all 28 states & 8 union territories of India.',
     searchPlaceholder: 'Search any village, taluka, district, or landmark across India (e.g. Shirur Pune, Karnal Haryana, Anand Gujarat, Varanasi UP)...',
     detectGpsBtn: 'Detect My Current Location (GPS)',
     detectingGps: 'Detecting Exact GPS...',
     gpsLocked: 'GPS Location Locked Successfully',
-    googleMapLiveTitle: 'Live Google Map View (India Grid)',
-    mapHint: 'Drag, zoom, or search to position pin accurately on your farm or clinic.',
+    viewMapOptional: 'View Map (Optional)',
+    hideMap: 'Hide Map',
+    openInGoogleMaps: 'Google Maps',
+    googleMapLiveTitle: 'Google Map Preview',
+    mapHint: 'Zoom or drag to inspect your pinpoint location.',
     stateLabel: 'State / Union Territory',
     districtLabel: 'District',
     blockLabel: 'Block / Taluka / Tehsil',
@@ -155,18 +158,21 @@ const translations = {
     poweredBy: 'Powered by Google Maps Platform & India Administrative Catalog',
     apiKeyOption: 'Custom Google Maps API Key',
     apiKeyPlaceholder: 'Enter your Google Cloud API Key (Optional)',
-    apiKeyHint: 'Leave blank to use JeevRakshak automatic Pan-India Geocoding & interactive Google Map.',
+    apiKeyHint: 'Leave blank to use JeevRakshak automatic Pan-India Geocoding & GPS detection.',
   },
   hi: {
-    badge: 'गूगल मैप्स अखिल भारतीय भौगोलिक स्थान इंजन',
+    badge: 'स्थान निर्धारण • अखिल भारतीय कवरेज',
     title: 'भारत में कहीं भी अपना स्थान चुनें',
-    subtitle: 'भारत के सभी २८ राज्यों और ८ केंद्रशासित प्रदेशों में से किसी भी गाँव, तहसील, ज़िले या पिन कोड को लाइव गूगल मैप्स के साथ खोजें।',
+    subtitle: 'भारत के सभी २८ राज्यों और ८ केंद्रशासित प्रदेशों में से किसी भी गाँव, तहसील, ज़िले या पिन कोड को खोजें।',
     searchPlaceholder: 'भारत का कोई भी गाँव, तहसील, ज़िला या लैंडमार्क खोजें (उदा. शिरूर पुणे, करनाल हरियाणा, आनंद गुजरात, वाराणसी)...',
     detectGpsBtn: 'मेरा वर्तमान स्थान खोजें (GPS)',
     detectingGps: 'जीपीएस सिग्नल खोजा जा रहा है...',
     gpsLocked: 'सटीक जीपीएस स्थान सफलतापूर्वक लॉक हुआ',
-    googleMapLiveTitle: 'लाइव गूगल मैप व्यू (भारत ग्रिड)',
-    mapHint: 'नक्शे पर सटीक स्थान देखने के लिए ज़ूम या ड्रैग करें।',
+    viewMapOptional: 'नक्शा देखें (वैकल्पिक)',
+    hideMap: 'नक्शा छिपाएं',
+    openInGoogleMaps: 'गूगल मैप्स',
+    googleMapLiveTitle: 'गूगल मैप पूर्वावलोकन',
+    mapHint: 'पिन स्थान जांचने के लिए ज़ूम करें।',
     stateLabel: 'राज्य / केंद्रशासित प्रदेश',
     districtLabel: 'ज़िला',
     blockLabel: 'तहसील / ब्लॉक',
@@ -182,18 +188,21 @@ const translations = {
     poweredBy: 'गूगल मैप्स प्लेटफॉर्म एवं भारतीय प्रशासनिक ग्रिड द्वारा संचालित',
     apiKeyOption: 'कस्टम गूगल मैप्स एपीआई कुंजी',
     apiKeyPlaceholder: 'अपनी गूगल क्लाउड एपीआई कुंजी दर्ज करें (वैकल्पिक)',
-    apiKeyHint: 'खाली छोड़ने पर जीवरक्षक स्वचालित अखिल भारतीय जियोकोडिंग एवं लाइव मैप का उपयोग होगा।',
+    apiKeyHint: 'खाली छोड़ने पर जीवरक्षक स्वचालित अखिल भारतीय जियोकोडिंग का उपयोग होगा।',
   },
   mr: {
-    badge: 'गुगल मॅप्स अखिल भारतीय भौगोलिक स्थान इंजिन',
+    badge: 'स्थान निश्चिती • अखिल भारतीय सेवा',
     title: 'भारतातील कोणतेही स्थान निश्चित करा',
-    subtitle: 'भारतातील सर्व २८ राज्ये व ८ केंद्रशासित प्रदेशांमधील कोणतेही गाव, तालुका, जिल्हा किंवा पिन कोड थेट गुगल मॅप्सच्या सहाय्याने शोधा.',
+    subtitle: 'भारतातील सर्व २८ राज्ये व ८ केंद्रशासित प्रदेशांमधील कोणतेही गाव, तालुका, जिल्हा किंवा पिन कोड सहजपणे शोधा.',
     searchPlaceholder: 'भारतातील कोणतेही गाव, तालुका, जिल्हा किंवा खूण शोधा (उदा. शिरूर पुणे, बारामती, कर्नाल हरियाणा, आनंद गुजरात, वाराणसी)...',
     detectGpsBtn: 'माझे चालू GPS स्थान शोधा',
     detectingGps: 'अचूक उपग्रह GPS सिग्नल शोधत आहे...',
     gpsLocked: 'अचूक GPS स्थान यशस्वीरित्या लॉक झाले',
-    googleMapLiveTitle: 'थेट गुगल मॅप दृश्य (Google Map View)',
-    mapHint: 'गोठा किंवा दवाखान्याचे अचूक स्थान पाहण्यासाठी मॅप झूम करा.',
+    viewMapOptional: 'मॅप पहा (ऐच्छिक)',
+    hideMap: 'मॅप लपवा',
+    openInGoogleMaps: 'गुगल मॅप्स',
+    googleMapLiveTitle: 'गुगल मॅप पूर्वदृश्य',
+    mapHint: 'अचूक स्थान तपासण्यासाठी मॅप झूम करा.',
     stateLabel: 'राज्य / केंद्रशासित प्रदेश',
     districtLabel: 'जिल्हा',
     blockLabel: 'तालुका / ब्लॉक',
@@ -209,7 +218,7 @@ const translations = {
     poweredBy: 'गुगल मॅप्स प्लॅटफॉर्म व भारतीय प्रशासकीय ग्रिड द्वारे समर्थित',
     apiKeyOption: 'कस्टम गुगल मॅप्स API Key',
     apiKeyPlaceholder: 'आपली Google Cloud API Key टाका (ऐच्छिक)',
-    apiKeyHint: 'रिकामे ठेवल्यास जीवरक्षक स्वयंचलित अखिल भारतीय सर्च व लाइव्ह मॅप सुरू राहील.',
+    apiKeyHint: 'रिकामे ठेवल्यास जीवरक्षक स्वयंचलित अखिल भारतीय सर्च व जीपीएस सुरू राहील.',
   },
 };
 
@@ -236,6 +245,7 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'detecting' | 'success' | 'error'>('idle');
+  const [showMap, setShowMap] = useState(false);
 
   // Custom API key config
   const [apiKey, setApiKey] = useState(
@@ -716,50 +726,137 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
         </div>
       </div>
 
-      {/* 3. Live Embedded Interactive Google Map */}
+      {/* 3. Location Confirmation Card & Optional Map Preview */}
       <div
         style={{
-          borderRadius: '14px',
-          overflow: 'hidden',
-          border: '1px solid var(--border)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          background: '#e2e8f0',
-          position: 'relative',
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+          border: '1.5px solid #86efac',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
         }}
       >
-        <div
-          style={{
-            padding: '8px 14px',
-            background: '#fff',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            color: 'var(--text-main)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <MapPin size={14} color="#dc2626" />
-            <span>{copy.googleMapLiveTitle}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: 'var(--primary)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <MapPin size={18} />
           </div>
-          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-            {copy.mapHint}
-          </span>
+          <div>
+            <div style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
+              {village || block || district ? `${village ? `${village}, ` : ''}${block ? `${block}, ` : ''}${district}, ${state}` : 'Location Pinpoint'}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#166534', fontFamily: 'monospace' }}>
+              GPS: {latitude.toFixed(4)}° N, {longitude.toFixed(4)}° E • {pincode ? `PIN: ${pincode}` : 'Auto-detected'}
+            </div>
+          </div>
         </div>
 
-        <iframe
-          title="Google Map Location View"
-          width="100%"
-          height="190"
-          style={{ border: 0, display: 'block' }}
-          loading="lazy"
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-          src={googleMapUrl}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setShowMap(!showMap)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: '#ffffff',
+              border: '1px solid #86efac',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              color: '#15803d',
+              cursor: 'pointer',
+            }}
+          >
+            <span>{showMap ? copy.hideMap : copy.viewMapOptional}</span>
+            <ChevronDown size={13} style={{ transform: showMap ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: '#ffffff',
+              border: '1px solid #86efac',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              color: '#15803d',
+              textDecoration: 'none',
+            }}
+          >
+            <ExternalLink size={12} />
+            <span>{copy.openInGoogleMaps}</span>
+          </a>
+        </div>
       </div>
+
+      {/* Optional Collapsible Map Preview (hidden by default) */}
+      {showMap && (
+        <div
+          style={{
+            borderRadius: '12px',
+            overflow: 'hidden',
+            border: '1px solid var(--border)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
+            background: '#e2e8f0',
+          }}
+        >
+          <div
+            style={{
+              padding: '8px 14px',
+              background: '#fff',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              color: 'var(--text-main)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MapPin size={14} color="#dc2626" />
+              <span>{copy.googleMapLiveTitle}</span>
+            </div>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+              {copy.mapHint}
+            </span>
+          </div>
+
+          <iframe
+            title="Google Map Location View"
+            width="100%"
+            height="180"
+            style={{ border: 0, display: 'block' }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src={googleMapUrl}
+          />
+        </div>
+      )}
 
       {/* 4. Structured Administrative Hierarchy (Pan-India) */}
       <div
