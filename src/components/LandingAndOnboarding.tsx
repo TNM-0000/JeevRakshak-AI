@@ -138,6 +138,25 @@ const ONBOARDING_I18N = {
     trySignInAgainBtn: 'Try Signing In Again',
     createNewAccountBtn: 'Create a New Account',
     invalidCreds: 'Wrong credentials entered. Please verify your mobile number/email and password.',
+    stepperLang: 'Language',
+    stepperRole: 'Role',
+    stepperLoc: 'Location',
+    stepperAccount: 'Create Account',
+    step4Badge: 'NATIONAL LIVESTOCK REGISTRY • SECURE PROFILE CREATION',
+    personalInfoTitle: 'Personal & Contact Information',
+    personalInfoSub: 'Official contact points for veterinary triage, health alerts, and verified records',
+    roleInfoTitle: 'Role-Specific Credentials',
+    roleInfoSub: 'Official accreditation and herd management parameters',
+    securityTitle: 'Account Security & Password',
+    securitySub: 'Protect your portal access with government-grade credentials',
+    jurisdictionCardTitle: 'Operational Location & Jurisdiction',
+    jurisdictionCardSub: 'Configured in Step 3 • Geospatially linked',
+    editLocationBtn: 'Change Location',
+    rolePrivilegesTitle: 'Role Privileges & Access Scope',
+    govSecurityTitle: 'National Animal Disease Security',
+    govSecurityDesc: 'Protected by 256-bit encryption under National Animal Disease Control Programme (NADCP) and State Animal Husbandry Guidelines.',
+    alreadyHaveAccount: 'Already registered on JeevRakshak?',
+    signInLink: 'Sign In here',
   },
   hi: {
     govtBadge: 'महाराष्ट्र राज्य पशुधन रोग नियंत्रण एवं निगरानी नेटवर्क',
@@ -239,6 +258,25 @@ const ONBOARDING_I18N = {
     trySignInAgainBtn: 'पुनः साइन इन करने का प्रयास करें',
     createNewAccountBtn: 'नया खाता बनाएं',
     invalidCreds: 'गलत क्रेडेंशियल दर्ज किए गए। कृपया अपना मोबाइल नंबर/ईमेल और पासवर्ड जांचें।',
+    stepperLang: 'भाषा',
+    stepperRole: 'भूमिका',
+    stepperLoc: 'स्थान',
+    stepperAccount: 'खाता बनाएं',
+    step4Badge: 'राष्ट्रीय पशुधन रजिस्ट्री • सुरक्षित प्रोफ़ाइल निर्माण',
+    personalInfoTitle: 'व्यक्तिगत एवं संपर्क विवरण',
+    personalInfoSub: 'रोग चेतावनी, अधिसूचना और आधिकारिक रिकॉर्ड के लिए वैध संपर्क',
+    roleInfoTitle: 'भूमिका-विशिष्ट क्रेडेंशियल',
+    roleInfoSub: 'पशुधन स्वामित्व और आधिकारिक पद विवरण',
+    securityTitle: 'खाता सुरक्षा एवं पासवर्ड',
+    securitySub: 'सुरक्षित प्रमाणीकरण के लिए मजबूत पासवर्ड बनाएं',
+    jurisdictionCardTitle: 'निर्धारित स्थान एवं क्षेत्राधिकार',
+    jurisdictionCardSub: 'चरण 3 में जीआईएस द्वारा मैप किया गया स्थान',
+    editLocationBtn: 'स्थान बदलें',
+    rolePrivilegesTitle: 'भूमिका विशेषाधिकार एवं उपकरण',
+    govSecurityTitle: 'राष्ट्रीय पशुधन स्वास्थ्य सुरक्षा मानक',
+    govSecurityDesc: '256-बिट एन्क्रिप्शन और राष्ट्रीय पशु रोग नियंत्रण कार्यक्रम (NADCP) के तहत डेटा पूरी तरह सुरक्षित।',
+    alreadyHaveAccount: 'क्या आपका पहले से खाता है?',
+    signInLink: 'यहां साइन इन करें',
   },
   mr: {
     govtBadge: 'महाराष्ट्र राज्य पशुधन रोग नियंत्रण व सर्वेक्षण प्रणाली',
@@ -340,6 +378,25 @@ const ONBOARDING_I18N = {
     trySignInAgainBtn: 'पुन्हा साइन इन करण्याचा प्रयत्न करा',
     createNewAccountBtn: 'नवीन खाते तयार करा',
     invalidCreds: 'चुकीची माहिती प्रविष्ट केली आहे. कृपया आपला मोबाईल क्रमांक/ईमेल आणि पासवर्ड तपासा.',
+    stepperLang: 'भाषा',
+    stepperRole: 'भूमिका',
+    stepperLoc: 'स्थान',
+    stepperAccount: 'खाते तयार करा',
+    step4Badge: 'राष्ट्रीय पशुधन नोंदणी प्रणाली • सुरक्षित प्रोफाइल निर्मिती',
+    personalInfoTitle: 'वैयक्तिक व संपर्क माहिती',
+    personalInfoSub: 'आरोग्य सूचना, सतर्कता आणि शासकीय नोंदींसाठी अधिकृत संपर्क',
+    roleInfoTitle: 'भूमिका-विशिष्ट माहिती',
+    roleInfoSub: 'आपल्या भूमिकेनुसार विशेष नोंदणी तपशील',
+    securityTitle: 'खाते सुरक्षा व पासवर्ड',
+    securitySub: 'शासकीय सुरक्षा मानकांनुसार सुरक्षित पासवर्ड निश्चित करा',
+    jurisdictionCardTitle: 'निश्चित केलेले स्थान व कार्यक्षेत्र',
+    jurisdictionCardSub: 'पायरी ३ मध्ये जीआयएसद्वारे मॅप केलेले स्थान',
+    editLocationBtn: 'स्थान बदला',
+    rolePrivilegesTitle: 'भूमिका अधिकार व कार्यप्रणाली',
+    govSecurityTitle: 'राष्ट्रीय पशुधन आरोग्य सुरक्षा मानक',
+    govSecurityDesc: '२५६-बिट एन्क्रिप्शन व राष्ट्रीय प्राणी रोग नियंत्रण कार्यक्रम (NADCP) मानकांनुसार संपूर्ण डेटा सुरक्षित.',
+    alreadyHaveAccount: 'आपले आधीच खाते आहे का?',
+    signInLink: 'येथे साइन इन करा',
   },
 };
 
@@ -443,6 +500,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
     const cleanState = (locationData.state || 'maharashtra').toLowerCase().replace(/\s+/g, '_');
     const locationId = `loc-${cleanState}-${cleanDist}-${cleanBlock}`;
     const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    setLoading(true);
     const res = await dataService.registerUser({
       full_name: fullName.trim(),
       phone: cleanPhone,
@@ -689,8 +747,8 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
         </div>
       )}
 
-      {/* VIEW 2: ONBOARDING WIZARD (STEPS 1, 2, 4) */}
-      {viewMode === 'onboarding' && onboardingStep !== 3 && (
+      {/* VIEW 2: ONBOARDING WIZARD (STEPS 1, 2) */}
+      {viewMode === 'onboarding' && onboardingStep <= 2 && (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 14px' }}>
           <div className="modal-card" style={{ maxWidth: '520px', width: '100%', padding: '24px 20px', boxShadow: 'var(--shadow-lg)' }}>
             {/* Step Header */}
@@ -921,417 +979,6 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 </button>
               </div>
             )}
-
-            {/* STEP 4: AUTHENTICATION & PROFILE CREATION */}
-            {onboardingStep === 4 && (
-              <div>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
-                  {copy.step4Title}
-                </h2>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '18px' }}>
-                  {copy.step4Sub}
-                </p>
-
-                {errorMsg && (
-                  <div
-                    style={{
-                      background: 'var(--critical-bg)',
-                      color: 'var(--critical)',
-                      border: '1px solid var(--critical-border)',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '0.82rem',
-                      marginBottom: '16px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {errorMsg}
-                  </div>
-                )}
-
-                <form onSubmit={handleRegister}>
-                  <div className="form-group">
-                    <label className="form-label">
-                      {copy.fullName} <span style={{ color: 'var(--critical)' }}>*</span>
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="text"
-                        required
-                        placeholder={copy.fullNamePlaceholder}
-                        value={fullName}
-                        onChange={(e) => {
-                          setFullName(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{ paddingLeft: '34px' }}
-                      />
-                      <User size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                    </div>
-                  </div>
-
-                  {selectedRole === 'farmer' && (
-                    <div className="form-group">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 600,
-                            background: '#f1f5f9',
-                            color: 'var(--text-muted)',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {copy.optionalBadge}
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder={copy.farmNamePlaceholder}
-                        value={farmName}
-                        onChange={(e) => setFarmName(e.target.value)}
-                        className="form-input"
-                      />
-                    </div>
-                  )}
-
-                  {selectedRole === 'veterinarian' && (
-                    <>
-                      <div className="form-group">
-                        <label className="form-label">
-                          MSVC Veterinary Council License Number <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. MSVC-18492"
-                          value={vetLicense}
-                          onChange={(e) => setVetLicense(e.target.value)}
-                          className="form-input"
-                          style={{ textTransform: 'uppercase', fontWeight: 600 }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          Assigned Veterinary Hospital / Polyclinic <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Taluka Veterinary Polyclinic, Baramati"
-                          value={vetHospitalName}
-                          onChange={(e) => setVetHospitalName(e.target.value)}
-                          className="form-input"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {selectedRole === 'government' && (
-                    <>
-                      <div className="form-group">
-                        <label className="form-label">
-                          Department Official Employee ID <span style={{ color: 'var(--critical)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. MH-DAHD-0412"
-                          value={govtEmployeeId}
-                          onChange={(e) => setGovtEmployeeId(e.target.value)}
-                          className="form-input"
-                          style={{ textTransform: 'uppercase', fontWeight: 600 }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">Government Official Designation</label>
-                        <select
-                          value={govtDesignation}
-                          onChange={(e) => setGovtDesignation(e.target.value)}
-                          className="form-select"
-                        >
-                          <option value="District Animal Husbandry Officer (DAHO)">District Animal Husbandry Officer (DAHO)</option>
-                          <option value="State Animal Husbandry Officer">State Animal Husbandry Officer</option>
-                          <option value="Taluka / Block Veterinary Officer">Taluka / Block Veterinary Officer</option>
-                          <option value="Disease Monitoring & Surveillance Officer">Disease Monitoring & Surveillance Officer</option>
-                          <option value="National Vaccination Program Officer">National Vaccination Program Officer</option>
-                          <option value="Emergency 1962 Response Commander">Emergency 1962 Response Commander</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>
-                        {copy.mobile} <span style={{ color: 'var(--critical)' }}>*</span>
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
-                          background: 'rgba(5, 150, 105, 0.1)',
-                          color: 'var(--primary)',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {copy.compulsoryBadge}
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="tel"
-                        required
-                        placeholder={copy.mobilePlaceholder}
-                        value={phone}
-                        onBlur={() => setPhoneTouched(true)}
-                        onChange={(e) => {
-                          setPhone(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{
-                          paddingLeft: '34px',
-                          borderColor: phoneTouched && phone.trim() && !isValidMobile(phone) ? 'var(--critical)' : undefined,
-                        }}
-                      />
-                      <Phone size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                    </div>
-                    {phoneTouched && phone.trim() && !isValidMobile(phone) && (
-                      <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                        {copy.invalidMobile}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>
-                        {copy.email}
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 600,
-                          background: '#f1f5f9',
-                          color: 'var(--text-muted)',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {copy.optionalBadge}
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="email"
-                        placeholder={copy.emailPlaceholder}
-                        value={email}
-                        onBlur={() => setEmailTouched(true)}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{
-                          paddingLeft: '34px',
-                          borderColor: emailTouched && email.trim() && !isValidEmail(email) ? 'var(--critical)' : undefined,
-                        }}
-                      />
-                      <Mail size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                    </div>
-                    {emailTouched && email.trim() && !isValidEmail(email) && (
-                      <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                        {copy.invalidEmail}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>
-                        {copy.password} <span style={{ color: 'var(--critical)' }}>*</span>
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
-                          background: 'rgba(5, 150, 105, 0.1)',
-                          color: 'var(--primary)',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {copy.compulsoryBadge}
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        placeholder={copy.passwordPlaceholder}
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value);
-                          if (errorMsg) setErrorMsg(null);
-                        }}
-                        className="form-input"
-                        style={{ paddingLeft: '34px', paddingRight: '36px' }}
-                      />
-                      <Lock size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: 'absolute',
-                          right: '10px',
-                          top: '12px',
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--text-muted)',
-                          cursor: 'pointer',
-                          padding: '2px',
-                        }}
-                        aria-label="Toggle password visibility"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-
-                    {/* Interactive Password Strength Meter & Requirement Checklist */}
-                    {password.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          padding: '10px 12px',
-                          background: '#f8fafc',
-                          borderRadius: 'var(--radius-md)',
-                          border: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                            {pwCriteriaMet <= 2 ? copy.pwStrengthWeak : pwCriteriaMet <= 4 ? copy.pwStrengthMedium : copy.pwStrengthStrong}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              color: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
-                            }}
-                          >
-                            {pwCriteriaMet}/5
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '5px',
-                            background: '#e2e8f0',
-                            borderRadius: '3px',
-                            overflow: 'hidden',
-                            marginBottom: '10px',
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: '100%',
-                              width: `${(pwCriteriaMet / 5) * 100}%`,
-                              background: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
-                              transition: 'all 0.3s ease',
-                            }}
-                          />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px' }}>
-                          {[
-                            { label: copy.pwReqMinLength, met: pwStrength.hasMinLength },
-                            { label: copy.pwReqUpper, met: pwStrength.hasUpper },
-                            { label: copy.pwReqLower, met: pwStrength.hasLower },
-                            { label: copy.pwReqNumber, met: pwStrength.hasNumber },
-                            { label: copy.pwReqSpecial, met: pwStrength.hasSpecial },
-                          ].map((item, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '0.7rem',
-                                color: item.met ? 'var(--stable)' : 'var(--text-muted)',
-                                fontWeight: item.met ? 600 : 400,
-                                transition: 'color 0.15s ease',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: '13px',
-                                  height: '13px',
-                                  borderRadius: '50%',
-                                  background: item.met ? 'var(--stable)' : '#cbd5e1',
-                                  color: '#fff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '8px',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {item.met ? '✓' : '•'}
-                              </div>
-                              <span>{item.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {selectedRole === 'farmer' && (
-                    <div className="form-group">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ marginBottom: 0 }}>{copy.livestockCount}</label>
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 600,
-                            background: '#f1f5f9',
-                            color: 'var(--text-muted)',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {copy.optionalBadge}
-                        </span>
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder={copy.livestockPlaceholder}
-                        value={herdSize}
-                        onChange={(e) => setHerdSize(e.target.value)}
-                        className="form-input"
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary"
-                    style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: '13px', marginTop: '12px' }}
-                  >
-                    <span>{loading ? copy.authenticating : copy.finishBtn}</span>
-                    <ArrowRight size={16} />
-                  </button>
-                </form>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -1357,6 +1004,990 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
               setSelectedVillage(loc.village);
             }}
           />
+        </div>
+      )}
+
+      {/* VIEW 2 (STEP 4): FULL WEB PAGE REGISTRATION & PROFILE CREATION */}
+      {viewMode === 'onboarding' && onboardingStep === 4 && (
+        <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: '#F8FFF9', display: 'flex', flexDirection: 'column' }}>
+          {/* 1. TOP SUB-HEADER APPLICATION BAR */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderBottom: '1px solid #e2e8f0',
+              padding: '12px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            {/* Back Button to Step 3 */}
+            <button
+              type="button"
+              onClick={() => {
+                setOnboardingStep(3);
+                setErrorMsg(null);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#f1f5f9',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '8px 14px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>{copy.back}</span>
+            </button>
+
+            {/* 4-Step Breadcrumb Stepper */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: '#2D6A4F',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  ✓
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {copy.stepperLang || 'Language'}
+                </span>
+              </div>
+
+              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: '#2D6A4F',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  ✓
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {copy.stepperRole || 'Role'}
+                </span>
+              </div>
+
+              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: '#2D6A4F',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  ✓
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {copy.stepperLoc || 'Location'}
+                </span>
+              </div>
+
+              <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(45, 106, 79, 0.1)',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  border: '1.5px solid rgba(45, 106, 79, 0.35)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: '#2D6A4F',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  4
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#2D6A4F', fontWeight: 800 }}>
+                  {copy.stepperAccount || 'Create Account'}
+                </span>
+              </div>
+            </div>
+
+            {/* Active Role Chip */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#ecfdf5',
+                color: '#065f46',
+                border: '1px solid #a7f3d0',
+                padding: '5px 14px',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}
+            >
+              <span>{selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}</span>
+              <span>
+                {selectedRole === 'farmer' ? 'Farmer Portal' : selectedRole === 'veterinarian' ? 'Veterinarian Portal' : 'Government Official'}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. HERO PAGE HEADER */}
+          <div style={{ maxWidth: '1280px', width: '100%', margin: '28px auto 0', padding: '0 24px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(45, 106, 79, 0.08)',
+                color: '#2D6A4F',
+                padding: '5px 14px',
+                borderRadius: '20px',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                marginBottom: '10px',
+                border: '1px solid rgba(45, 106, 79, 0.25)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              <Shield size={14} />
+              <span>{copy.step4Badge || 'NATIONAL LIVESTOCK REGISTRY • SECURE PROFILE CREATION'}</span>
+            </div>
+            <h1
+              style={{
+                fontSize: 'clamp(1.5rem, 2.5vw, 2.1rem)',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                lineHeight: 1.2,
+                marginBottom: '6px',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {copy.step4Title}
+            </h1>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0, maxWidth: '820px' }}>
+              {copy.step4Sub}
+            </p>
+          </div>
+
+          {/* 3. TWO-COLUMN RESPONSIVE LAYOUT */}
+          <div
+            style={{
+              maxWidth: '1280px',
+              width: '100%',
+              margin: '24px auto 60px',
+              padding: '0 24px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '28px',
+              alignItems: 'flex-start',
+            }}
+          >
+            {/* LEFT COLUMN: COMPREHENSIVE REGISTRATION FORM */}
+            <div
+              style={{
+                flex: '1 1 680px',
+                minWidth: '320px',
+                background: '#ffffff',
+                borderRadius: '24px',
+                border: '1px solid #e2e8f0',
+                padding: '36px 36px',
+                boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              {errorMsg && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: 'var(--critical-bg)',
+                    color: 'var(--critical)',
+                    border: '1px solid var(--critical-border)',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    fontSize: '0.85rem',
+                    marginBottom: '24px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+                {/* SECTION 1: PERSONAL & CONTACT INFORMATION */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        background: 'rgba(45, 106, 79, 0.1)',
+                        color: '#2D6A4F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {copy.personalInfoTitle || 'Personal & Contact Information'}
+                      </h3>
+                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+                        {copy.personalInfoSub || 'Official contact points for veterinary triage, health alerts, and verified records'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    {/* Full Name */}
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">
+                        {copy.fullName} <span style={{ color: 'var(--critical)' }}>*</span>
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="text"
+                          required
+                          placeholder={copy.fullNamePlaceholder}
+                          value={fullName}
+                          onChange={(e) => {
+                            setFullName(e.target.value);
+                            if (errorMsg) setErrorMsg(null);
+                          }}
+                          className="form-input"
+                          style={{ paddingLeft: '38px', height: '44px', borderRadius: '10px' }}
+                        />
+                        <User size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                      </div>
+                    </div>
+
+                    {/* Phone Number */}
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="form-label" style={{ marginBottom: 0 }}>
+                          {copy.mobile} <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            background: 'rgba(45, 106, 79, 0.1)',
+                            color: '#2D6A4F',
+                            padding: '1px 8px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {copy.compulsoryBadge}
+                        </span>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="tel"
+                          required
+                          placeholder={copy.mobilePlaceholder}
+                          value={phone}
+                          onBlur={() => setPhoneTouched(true)}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            if (errorMsg) setErrorMsg(null);
+                          }}
+                          className="form-input"
+                          style={{
+                            paddingLeft: '38px',
+                            height: '44px',
+                            borderRadius: '10px',
+                            borderColor: phoneTouched && phone.trim() && !isValidMobile(phone) ? 'var(--critical)' : undefined,
+                          }}
+                        />
+                        <Phone size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                      </div>
+                      {phoneTouched && phone.trim() && !isValidMobile(phone) && (
+                        <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          {copy.invalidMobile}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email Address */}
+                  <div className="form-group" style={{ marginTop: '16px', marginBottom: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label className="form-label" style={{ marginBottom: 0 }}>
+                        {copy.email}
+                      </label>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 600,
+                          background: '#f1f5f9',
+                          color: 'var(--text-muted)',
+                          padding: '1px 8px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {copy.optionalBadge}
+                      </span>
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="email"
+                        placeholder={copy.emailPlaceholder}
+                        value={email}
+                        onBlur={() => setEmailTouched(true)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (errorMsg) setErrorMsg(null);
+                        }}
+                        className="form-input"
+                        style={{
+                          paddingLeft: '38px',
+                          height: '44px',
+                          borderRadius: '10px',
+                          borderColor: emailTouched && email.trim() && !isValidEmail(email) ? 'var(--critical)' : undefined,
+                        }}
+                      />
+                      <Mail size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                    </div>
+                    {emailTouched && email.trim() && !isValidEmail(email) && (
+                      <div style={{ color: 'var(--critical)', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                        {copy.invalidEmail}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SECTION 2: ROLE-SPECIFIC CREDENTIALS */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        background: 'rgba(45, 106, 79, 0.1)',
+                        color: '#2D6A4F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {selectedRole === 'veterinarian' ? <Stethoscope size={18} /> : selectedRole === 'government' ? <Building2 size={18} /> : <Home size={18} />}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {copy.roleInfoTitle || 'Role-Specific Credentials'}
+                      </h3>
+                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+                        {copy.roleInfoSub || 'Official accreditation and herd management parameters'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedRole === 'farmer' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.farmName}</label>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              background: '#f1f5f9',
+                              color: 'var(--text-muted)',
+                              padding: '1px 8px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {copy.optionalBadge}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder={copy.farmNamePlaceholder}
+                          value={farmName}
+                          onChange={(e) => setFarmName(e.target.value)}
+                          className="form-input"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label className="form-label" style={{ marginBottom: 0 }}>{copy.livestockCount}</label>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              background: '#f1f5f9',
+                              color: 'var(--text-muted)',
+                              padding: '1px 8px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {copy.optionalBadge}
+                          </span>
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder={copy.livestockPlaceholder}
+                          value={herdSize}
+                          onChange={(e) => setHerdSize(e.target.value)}
+                          className="form-input"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRole === 'veterinarian' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">
+                          MSVC Veterinary Council License Number <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. MSVC-18492"
+                          value={vetLicense}
+                          onChange={(e) => setVetLicense(e.target.value)}
+                          className="form-input"
+                          style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">
+                          Assigned Veterinary Hospital / Polyclinic <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Taluka Veterinary Polyclinic, Baramati"
+                          value={vetHospitalName}
+                          onChange={(e) => setVetHospitalName(e.target.value)}
+                          className="form-input"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRole === 'government' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">
+                          Department Official Employee ID <span style={{ color: 'var(--critical)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. MH-DAHD-0412"
+                          value={govtEmployeeId}
+                          onChange={(e) => setGovtEmployeeId(e.target.value)}
+                          className="form-input"
+                          style={{ textTransform: 'uppercase', fontWeight: 600, height: '44px', borderRadius: '10px' }}
+                        />
+                      </div>
+
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Government Official Designation</label>
+                        <select
+                          value={govtDesignation}
+                          onChange={(e) => setGovtDesignation(e.target.value)}
+                          className="form-select"
+                          style={{ height: '44px', borderRadius: '10px' }}
+                        >
+                          <option value="District Animal Husbandry Officer (DAHO)">District Animal Husbandry Officer (DAHO)</option>
+                          <option value="State Animal Husbandry Officer">State Animal Husbandry Officer</option>
+                          <option value="Taluka / Block Veterinary Officer">Taluka / Block Veterinary Officer</option>
+                          <option value="Disease Monitoring & Surveillance Officer">Disease Monitoring & Surveillance Officer</option>
+                          <option value="National Vaccination Program Officer">National Vaccination Program Officer</option>
+                          <option value="Emergency 1962 Response Commander">Emergency 1962 Response Commander</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SECTION 3: ACCOUNT SECURITY & PASSWORD */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        background: 'rgba(45, 106, 79, 0.1)',
+                        color: '#2D6A4F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Lock size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {copy.securityTitle || 'Account Security & Password'}
+                      </h3>
+                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+                        {copy.securitySub || 'Protect your portal access with government-grade credentials'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label className="form-label" style={{ marginBottom: 0 }}>
+                        {copy.password} <span style={{ color: 'var(--critical)' }}>*</span>
+                      </label>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          background: 'rgba(45, 106, 79, 0.1)',
+                          color: '#2D6A4F',
+                          padding: '1px 8px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {copy.compulsoryBadge}
+                      </span>
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder={copy.passwordPlaceholder}
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          if (errorMsg) setErrorMsg(null);
+                        }}
+                        className="form-input"
+                        style={{ paddingLeft: '38px', paddingRight: '42px', height: '44px', borderRadius: '10px' }}
+                      />
+                      <Lock size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '12px',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          padding: '2px',
+                        }}
+                        aria-label="Toggle password visibility"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+
+                    {/* Interactive Password Strength Meter & Checklist */}
+                    {password.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '14px 16px',
+                          background: '#f8fafc',
+                          borderRadius: '12px',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                            {pwCriteriaMet <= 2 ? copy.pwStrengthWeak : pwCriteriaMet <= 4 ? copy.pwStrengthMedium : copy.pwStrengthStrong}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '0.78rem',
+                              fontWeight: 800,
+                              color: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
+                            }}
+                          >
+                            {pwCriteriaMet} / 5 Criteria Met
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '6px',
+                            background: '#e2e8f0',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                            marginBottom: '12px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${(pwCriteriaMet / 5) * 100}%`,
+                              background: pwCriteriaMet <= 2 ? 'var(--critical)' : pwCriteriaMet <= 4 ? '#d97706' : 'var(--stable)',
+                              transition: 'all 0.3s ease',
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+                          {[
+                            { label: copy.pwReqMinLength, met: pwStrength.hasMinLength },
+                            { label: copy.pwReqUpper, met: pwStrength.hasUpper },
+                            { label: copy.pwReqLower, met: pwStrength.hasLower },
+                            { label: copy.pwReqNumber, met: pwStrength.hasNumber },
+                            { label: copy.pwReqSpecial, met: pwStrength.hasSpecial },
+                          ].map((item, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '0.74rem',
+                                color: item.met ? 'var(--stable)' : 'var(--text-muted)',
+                                fontWeight: item.met ? 700 : 400,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '15px',
+                                  height: '15px',
+                                  borderRadius: '50%',
+                                  background: item.met ? 'var(--stable)' : '#cbd5e1',
+                                  color: '#fff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '9px',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {item.met ? '✓' : '•'}
+                              </div>
+                              <span>{item.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SUBMIT BUTTON */}
+                <div style={{ marginTop: '8px' }}>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      borderRadius: '12px',
+                      padding: '14px 20px',
+                      height: '50px',
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                    }}
+                  >
+                    <span>{loading ? copy.authenticating : copy.finishBtn}</span>
+                    <ArrowRight size={18} />
+                  </button>
+
+                  <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    <span>{copy.alreadyHaveAccount || 'Already registered on JeevRakshak?'} </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('signin');
+                        setOnboardingStep(1);
+                        setErrorMsg(null);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        padding: 0,
+                      }}
+                    >
+                      {copy.signInLink || 'Sign In here'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* RIGHT COLUMN: PROFILE DOSSIER & JURISDICTION SUMMARY */}
+            <div style={{ flex: '1 1 360px', maxWidth: '440px', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* CARD 1: CONFIGURED OPERATIONAL JURISDICTION */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px solid #e2e8f0',
+                  padding: '24px',
+                  boxShadow: '0 4px 15px -2px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        background: '#ecfdf5',
+                        color: '#065f46',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <MapPin size={18} />
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {copy.jurisdictionCardTitle || 'Operational Location & Jurisdiction'}
+                      </h4>
+                      <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
+                        {copy.jurisdictionCardSub || 'Configured in Step 3 • Geospatially linked'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOnboardingStep(3);
+                      setErrorMsg(null);
+                    }}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: 'var(--text-main)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {copy.editLocationBtn || 'Change Location'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.district}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {locationData.district || selectedDistrict || 'Pune'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.block}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {locationData.block || selectedBlock || 'Shirur'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>{copy.village}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {locationData.village || selectedVillage || 'Shirapur'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pincode / State</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {locationData.pincode || '412210'} • {locationData.state || 'Maharashtra'}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(45, 106, 79, 0.08)',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontSize: '0.74rem',
+                    color: '#2D6A4F',
+                    fontWeight: 700,
+                  }}
+                >
+                  <Radio size={14} className="animate-pulse" />
+                  <span>
+                    GPS Node: {locationData.latitude ? locationData.latitude.toFixed(4) : '18.8120'}° N, {locationData.longitude ? locationData.longitude.toFixed(4) : '74.3910'}° E
+                  </span>
+                </div>
+              </div>
+
+              {/* CARD 2: ROLE ENTITLEMENTS & UNLOCKED TOOLS */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px solid #e2e8f0',
+                  padding: '24px',
+                  boxShadow: '0 4px 15px -2px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: '#ecfdf5',
+                      color: '#065f46',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.1rem',
+                    }}
+                  >
+                    {selectedRole === 'farmer' ? '👨‍🌾' : selectedRole === 'veterinarian' ? '🩺' : '🏛️'}
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                      {copy.rolePrivilegesTitle || 'Role Privileges & Access Scope'}
+                    </h4>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
+                      {selectedRole.toUpperCase()} • Immediate system entitlements
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {(selectedRole === 'farmer'
+                    ? [
+                        { icon: '🩺', title: 'AI Symptom Scanner', desc: 'Instant disease risk triage in English, Hindi & Marathi' },
+                        { icon: '📍', title: '15km Outbreak Alert', desc: 'Real-time contagious alerts in your taluka' },
+                        { icon: '📋', title: 'Livestock Health Passport', desc: 'Digital vaccination tracker & medical history' },
+                        { icon: '📞', title: '1962 Veterinary SOS', desc: 'One-touch emergency mobile clinic dispatch' },
+                      ]
+                    : selectedRole === 'veterinarian'
+                    ? [
+                        { icon: '🏥', title: 'Clinical Triage Queue', desc: 'Review, prioritize and respond to incoming livestock cases' },
+                        { icon: '🔬', title: 'Diagnostic Lab Orders', desc: 'Digital requisition and specimen tracking' },
+                        { icon: '💊', title: 'Prescription Records', desc: 'Standardized pharmacological regimens' },
+                        { icon: '⚡', title: 'Surveillance Escalation', desc: 'Direct alert channel to DAHO & state epidemiologists' },
+                      ]
+                    : [
+                        { icon: '🗺️', title: 'Geospatial Outbreak Heatmaps', desc: 'Village and taluka-level clustering at 50m resolution' },
+                        { icon: '📊', title: 'Surveillance Analytics', desc: 'Prevalence rates, mortality indices & vaccine coverage' },
+                        { icon: '📄', title: 'Official PDF Reports', desc: 'Exportable clinical dossiers and audit records' },
+                        { icon: '🛡️', title: 'Containment SOPs', desc: 'Quarantine zones, checkpoints & ring vaccination protocols' },
+                      ]
+                  ).map((feat, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '10px',
+                        padding: '8px 10px',
+                        background: '#f8fafc',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '1px' }}>{feat.icon}</span>
+                      <div>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>{feat.title}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{feat.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CARD 3: REGULATORY COMPLIANCE & DATA SECURITY */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                  borderRadius: '20px',
+                  border: '1px solid #bbf7d0',
+                  padding: '20px 24px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#166534' }}>
+                  <Shield size={18} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>
+                    {copy.govSecurityTitle || 'National Animal Disease Security'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.74rem', color: '#166534', lineHeight: 1.4, margin: 0 }}>
+                  {copy.govSecurityDesc || 'Protected by 256-bit encryption under National Animal Disease Control Programme (NADCP) and State Animal Husbandry Guidelines.'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
