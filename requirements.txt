@@ -1,0 +1,24 @@
+# Core Numerical & ML Libraries
+numpy>=1.26.0
+pandas>=2.2.0
+pillow>=10.0.0
+torch>=2.2.0
+keras>=3.0.0
+h5py>=3.10.0
+
+# Schemas & Validation
+pydantic>=2.6.0
+
+# HTTP & Data Utilities
+requests>=2.31.0
+pypdf>=4.0.0
+
+# Testing & Quality
+pytest>=8.0.0
+
+# API & Web Service (Phase 3A)
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+python-multipart>=0.0.9
+httpx>=0.27.0
+

@@ -1,0 +1,57 @@
+Disease,Species_Affected,Year,Outbreaks,Attacks,Deaths
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2005,1986,51240,1120
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2006,1875,44120,980
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2007,2430,62150,1450
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2008,1650,38900,890
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2009,1420,32400,720
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2010,1210,27100,540
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2011,1080,24300,480
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2005,1452,18940,5620
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2006,1320,16540,4890
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2007,1510,19200,5840
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2008,1240,14900,4320
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2009,1180,13800,3980
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2010,980,11200,3240
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2011,890,9800,2850
+Black Quarter,Bovine (Cattle/Buffalo),2005,1120,8450,2980
+Black Quarter,Bovine (Cattle/Buffalo),2006,1050,7820,2650
+Black Quarter,Bovine (Cattle/Buffalo),2007,1180,8900,3120
+Black Quarter,Bovine (Cattle/Buffalo),2008,940,6950,2410
+Black Quarter,Bovine (Cattle/Buffalo),2009,870,6200,2150
+Black Quarter,Bovine (Cattle/Buffalo),2010,760,5400,1890
+Black Quarter,Bovine (Cattle/Buffalo),2011,690,4800,1670
+Anthrax,Bovine/Ovine/Caprine,2005,210,1420,980
+Anthrax,Bovine/Ovine/Caprine,2006,195,1280,890
+Anthrax,Bovine/Ovine/Caprine,2007,240,1650,1150
+Anthrax,Bovine/Ovine/Caprine,2008,180,1190,820
+Anthrax,Bovine/Ovine/Caprine,2009,165,1080,740
+Anthrax,Bovine/Ovine/Caprine,2010,140,920,630
+Anthrax,Bovine/Ovine/Caprine,2011,125,810,560
+Sheep and Goat Pox,Ovine/Caprine,2005,680,8950,1420
+Sheep and Goat Pox,Ovine/Caprine,2006,620,8120,1280
+Sheep and Goat Pox,Ovine/Caprine,2007,710,9400,1540
+Sheep and Goat Pox,Ovine/Caprine,2008,590,7600,1190
+Sheep and Goat Pox,Ovine/Caprine,2009,540,6900,1050
+Sheep and Goat Pox,Ovine/Caprine,2010,480,6100,920
+Sheep and Goat Pox,Ovine/Caprine,2011,430,5400,810
+Enterotoxaemia,Ovine/Caprine,2005,420,5800,1850
+Enterotoxaemia,Ovine/Caprine,2006,390,5200,1640
+Enterotoxaemia,Ovine/Caprine,2007,450,6100,1980
+Enterotoxaemia,Ovine/Caprine,2008,370,4900,1520
+Enterotoxaemia,Ovine/Caprine,2009,340,4400,1380
+Enterotoxaemia,Ovine/Caprine,2010,310,3900,1210
+Enterotoxaemia,Ovine/Caprine,2011,280,3500,1090
+Classical Swine Fever,Porcine,2005,180,2400,980
+Classical Swine Fever,Porcine,2006,165,2150,890
+Classical Swine Fever,Porcine,2007,195,2600,1120
+Classical Swine Fever,Porcine,2008,150,1980,810
+Classical Swine Fever,Porcine,2009,140,1820,740
+Classical Swine Fever,Porcine,2010,120,1540,620
+Classical Swine Fever,Porcine,2011,110,1410,560
+Rabies,Multiple Livestock,2005,310,480,480
+Rabies,Multiple Livestock,2006,290,440,440
+Rabies,Multiple Livestock,2007,340,520,520
+Rabies,Multiple Livestock,2008,280,410,410
+Rabies,Multiple Livestock,2009,260,380,380
+Rabies,Multiple Livestock,2010,230,330,330
+Rabies,Multiple Livestock,2011,210,290,290

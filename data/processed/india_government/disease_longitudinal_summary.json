@@ -1,0 +1,66 @@
+{
+  "Anthrax": {
+    "species_affected": "Bovine/Ovine/Caprine",
+    "total_outbreaks_2005_2011": 1255,
+    "total_cases_2005_2011": 8350,
+    "total_deaths_2005_2011": 5770,
+    "mean_case_fatality_rate_pct": 69.1,
+    "peak_outbreak_year": 2007
+  },
+  "Black Quarter (BQ)": {
+    "species_affected": "Bovine (Cattle/Buffalo)",
+    "total_outbreaks_2005_2011": 6610,
+    "total_cases_2005_2011": 48520,
+    "total_deaths_2005_2011": 16870,
+    "mean_case_fatality_rate_pct": 34.77,
+    "peak_outbreak_year": 2007
+  },
+  "Classical Swine Fever (CSF)": {
+    "species_affected": "Porcine",
+    "total_outbreaks_2005_2011": 1060,
+    "total_cases_2005_2011": 13900,
+    "total_deaths_2005_2011": 5720,
+    "mean_case_fatality_rate_pct": 41.15,
+    "peak_outbreak_year": 2007
+  },
+  "Enterotoxaemia (ET)": {
+    "species_affected": "Ovine/Caprine",
+    "total_outbreaks_2005_2011": 2560,
+    "total_cases_2005_2011": 33800,
+    "total_deaths_2005_2011": 10670,
+    "mean_case_fatality_rate_pct": 31.57,
+    "peak_outbreak_year": 2007
+  },
+  "Foot-and-Mouth Disease (FMD)": {
+    "species_affected": "Bovine (Cattle/Buffalo)",
+    "total_outbreaks_2005_2011": 11651,
+    "total_cases_2005_2011": 280210,
+    "total_deaths_2005_2011": 6180,
+    "mean_case_fatality_rate_pct": 2.21,
+    "peak_outbreak_year": 2007
+  },
+  "Haemorrhagic Septicaemia (HS)": {
+    "species_affected": "Bovine (Cattle/Buffalo)",
+    "total_outbreaks_2005_2011": 8572,
+    "total_cases_2005_2011": 104380,
+    "total_deaths_2005_2011": 30740,
+    "mean_case_fatality_rate_pct": 29.45,
+    "peak_outbreak_year": 2007
+  },
+  "Rabies": {
+    "species_affected": "Multiple Livestock",
+    "total_outbreaks_2005_2011": 1920,
+    "total_cases_2005_2011": 2850,
+    "total_deaths_2005_2011": 2850,
+    "mean_case_fatality_rate_pct": 100.0,
+    "peak_outbreak_year": 2007
+  },
+  "Sheep and Goat Pox (SGP)": {
+    "species_affected": "Ovine/Caprine",
+    "total_outbreaks_2005_2011": 4050,
+    "total_cases_2005_2011": 52470,
+    "total_deaths_2005_2011": 8210,
+    "mean_case_fatality_rate_pct": 15.65,
+    "peak_outbreak_year": 2007
+  }
+}

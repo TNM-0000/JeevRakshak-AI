@@ -1,0 +1,57 @@
+Disease,Species_Affected,Year,Outbreaks,Attacks,Deaths,Case_Fatality_Rate_Pct,Attacks_Per_Outbreak,Standardized_Disease,Source,Temporal_Role
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2005,1986,51240,1120,2.19,25.8,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2006,1875,44120,980,2.22,23.5,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2007,2430,62150,1450,2.33,25.6,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2008,1650,38900,890,2.29,23.6,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2009,1420,32400,720,2.22,22.8,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2010,1210,27100,540,1.99,22.4,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Foot and Mouth Disease,Bovine (Cattle/Buffalo),2011,1080,24300,480,1.98,22.5,Foot-and-Mouth Disease (FMD),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2005,1452,18940,5620,29.67,13.0,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2006,1320,16540,4890,29.56,12.5,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2007,1510,19200,5840,30.42,12.7,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2008,1240,14900,4320,28.99,12.0,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2009,1180,13800,3980,28.84,11.7,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2010,980,11200,3240,28.93,11.4,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Haemorrhagic Septicaemia,Bovine (Cattle/Buffalo),2011,890,9800,2850,29.08,11.0,Haemorrhagic Septicaemia (HS),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2005,1120,8450,2980,35.27,7.5,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2006,1050,7820,2650,33.89,7.4,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2007,1180,8900,3120,35.06,7.5,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2008,940,6950,2410,34.68,7.4,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2009,870,6200,2150,34.68,7.1,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2010,760,5400,1890,35.0,7.1,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Black Quarter,Bovine (Cattle/Buffalo),2011,690,4800,1670,34.79,7.0,Black Quarter (BQ),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2005,210,1420,980,69.01,6.8,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2006,195,1280,890,69.53,6.6,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2007,240,1650,1150,69.7,6.9,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2008,180,1190,820,68.91,6.6,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2009,165,1080,740,68.52,6.5,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2010,140,920,630,68.48,6.6,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Anthrax,Bovine/Ovine/Caprine,2011,125,810,560,69.14,6.5,Anthrax,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2005,680,8950,1420,15.87,13.2,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2006,620,8120,1280,15.76,13.1,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2007,710,9400,1540,16.38,13.2,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2008,590,7600,1190,15.66,12.9,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2009,540,6900,1050,15.22,12.8,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2010,480,6100,920,15.08,12.7,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Sheep and Goat Pox,Ovine/Caprine,2011,430,5400,810,15.0,12.6,Sheep and Goat Pox (SGP),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2005,420,5800,1850,31.9,13.8,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2006,390,5200,1640,31.54,13.3,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2007,450,6100,1980,32.46,13.6,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2008,370,4900,1520,31.02,13.2,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2009,340,4400,1380,31.36,12.9,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2010,310,3900,1210,31.03,12.6,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Enterotoxaemia,Ovine/Caprine,2011,280,3500,1090,31.14,12.5,Enterotoxaemia (ET),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2005,180,2400,980,40.83,13.3,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2006,165,2150,890,41.4,13.0,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2007,195,2600,1120,43.08,13.3,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2008,150,1980,810,40.91,13.2,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2009,140,1820,740,40.66,13.0,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2010,120,1540,620,40.26,12.8,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Classical Swine Fever,Porcine,2011,110,1410,560,39.72,12.8,Classical Swine Fever (CSF),OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2005,310,480,480,100.0,1.5,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2006,290,440,440,100.0,1.5,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2007,340,520,520,100.0,1.5,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2008,280,410,410,100.0,1.5,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2009,260,380,380,100.0,1.5,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2010,230,330,330,100.0,1.4,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline
+Rabies,Multiple Livestock,2011,210,290,290,100.0,1.4,Rabies,OGD India / MOSPI / DAHD Historical Series,Historical Epidemiological Baseline

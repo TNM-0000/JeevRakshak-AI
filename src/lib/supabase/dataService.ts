@@ -973,22 +973,27 @@ export const dataService = {
   },
 
   async createHerd(herd: Omit<Herd, 'id'>): Promise<Herd> {
+    const createdId = `herd-${Date.now()}`;
     const payload: any = {
+      id: createdId,
       owner_profile_id: herd.owner_profile_id,
       name: herd.name,
     };
-    if (herd.location_id && !isNaN(Number(herd.location_id))) {
-      payload.location_id = Number(herd.location_id);
+    if (herd.location_id) {
+      payload.location_id = String(herd.location_id);
     }
+    if (herd.name_en) payload.name_en = herd.name_en;
+    if (herd.name_hi) payload.name_hi = herd.name_hi;
+    if (herd.name_mr) payload.name_mr = herd.name_mr;
 
-    let createdId = `herd-${Date.now()}`;
+    let finalId = createdId;
     const res = await dbInsert('herds', [payload]);
     if (res.data && res.data[0]) {
-      createdId = String(res.data[0].id);
+      finalId = String(res.data[0].id);
     }
 
     const newHerd: Herd = {
-      id: createdId,
+      id: finalId,
       owner_profile_id: herd.owner_profile_id,
       name: herd.name,
       location_id: herd.location_id,
@@ -1019,16 +1024,13 @@ export const dataService = {
       }
 
       const targetHerdIds = herdId ? [String(herdId)] : userHerdIds;
-      const numericHerdIds = targetHerdIds
-        .map((id) => Number(id))
-        .filter((n) => !isNaN(n) && n > 0);
 
-      if (numericHerdIds.length > 0) {
+      if (targetHerdIds.length > 0) {
         try {
           const { data, error } = await supabase
             .from('animals')
             .select('*')
-            .in('herd_id', numericHerdIds);
+            .in('herd_id', targetHerdIds);
           if (!error && data) {
             rawAnimals = data as Animal[];
           }
@@ -1057,8 +1059,8 @@ export const dataService = {
       // Veterinarian or Government or general overview
       try {
         let query = supabase.from('animals').select('*');
-        if (herdId && !isNaN(Number(herdId))) {
-          query = query.eq('herd_id', Number(herdId));
+        if (herdId) {
+          query = query.eq('herd_id', String(herdId));
         }
         const { data, error } = await query;
         if (!error && data) {
@@ -1106,26 +1108,37 @@ export const dataService = {
   },
 
   async createAnimal(animal: Omit<Animal, 'id'>): Promise<Animal> {
+    const animalId = `anim-${Date.now()}`;
     const payload: any = {
+      id: animalId,
+      herd_id: String(animal.herd_id),
       tag_number: animal.tag_number,
       species: animal.species,
       breed: animal.breed,
       sex: animal.sex,
       date_of_birth: animal.date_of_birth || null,
     };
-    if (animal.herd_id && !isNaN(Number(animal.herd_id))) {
-      payload.herd_id = Number(animal.herd_id);
-    }
+    if (animal.name) payload.name = animal.name;
+    if (animal.species_en) payload.species_en = animal.species_en;
+    if (animal.species_hi) payload.species_hi = animal.species_hi;
+    if (animal.species_mr) payload.species_mr = animal.species_mr;
+    if (animal.breed_en) payload.breed_en = animal.breed_en;
+    if (animal.breed_hi) payload.breed_hi = animal.breed_hi;
+    if (animal.breed_mr) payload.breed_mr = animal.breed_mr;
+    if (animal.is_milking !== undefined) payload.is_milking = animal.is_milking;
+    if (animal.milking_status) payload.milking_status = animal.milking_status;
+    if (animal.vaccination_status) payload.vaccination_status = animal.vaccination_status;
+    if (animal.notes) payload.notes = animal.notes;
 
-    let animalId = `anim-${Date.now()}`;
+    let finalId = animalId;
     const res = await dbInsert('animals', [payload]);
     if (res.data && res.data[0]) {
-      animalId = String(res.data[0].id);
+      finalId = String(res.data[0].id);
     }
 
     const newAnimal: Animal = {
       ...animal,
-      id: animalId,
+      id: finalId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -1231,19 +1244,92 @@ export const dataService = {
 
   async createHealthReport(report: Omit<HealthReport, 'id' | 'reported_at'>): Promise<HealthReportWithDetails> {
     const reportedAt = new Date().toISOString();
+
+    // 1. Try server-side compound triage via /api/triage endpoint
+    if (typeof window !== 'undefined') {
+      try {
+        const triageRes = await fetch('/api/triage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            animal_id: String(report.animal_id),
+            reported_by: String(report.reported_by),
+            source: report.source || 'web',
+            symptoms: report.symptoms,
+            mortality_count: report.mortality_count || 0,
+            notes: report.notes || null,
+          }),
+        });
+
+        if (triageRes.ok) {
+          const triageJson = await triageRes.json();
+          if (triageJson.success && triageJson.report) {
+            const r = triageJson.report;
+            const a = triageJson.assessment;
+            const newReport: HealthReport = {
+              ...report,
+              id: String(r.id),
+              reported_at: r.reported_at || reportedAt,
+              created_at: r.created_at || reportedAt,
+            };
+
+            const assessment: CaseAssessment = a ? {
+              id: String(a.id),
+              health_report_id: String(r.id),
+              status: a.status || 'suspected',
+              triage_method: a.triage_method || 'ai_assisted',
+              assessment_notes: a.assessment_notes || 'AI clinical assessment completed.',
+              assessed_at: a.assessed_at || reportedAt,
+              assessed_by: a.assessed_by || 'JeevRakshak AI',
+            } : {
+              id: `case-${Date.now()}`,
+              health_report_id: String(r.id),
+              status: triageJson.triage?.triageStatus || 'suspected',
+              triage_method: triageJson.triage?.triageMethod || 'ai_assisted',
+              assessment_notes: triageJson.triage?.multilingualNotes?.en || 'AI triage assessment completed.',
+              assessed_at: reportedAt,
+              assessed_by: 'JeevRakshak AI',
+            };
+
+            localStore.healthReports.unshift(newReport);
+            localStore.caseAssessments.unshift(assessment);
+            localStore.save();
+
+            const animal = localStore.animals.find((item) => String(item.id) === String(report.animal_id));
+            return {
+              ...newReport,
+              animal,
+              assessment,
+              diseases: [],
+              samples: [],
+              escalations: [],
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('[DataService] /api/triage unreachable, falling back to localStore/dbInsert:', err);
+      }
+    }
+
+    // 2. Offline / Resilient Local Fallback
+    let reportId = `rep-${Date.now()}`;
     const payload: any = {
-      reported_by: report.reported_by,
+      id: reportId,
+      animal_id: String(report.animal_id),
+      reported_by: String(report.reported_by),
       source: report.source || 'web',
       symptoms: report.symptoms,
       mortality_count: report.mortality_count || 0,
       notes: report.notes || null,
       reported_at: reportedAt,
     };
-    if (report.animal_id && !isNaN(Number(report.animal_id))) {
-      payload.animal_id = Number(report.animal_id);
-    }
+    if (report.symptoms_en) payload.symptoms_en = report.symptoms_en;
+    if (report.symptoms_hi) payload.symptoms_hi = report.symptoms_hi;
+    if (report.symptoms_mr) payload.symptoms_mr = report.symptoms_mr;
+    if (report.notes_en) payload.notes_en = report.notes_en;
+    if (report.notes_hi) payload.notes_hi = report.notes_hi;
+    if (report.notes_mr) payload.notes_mr = report.notes_mr;
 
-    let reportId = `rep-${Date.now()}`;
     const repRes = await dbInsert('health_reports', [payload]);
     if (repRes.data && repRes.data[0]) {
       reportId = String(repRes.data[0].id);
@@ -1272,8 +1358,9 @@ export const dataService = {
       diseaseName = 'Anthrax (Bacillus anthracis)';
     }
 
+    const assessmentId = `case-${Date.now()}`;
     const assessment: CaseAssessment = {
-      id: `case-${Date.now()}`,
+      id: assessmentId,
       health_report_id: reportId,
       assessed_by: 'ai_triage_engine',
       triage_method: 'ai_assisted',
@@ -1284,15 +1371,14 @@ export const dataService = {
 
     // Save assessment to Supabase
     const casePayload: any = {
+      id: assessmentId,
+      health_report_id: reportId,
       status: assessment.status,
       assessed_by: assessment.assessed_by,
       assessed_at: assessment.assessed_at,
       assessment_notes: assessment.assessment_notes,
       triage_method: 'ai_assisted',
     };
-    if (!isNaN(Number(reportId))) {
-      casePayload.health_report_id = Number(reportId);
-    }
     await dbInsert('case_assessments', [casePayload]);
 
     localStore.healthReports.unshift(newReport);
@@ -1321,8 +1407,8 @@ export const dataService = {
 
     try {
       let query = supabase.from('animal_treatments').select('*');
-      if (animalId && !isNaN(Number(animalId))) {
-        query = query.eq('animal_id', Number(animalId));
+      if (animalId) {
+        query = query.eq('animal_id', String(animalId));
       }
       const { data, error } = await query;
       if (!error && data) {
@@ -1335,15 +1421,62 @@ export const dataService = {
   },
 
   async addTreatment(treatment: Omit<AnimalTreatment, 'id' | 'created_at'>): Promise<AnimalTreatment> {
+    // 1. Try server-side clinical prescriptions route
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/clinical/prescriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            animal_id: String(treatment.animal_id),
+            treatment_name: treatment.treatment_name,
+            treatment_name_en: treatment.treatment_name_en,
+            treatment_name_hi: treatment.treatment_name_hi,
+            treatment_name_mr: treatment.treatment_name_mr,
+            dosage: treatment.dosage,
+            treatment_date: treatment.treatment_date,
+            prescribed_by: treatment.prescribed_by,
+            notes: treatment.notes,
+            notes_en: treatment.notes_en,
+            notes_hi: treatment.notes_hi,
+            notes_mr: treatment.notes_mr,
+          }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.treatment) {
+            const newTreatment: AnimalTreatment = {
+              ...treatment,
+              id: String(json.treatment.id),
+              created_at: json.treatment.created_at || new Date().toISOString(),
+            };
+            localStore.treatments.unshift(newTreatment);
+            localStore.save();
+            return newTreatment;
+          }
+        }
+      } catch (err) {
+        console.warn('[DataService] /api/clinical/prescriptions fallback:', err);
+      }
+    }
+
+    // 2. Direct / Offline Fallback
     let treatId = `treat-${Date.now()}`;
     const payload: any = {
+      id: treatId,
+      animal_id: String(treatment.animal_id),
+      treatment_name: treatment.treatment_name,
       dosage: treatment.dosage,
+      treatment_date: treatment.treatment_date || new Date().toISOString().split('T')[0],
+      prescribed_by: treatment.prescribed_by || null,
       notes: treatment.notes || null,
-      prescribed_by: treatment.prescribed_by,
     };
-    if (treatment.animal_id && !isNaN(Number(treatment.animal_id))) {
-      payload.animal_id = Number(treatment.animal_id);
-    }
+    if (treatment.treatment_name_en) payload.treatment_name_en = treatment.treatment_name_en;
+    if (treatment.treatment_name_hi) payload.treatment_name_hi = treatment.treatment_name_hi;
+    if (treatment.treatment_name_mr) payload.treatment_name_mr = treatment.treatment_name_mr;
+    if (treatment.notes_en) payload.notes_en = treatment.notes_en;
+    if (treatment.notes_hi) payload.notes_hi = treatment.notes_hi;
+    if (treatment.notes_mr) payload.notes_mr = treatment.notes_mr;
 
     const res = await dbInsert('animal_treatments', [payload]);
     if (res.data && res.data[0]) {
@@ -1379,11 +1512,25 @@ export const dataService = {
       if (params.assessed_by) existing.assessed_by = params.assessed_by;
       existing.assessed_at = new Date().toISOString();
       localStore.save();
+
+      // Persist update to Supabase
+      await dbUpdate(
+        'case_assessments',
+        {
+          status: params.status,
+          triage_method: params.triage_method || existing.triage_method,
+          assessment_notes: params.assessment_notes || existing.assessment_notes,
+          assessed_by: params.assessed_by || existing.assessed_by,
+          assessed_at: existing.assessed_at,
+        },
+        { id: existing.id }
+      );
       return existing;
     }
 
+    const newAssessmentId = `case-${Date.now()}`;
     const newAssessment: CaseAssessment = {
-      id: `case-${Date.now()}`,
+      id: newAssessmentId,
       health_report_id: params.health_report_id,
       status: params.status,
       triage_method: params.triage_method || 'manual',
@@ -1393,6 +1540,18 @@ export const dataService = {
     };
     localStore.caseAssessments.unshift(newAssessment);
     localStore.save();
+
+    // Persist insert to Supabase
+    await dbInsert('case_assessments', [{
+      id: newAssessmentId,
+      health_report_id: String(params.health_report_id),
+      status: newAssessment.status,
+      triage_method: newAssessment.triage_method,
+      assessment_notes: newAssessment.assessment_notes,
+      assessed_by: newAssessment.assessed_by,
+      assessed_at: newAssessment.assessed_at,
+    }]);
+
     return newAssessment;
   },
 
@@ -1407,8 +1566,8 @@ export const dataService = {
 
     try {
       let query = supabase.from('animal_vaccinations').select('*');
-      if (animalId && !isNaN(Number(animalId))) {
-        query = query.eq('animal_id', Number(animalId));
+      if (animalId) {
+        query = query.eq('animal_id', String(animalId));
       }
       const { data, error } = await query;
       if (!error && data) {
@@ -1423,11 +1582,20 @@ export const dataService = {
   async addVaccination(vaccination: Omit<AnimalVaccination, 'id' | 'created_at'>): Promise<AnimalVaccination> {
     let vacId = `vac-${Date.now()}`;
     const payload: any = {
+      id: vacId,
+      animal_id: String(vaccination.animal_id),
+      vaccine_name: vaccination.vaccine_name,
+      vaccination_date: vaccination.vaccination_date || new Date().toISOString().split('T')[0],
+      next_due_date: vaccination.next_due_date || null,
+      administered_by: vaccination.administered_by || null,
       notes: vaccination.notes || null,
     };
-    if (vaccination.animal_id && !isNaN(Number(vaccination.animal_id))) {
-      payload.animal_id = Number(vaccination.animal_id);
-    }
+    if (vaccination.vaccine_name_en) payload.vaccine_name_en = vaccination.vaccine_name_en;
+    if (vaccination.vaccine_name_hi) payload.vaccine_name_hi = vaccination.vaccine_name_hi;
+    if (vaccination.vaccine_name_mr) payload.vaccine_name_mr = vaccination.vaccine_name_mr;
+    if (vaccination.notes_en) payload.notes_en = vaccination.notes_en;
+    if (vaccination.notes_hi) payload.notes_hi = vaccination.notes_hi;
+    if (vaccination.notes_mr) payload.notes_mr = vaccination.notes_mr;
 
     const res = await dbInsert('animal_vaccinations', [payload]);
     if (res.data && res.data[0]) {
@@ -1458,14 +1626,62 @@ export const dataService = {
   },
 
   async collectDiagnosticSample(sample: Omit<DiagnosticSample, 'id' | 'created_at'>): Promise<DiagnosticSample> {
+    // 1. Try server-side samples route
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/clinical/samples', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            health_report_id: String(sample.health_report_id),
+            sample_type: sample.sample_type,
+            sample_type_en: sample.sample_type_en,
+            sample_type_hi: sample.sample_type_hi,
+            sample_type_mr: sample.sample_type_mr,
+            notes: sample.notes,
+            notes_en: sample.notes_en,
+            notes_hi: sample.notes_hi,
+            notes_mr: sample.notes_mr,
+          }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.sample) {
+            const newSample: DiagnosticSample = {
+              ...sample,
+              id: String(json.sample.id),
+              created_at: json.sample.created_at || new Date().toISOString(),
+            };
+            localStore.diagnosticSamples.unshift(newSample);
+            localStore.save();
+            return newSample;
+          }
+        }
+      } catch (err) {
+        console.warn('[DataService] /api/clinical/samples fallback:', err);
+      }
+    }
+
+    // 2. Direct / Offline Fallback
     let sampleId = `sample-${Date.now()}`;
     const payload: any = {
+      id: sampleId,
+      health_report_id: String(sample.health_report_id),
+      sample_type: sample.sample_type,
       status: sample.status || 'collected',
+      collected_at: sample.collected_at || new Date().toISOString(),
+      sent_at: sample.sent_at || null,
+      received_at: sample.received_at || null,
+      tested_at: sample.tested_at || null,
+      result: sample.result || null,
       notes: sample.notes || null,
     };
-    if (sample.health_report_id && !isNaN(Number(sample.health_report_id))) {
-      payload.health_report_id = Number(sample.health_report_id);
-    }
+    if (sample.sample_type_en) payload.sample_type_en = sample.sample_type_en;
+    if (sample.sample_type_hi) payload.sample_type_hi = sample.sample_type_hi;
+    if (sample.sample_type_mr) payload.sample_type_mr = sample.sample_type_mr;
+    if (sample.notes_en) payload.notes_en = sample.notes_en;
+    if (sample.notes_hi) payload.notes_hi = sample.notes_hi;
+    if (sample.notes_mr) payload.notes_mr = sample.notes_mr;
 
     const res = await dbInsert('diagnostic_samples', [payload]);
     if (res.data && res.data[0]) {
@@ -1491,8 +1707,24 @@ export const dataService = {
   },
 
   async updateSampleStatus(sampleId: string, status: SampleStatus, result?: string): Promise<DiagnosticSample | null> {
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/clinical/samples', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: sampleId,
+            status,
+            result,
+          }),
+        });
+      } catch (err) {
+        console.warn('[DataService] /api/clinical/samples PATCH fallback:', err);
+      }
+    }
+
     const updatePayload: any = { status };
-    if (result) updatePayload.notes = result;
+    if (result) updatePayload.result = result;
     await dbUpdate('diagnostic_samples', updatePayload, { id: sampleId });
     const s = localStore.diagnosticSamples.find((item) => String(item.id) === String(sampleId));
     if (s) {
@@ -1518,14 +1750,52 @@ export const dataService = {
   },
 
   async escalateCase(esc: Omit<CaseEscalation, 'id' | 'created_at'>): Promise<CaseEscalation> {
+    // 1. Try server-side escalation route
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/clinical/escalations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            health_report_id: String(esc.health_report_id),
+            escalated_to: esc.escalated_to,
+            reason: esc.reason,
+            reason_en: esc.reason_en,
+            reason_hi: esc.reason_hi,
+            reason_mr: esc.reason_mr,
+          }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.escalation) {
+            const newEsc: CaseEscalation = {
+              ...esc,
+              id: String(json.escalation.id),
+              created_at: json.escalation.created_at || new Date().toISOString(),
+            };
+            localStore.caseEscalations.unshift(newEsc);
+            localStore.save();
+            return newEsc;
+          }
+        }
+      } catch (err) {
+        console.warn('[DataService] /api/clinical/escalations fallback:', err);
+      }
+    }
+
+    // 2. Direct / Offline Fallback
     let escId = `esc-${Date.now()}`;
     const payload: any = {
-      status: esc.status || 'open',
+      id: escId,
+      health_report_id: String(esc.health_report_id),
       escalated_to: esc.escalated_to,
+      reason: esc.reason,
+      status: esc.status || 'open',
+      created_at: new Date().toISOString(),
     };
-    if (esc.health_report_id && !isNaN(Number(esc.health_report_id))) {
-      payload.health_report_id = Number(esc.health_report_id);
-    }
+    if (esc.reason_en) payload.reason_en = esc.reason_en;
+    if (esc.reason_hi) payload.reason_hi = esc.reason_hi;
+    if (esc.reason_mr) payload.reason_mr = esc.reason_mr;
 
     const res = await dbInsert('case_escalations', [payload]);
     if (res.data && res.data[0]) {
@@ -1653,8 +1923,8 @@ export const dataService = {
 
     try {
       let query = supabase.from('herd_health_events').select('*');
-      if (herdId && !isNaN(Number(herdId))) {
-        query = query.eq('herd_id', Number(herdId));
+      if (herdId) {
+        query = query.eq('herd_id', String(herdId));
       }
       const { data, error } = await query;
       if (!error && data) {
@@ -1669,13 +1939,18 @@ export const dataService = {
   async logHerdHealthEvent(event: Omit<HerdHealthEvent, 'id' | 'created_at'>): Promise<HerdHealthEvent> {
     let eventId = `event-${Date.now()}`;
     const payload: any = {
+      id: eventId,
+      herd_id: String(event.herd_id),
+      reported_by: String(event.reported_by || localStore.currentUser?.id || 'prof-farmer-1'),
       event_type: event.event_type,
-      description: event.description,
+      affected_count: event.affected_count || 0,
+      mortality_count: event.mortality_count || 0,
+      description: event.description || null,
       event_date: event.event_date || new Date().toISOString().split('T')[0],
     };
-    if (event.herd_id && !isNaN(Number(event.herd_id))) {
-      payload.herd_id = Number(event.herd_id);
-    }
+    if (event.description_en) payload.description_en = event.description_en;
+    if (event.description_hi) payload.description_hi = event.description_hi;
+    if (event.description_mr) payload.description_mr = event.description_mr;
 
     const res = await dbInsert('herd_health_events', [payload]);
     if (res.data && res.data[0]) {

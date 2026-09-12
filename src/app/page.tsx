@@ -7,7 +7,7 @@ import { UserRole } from '@/types/database';
 import { Header } from '@/components/Header';
 import { Navigation, ActiveTab } from '@/components/Navigation';
 import { FarmerDashboard } from '@/components/FarmerDashboard';
-import { VeterinarianDashboard } from '@/components/VeterinarianDashboard';
+import { DatabaseStatusBanner } from '@/components/DatabaseStatusBanner';
 import { HerdHub } from '@/components/HerdHub';
 import { ReportFlow } from '@/components/ReportFlow';
 import { FieldHealthCases } from '@/components/FieldHealthCases';
@@ -142,6 +142,7 @@ export default function Home() {
 
       {/* Main App Content View */}
       <div className="app-main">
+        <DatabaseStatusBanner />
         <Header
           currentRole={currentRole}
           onOpenNotifications={() => setActiveTab('alerts')}

@@ -313,7 +313,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span className="badge-stable">{language === 'mr' ? 'सल्ला' : language === 'hi' ? 'परामर्श' : 'ADVISORY'}</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {new Date(adv.created_at || Date.now()).toLocaleDateString()}
+                        {adv.created_at ? new Date(adv.created_at).toLocaleDateString() : ''}
                       </span>
                     </div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary-hover)' }}>
@@ -449,7 +449,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
                       )}
                     </div>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      {new Date(notif.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {notif.created_at ? new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                     </span>
                   </div>
 

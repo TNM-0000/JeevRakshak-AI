@@ -233,7 +233,7 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
   const [animals, setAnimals] = useState<AnimalEntry[]>([
     {
       id: 'anim-1',
-      tag_number: `MH-12-${Math.floor(1000 + Math.random() * 9000)}`,
+      tag_number: 'MH-12-1042',
       name: language === 'mr' ? 'गौरी' : language === 'hi' ? 'गौरी' : 'Gauri',
       species: 'Cattle',
       breed: 'Gir',
@@ -246,7 +246,7 @@ export const FarmerHerdSetup: React.FC<FarmerHerdSetupProps> = ({ onComplete, on
     },
     {
       id: 'anim-2',
-      tag_number: `MH-12-${Math.floor(1000 + Math.random() * 9000)}`,
+      tag_number: 'MH-12-2085',
       name: language === 'mr' ? 'लक्ष्मी' : language === 'hi' ? 'लक्ष्मी' : 'Lakshmi',
       species: 'Buffalo',
       breed: 'Murrah',

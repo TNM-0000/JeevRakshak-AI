@@ -53,7 +53,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Table 1: administrative_locations
 CREATE TABLE IF NOT EXISTS administrative_locations (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL,
   name_en TEXT,
   name_hi TEXT,
@@ -67,12 +67,28 @@ CREATE TABLE IF NOT EXISTS administrative_locations (
 
 -- Table 2: profiles
 CREATE TABLE IF NOT EXISTS profiles (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   full_name TEXT NOT NULL,
   phone TEXT,
   location_id TEXT REFERENCES administrative_locations(id) ON DELETE SET NULL,
   is_active BOOLEAN DEFAULT TRUE,
   preferred_language TEXT DEFAULT 'mr', -- 'mr', 'hi', 'en'
+  email TEXT,
+  farm_name TEXT,
+  district TEXT,
+  block TEXT,
+  village TEXT,
+  state TEXT DEFAULT 'Maharashtra',
+  hospital_name TEXT,
+  facility_type TEXT,
+  license_number TEXT,
+  hospital_address TEXT,
+  hospital_lat DOUBLE PRECISION,
+  hospital_lng DOUBLE PRECISION,
+  hospital_pincode TEXT,
+  hospital_district TEXT,
+  hospital_block TEXT,
+  emergency_phone TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -87,7 +103,7 @@ CREATE TABLE IF NOT EXISTS profile_roles (
 
 -- Table 4: herds
 CREATE TABLE IF NOT EXISTS herds (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   owner_profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   name_en TEXT,
@@ -100,9 +116,10 @@ CREATE TABLE IF NOT EXISTS herds (
 
 -- Table 5: animals
 CREATE TABLE IF NOT EXISTS animals (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   herd_id TEXT NOT NULL REFERENCES herds(id) ON DELETE CASCADE,
   tag_number TEXT NOT NULL,
+  name TEXT,
   species TEXT NOT NULL,
   species_en TEXT,
   species_hi TEXT,
@@ -113,13 +130,17 @@ CREATE TABLE IF NOT EXISTS animals (
   breed_mr TEXT,
   sex TEXT NOT NULL CHECK (sex IN ('male', 'female')),
   date_of_birth DATE,
+  is_milking BOOLEAN DEFAULT FALSE,
+  milking_status TEXT,
+  vaccination_status TEXT DEFAULT 'not_vaccinated',
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Table 6: health_reports
 CREATE TABLE IF NOT EXISTS health_reports (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   animal_id TEXT NOT NULL REFERENCES animals(id) ON DELETE CASCADE,
   reported_by TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   source report_source NOT NULL DEFAULT 'mobile',
@@ -138,7 +159,7 @@ CREATE TABLE IF NOT EXISTS health_reports (
 
 -- Table 7: case_assessments
 CREATE TABLE IF NOT EXISTS case_assessments (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT NOT NULL REFERENCES health_reports(id) ON DELETE CASCADE,
   status case_status NOT NULL DEFAULT 'suspected',
   triage_method triage_method NOT NULL DEFAULT 'ai_assisted',
@@ -152,7 +173,7 @@ CREATE TABLE IF NOT EXISTS case_assessments (
 
 -- Table 8: animal_treatments
 CREATE TABLE IF NOT EXISTS animal_treatments (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   animal_id TEXT NOT NULL REFERENCES animals(id) ON DELETE CASCADE,
   prescribed_by TEXT REFERENCES profiles(id) ON DELETE SET NULL,
   treatment_name TEXT NOT NULL,
@@ -170,7 +191,7 @@ CREATE TABLE IF NOT EXISTS animal_treatments (
 
 -- Table 9: animal_vaccinations
 CREATE TABLE IF NOT EXISTS animal_vaccinations (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   animal_id TEXT NOT NULL REFERENCES animals(id) ON DELETE CASCADE,
   vaccine_name TEXT NOT NULL,
   vaccine_name_en TEXT,
@@ -188,7 +209,7 @@ CREATE TABLE IF NOT EXISTS animal_vaccinations (
 
 -- Table 10: diagnostic_samples
 CREATE TABLE IF NOT EXISTS diagnostic_samples (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT NOT NULL REFERENCES health_reports(id) ON DELETE CASCADE,
   sample_type TEXT NOT NULL,
   sample_type_en TEXT,
@@ -212,7 +233,7 @@ CREATE TABLE IF NOT EXISTS diagnostic_samples (
 
 -- Table 11: case_escalations
 CREATE TABLE IF NOT EXISTS case_escalations (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT NOT NULL REFERENCES health_reports(id) ON DELETE CASCADE,
   escalated_to TEXT NOT NULL,
   reason TEXT NOT NULL,
@@ -226,7 +247,7 @@ CREATE TABLE IF NOT EXISTS case_escalations (
 
 -- Table 12: health_advisories
 CREATE TABLE IF NOT EXISTS health_advisories (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT REFERENCES health_reports(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   title_en TEXT,
@@ -243,7 +264,7 @@ CREATE TABLE IF NOT EXISTS health_advisories (
 
 -- Table 13: herd_health_events
 CREATE TABLE IF NOT EXISTS herd_health_events (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   herd_id TEXT NOT NULL REFERENCES herds(id) ON DELETE CASCADE,
   reported_by TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL,
@@ -259,7 +280,7 @@ CREATE TABLE IF NOT EXISTS herd_health_events (
 
 -- Table 14: disease_catalog
 CREATE TABLE IF NOT EXISTS disease_catalog (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL,
   name_en TEXT,
   name_hi TEXT,
@@ -276,7 +297,7 @@ CREATE TABLE IF NOT EXISTS disease_catalog (
 
 -- Table 15: health_report_diseases
 CREATE TABLE IF NOT EXISTS health_report_diseases (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT NOT NULL REFERENCES health_reports(id) ON DELETE CASCADE,
   disease_id TEXT NOT NULL REFERENCES disease_catalog(id) ON DELETE CASCADE,
   is_primary BOOLEAN DEFAULT FALSE,
@@ -287,7 +308,7 @@ CREATE TABLE IF NOT EXISTS health_report_diseases (
 
 -- Table 16: weather_observations
 CREATE TABLE IF NOT EXISTS weather_observations (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   location_id TEXT NOT NULL REFERENCES administrative_locations(id) ON DELETE CASCADE,
   observed_at TIMESTAMPTZ DEFAULT NOW(),
   temperature_c DOUBLE PRECISION,
@@ -303,7 +324,7 @@ CREATE TABLE IF NOT EXISTS weather_observations (
 
 -- Table 17: risk_assessments
 CREATE TABLE IF NOT EXISTS risk_assessments (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   health_report_id TEXT REFERENCES health_reports(id) ON DELETE CASCADE,
   location_id TEXT REFERENCES administrative_locations(id) ON DELETE SET NULL,
   risk_level risk_level NOT NULL DEFAULT 'medium',
@@ -317,7 +338,7 @@ CREATE TABLE IF NOT EXISTS risk_assessments (
 
 -- Table 18: outbreak_events
 CREATE TABLE IF NOT EXISTS outbreak_events (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   disease_id TEXT NOT NULL REFERENCES disease_catalog(id) ON DELETE CASCADE,
   location_id TEXT NOT NULL REFERENCES administrative_locations(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -341,7 +362,7 @@ CREATE TABLE IF NOT EXISTS outbreak_events (
 
 -- Table 19: notifications
 CREATE TABLE IF NOT EXISTS notifications (
-  id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   recipient_profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   health_report_id TEXT REFERENCES health_reports(id) ON DELETE SET NULL,
   outbreak_event_id TEXT REFERENCES outbreak_events(id) ON DELETE SET NULL,
@@ -370,7 +391,23 @@ ALTER TABLE administrative_locations
   ADD COLUMN IF NOT EXISTS name_mr TEXT;
 
 ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS preferred_language TEXT DEFAULT 'mr';
+  ADD COLUMN IF NOT EXISTS preferred_language TEXT DEFAULT 'mr',
+  ADD COLUMN IF NOT EXISTS email TEXT,
+  ADD COLUMN IF NOT EXISTS farm_name TEXT,
+  ADD COLUMN IF NOT EXISTS district TEXT,
+  ADD COLUMN IF NOT EXISTS block TEXT,
+  ADD COLUMN IF NOT EXISTS village TEXT,
+  ADD COLUMN IF NOT EXISTS state TEXT DEFAULT 'Maharashtra',
+  ADD COLUMN IF NOT EXISTS hospital_name TEXT,
+  ADD COLUMN IF NOT EXISTS facility_type TEXT,
+  ADD COLUMN IF NOT EXISTS license_number TEXT,
+  ADD COLUMN IF NOT EXISTS hospital_address TEXT,
+  ADD COLUMN IF NOT EXISTS hospital_lat DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS hospital_lng DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS hospital_pincode TEXT,
+  ADD COLUMN IF NOT EXISTS hospital_district TEXT,
+  ADD COLUMN IF NOT EXISTS hospital_block TEXT,
+  ADD COLUMN IF NOT EXISTS emergency_phone TEXT;
 
 ALTER TABLE herds
   ADD COLUMN IF NOT EXISTS name_en TEXT,
@@ -378,12 +415,17 @@ ALTER TABLE herds
   ADD COLUMN IF NOT EXISTS name_mr TEXT;
 
 ALTER TABLE animals
+  ADD COLUMN IF NOT EXISTS name TEXT,
   ADD COLUMN IF NOT EXISTS species_en TEXT,
   ADD COLUMN IF NOT EXISTS species_hi TEXT,
   ADD COLUMN IF NOT EXISTS species_mr TEXT,
   ADD COLUMN IF NOT EXISTS breed_en TEXT,
   ADD COLUMN IF NOT EXISTS breed_hi TEXT,
-  ADD COLUMN IF NOT EXISTS breed_mr TEXT;
+  ADD COLUMN IF NOT EXISTS breed_mr TEXT,
+  ADD COLUMN IF NOT EXISTS is_milking BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS milking_status TEXT,
+  ADD COLUMN IF NOT EXISTS vaccination_status TEXT DEFAULT 'not_vaccinated',
+  ADD COLUMN IF NOT EXISTS notes TEXT;
 
 ALTER TABLE health_reports
   ADD COLUMN IF NOT EXISTS symptoms_en TEXT,

@@ -8,11 +8,14 @@ import {
   localizeBreed,
   localizeTreatment,
   localizeVaccine,
+  localizeSampleType,
+  localizeSampleStatus,
 } from '@/lib/supabase/dataService';
 import {
   AnimalWithDetails,
   AnimalTreatment,
   AnimalVaccination,
+  DiagnosticSample,
 } from '@/types/database';
 import {
   X,
@@ -52,9 +55,21 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
   const [vaccineName, setVaccineName] = useState('');
   const [vaccineDueDate, setVaccineDueDate] = useState('');
   const [vaccineNotes, setVaccineNotes] = useState('');
+  // Diagnostic samples state
+  const [samples, setSamples] = useState<DiagnosticSample[]>([]);
 
-  const loadAnimal = () => {
-    dataService.getAnimalById(animalId).then(setAnimal);
+  const loadAnimal = async () => {
+    const a = await dataService.getAnimalById(animalId);
+    setAnimal(a);
+    if (a) {
+      const allReports = await dataService.getHealthReports();
+      const animalReportIds = new Set(
+        allReports.filter((r) => String(r.animal_id) === String(animalId)).map((r) => String(r.id))
+      );
+      const allSamples = await dataService.getSamples();
+      const animalSamples = allSamples.filter((s) => animalReportIds.has(String(s.health_report_id)));
+      setSamples(animalSamples);
+    }
   };
 
   useEffect(() => {
@@ -424,23 +439,47 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
         {/* Tab 4: Lab Tests / Diagnostic Samples */}
         {activeTab === 'labs' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)', background: '#ffffff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>
-                  {language === 'mr' ? 'नाकातील स्त्राव (श्वसन पॅनेल चाचणी)' : language === 'hi' ? 'नेजल स्वैब (श्वसन पैनल जांच)' : 'Nasal Swab (Respiratory Panel)'}
-                </span>
-                <span className="badge badge-warning">
-                  {language === 'mr' ? 'चाचणी सुरू आहे' : language === 'hi' ? 'जांच जारी है' : 'Testing in Progress'}
-                </span>
+            {samples.length > 0 ? (
+              samples.map((s) => (
+                <div key={s.id} style={{ padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)', background: '#ffffff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                      {localizeSampleType(s.sample_type, language)}
+                    </span>
+                    <span className={`badge badge-${s.status === 'tested' ? 'stable' : s.status === 'received' ? 'info' : 'warning'}`}>
+                      {localizeSampleStatus(s.status, language)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    {language === 'mr' ? 'संकलित दिनांक:' : language === 'hi' ? 'एकत्रित तिथि:' : 'Collected:'} {s.collected_at ? new Date(s.collected_at).toLocaleDateString() : 'N/A'}
+                  </div>
+                  {s.result && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--primary-deep)', marginTop: '4px', background: 'var(--primary-light)', padding: '4px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                      {language === 'mr' ? 'निष्कर्ष:' : language === 'hi' ? 'जांच परिणाम:' : 'Result:'} {s.result}
+                    </div>
+                  )}
+                  {s.notes && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      {s.notes}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '24px 16px', textAlign: 'center', background: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-subtle)' }}>
+                <FlaskConical size={24} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block' }} />
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '2px' }}>
+                  {language === 'mr' ? 'कोणतेही प्रयोगशाळा नमुने नाहीत' : language === 'hi' ? 'कोई प्रयोगशाला नमूने नहीं' : 'No Lab Samples Recorded'}
+                </div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr'
+                    ? 'या जनावरासाठी अजून कोणतीही प्रयोगशाळा चाचणी किंवा नमुना नोंदवलेला नाही.'
+                    : language === 'hi'
+                    ? 'इस पशु के लिए अभी तक कोई प्रयोगशाला जांच या नमूना दर्ज नहीं किया गया है।'
+                    : 'No diagnostic specimens or laboratory tests have been ordered for this animal yet.'}
+                </div>
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                {language === 'mr'
-                  ? 'जिल्हा पशुवैद्यकीय प्रयोगशाळा पुणे • प्राप्त सकाळी ०९:३०'
-                  : language === 'hi'
-                  ? 'जिला पशु चिकित्सा प्रयोगशाला पुणे • प्राप्त सुबह 09:30'
-                  : 'District Veterinary Lab Pune • Received 09:30 AM'}
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>

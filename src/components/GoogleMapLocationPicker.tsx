@@ -270,31 +270,6 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
     });
   }, [state, district, block, village, pincode, latitude, longitude, formattedAddress]);
 
-  // Try loading Google Maps Places Autocomplete if API key is provided
-  useEffect(() => {
-    const activeKey = apiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!activeKey || typeof window === 'undefined') return;
-
-    // Check if google maps is already loaded
-    if ((window as any).google?.maps?.places) {
-      initGoogleAutocomplete();
-      return;
-    }
-
-    const scriptId = 'google-maps-places-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${activeKey}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        initGoogleAutocomplete();
-      };
-      document.head.appendChild(script);
-    }
-  }, [apiKey]);
-
   const initGoogleAutocomplete = () => {
     if (!autocompleteInputRef.current || !(window as any).google?.maps?.places) return;
 
@@ -358,6 +333,31 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
       console.warn('Google Maps Autocomplete init failed:', e);
     }
   };
+
+  // Try loading Google Maps Places Autocomplete if API key is provided
+  useEffect(() => {
+    const activeKey = apiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!activeKey || typeof window === 'undefined') return;
+
+    // Check if google maps is already loaded
+    if ((window as any).google?.maps?.places) {
+      initGoogleAutocomplete();
+      return;
+    }
+
+    const scriptId = 'google-maps-places-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${activeKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        initGoogleAutocomplete();
+      };
+      document.head.appendChild(script);
+    }
+  }, [apiKey]);
 
   // Pan-India Search using Geocoding service
   const handleSearchChange = (query: string) => {
