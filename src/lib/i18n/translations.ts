@@ -94,6 +94,11 @@ export interface Translations {
     abnormalMovement: string;
     suddenDeath: string;
     reducedMilk: string;
+    oralBlisters: string;
+    salivation: string;
+    throatSwelling: string;
+    cracklingSwelling: string;
+    bleedingOrifices: string;
   };
   fieldHealth: {
     title: string;
@@ -260,6 +265,11 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       abnormalMovement: 'Abnormal movement / Lameness',
       suddenDeath: 'Sudden death',
       reducedMilk: 'Reduced milk production',
+      oralBlisters: 'Oral blisters / Mouth sores',
+      salivation: 'Excessive drooling / Salivation',
+      throatSwelling: 'Throat / Neck swelling',
+      cracklingSwelling: 'Crackling muscle swelling (Thigh/Rump)',
+      bleedingOrifices: 'Dark blood from nose / orifices',
     },
     fieldHealth: {
       title: 'Field Health Cases',
@@ -424,6 +434,11 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       abnormalMovement: 'लंगड़ाना / असामान्य चाल',
       suddenDeath: 'अचानक मृत्यु',
       reducedMilk: 'दूध उत्पादन में कमी',
+      oralBlisters: 'मुंह के छाले / घाव',
+      salivation: 'मुंह से लार टपकना',
+      throatSwelling: 'गले या गर्दन में सूजन',
+      cracklingSwelling: 'मांसपेशियों में चरचराहट वाली सूजन',
+      bleedingOrifices: 'नाक, मुंह या गुदा से काला रक्त',
     },
     fieldHealth: {
       title: 'फील्ड स्वास्थ्य मामले',
@@ -588,6 +603,11 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       abnormalMovement: 'लंगडणे / चालण्यात अडचण',
       suddenDeath: 'अचानक मृत्यू',
       reducedMilk: 'दूध उत्पादनात घट',
+      oralBlisters: 'तोंडातील फोड / लाळ व्रण',
+      salivation: 'तोंडातून सतत लाळ गळणे',
+      throatSwelling: 'गळ्याला / मानेला मोठी सूज',
+      cracklingSwelling: 'मांड्यांवर सूज व दाबल्यास कुरकूर आवाज',
+      bleedingOrifices: 'तोंड, नाक किंवा गुदद्वारातून काळे रक्त',
     },
     fieldHealth: {
       title: 'क्षेत्रीय आरोग्य केसेस',

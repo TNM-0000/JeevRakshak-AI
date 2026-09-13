@@ -131,17 +131,22 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
   const symptomList: { key: keyof typeof t.symptoms; defaultEn: string }[] = [
     { key: 'fever', defaultEn: 'Fever' },
-    { key: 'coughing', defaultEn: 'Coughing' },
-    { key: 'nasalDischarge', defaultEn: 'Nasal discharge' },
+    { key: 'oralBlisters', defaultEn: 'Oral blisters / Mouth sores' },
+    { key: 'salivation', defaultEn: 'Excessive drooling / Salivation' },
+    { key: 'abnormalMovement', defaultEn: 'Abnormal movement / Lameness' },
+    { key: 'skinLesions', defaultEn: 'Skin lesions / nodules' },
+    { key: 'throatSwelling', defaultEn: 'Throat / Neck swelling' },
     { key: 'difficultyBreathing', defaultEn: 'Difficulty breathing' },
-    { key: 'diarrhea', defaultEn: 'Diarrhea' },
-    { key: 'lossOfAppetite', defaultEn: 'Loss of appetite' },
-    { key: 'weakness', defaultEn: 'Weakness' },
-    { key: 'skinLesions', defaultEn: 'Skin lesions' },
-    { key: 'swelling', defaultEn: 'Swelling' },
-    { key: 'abnormalMovement', defaultEn: 'Abnormal movement' },
+    { key: 'coughing', defaultEn: 'Coughing' },
+    { key: 'cracklingSwelling', defaultEn: 'Crackling muscle swelling (Thigh/Rump)' },
+    { key: 'bleedingOrifices', defaultEn: 'Dark blood from nose / orifices' },
     { key: 'suddenDeath', defaultEn: 'Sudden death' },
+    { key: 'lossOfAppetite', defaultEn: 'Loss of appetite' },
     { key: 'reducedMilk', defaultEn: 'Reduced milk production' },
+    { key: 'swelling', defaultEn: 'Swelling' },
+    { key: 'nasalDischarge', defaultEn: 'Nasal discharge' },
+    { key: 'diarrhea', defaultEn: 'Diarrhea' },
+    { key: 'weakness', defaultEn: 'Weakness' },
   ];
 
   const handleToggleSymptom = (symptomName: string) => {
@@ -158,10 +163,6 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       setMortalityCount(1);
       if (!selectedSymptoms.includes('Sudden death')) {
         setSelectedSymptoms([...selectedSymptoms, 'Sudden death']);
-      }
-    } else if (catKey === 'sick') {
-      if (selectedSymptoms.length === 0) {
-        setSelectedSymptoms(['Fever', 'Loss of appetite']);
       }
     }
     setStep(3);
@@ -206,8 +207,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
     setSubmitting(true);
     setAiError(null);
 
-    const symptomsString = selectedSymptoms.length > 0 ? selectedSymptoms.join(', ') : 'Fever, Loss of appetite';
-    const clinicalNarrative = notes ? `${symptomsString}. ${notes}` : symptomsString;
+    const symptomsString = selectedSymptoms.length > 0 ? selectedSymptoms.join(', ') : '';
+    const clinicalNarrative = notes
+      ? (symptomsString ? `${symptomsString}. ${notes}` : notes)
+      : (symptomsString || (selectedImage ? 'Photographic clinical screening provided. No abnormal symptoms observed.' : 'Routine veterinary checkup. No acute clinical symptoms reported.'));
     const activeAnimal = animals.find((a) => a.id === targetAnimalId);
 
     try {
@@ -2131,7 +2134,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     animal_id: selectedAnimalId || '1',
                     reported_by: currentUser?.id || '00000000-0000-0000-0000-000000000000',
                     source,
-                    symptoms: selectedSymptoms.join(', ') || 'Fever, Oral blisters, Salivation',
+                    symptoms: selectedSymptoms.join(', ') || (aiAssessment?.possible_conditions?.[0]?.disease || 'Clinically Normal / Routine Checkup'),
                     mortality_count: mortalityCount,
                     notes: notes || null,
                     reported_at: new Date().toISOString(),

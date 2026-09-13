@@ -31,71 +31,99 @@ SPECIES_PATTERNS = {
 # Maps vernacular agricultural and clinical phrasing to standardized tags
 SYMPTOM_VOCABULARY: Dict[str, List[str]] = {
     "fever": [
-        r"\bfever\b", r"\bhigh fever\b", r"\bhigh temp\b", r"\btemperature\b", r"\bbukhar\b", r"\bpyrexia\b", r"\bhot body\b", r"\bwarm to touch\b"
+        r"\bfever\b", r"\bhigh fever\b", r"\bhigh temp\b", r"\btemperature\b", r"\bbukhar\b", r"\bpyrexia\b", r"\bhot body\b", r"\bwarm to touch\b",
+        r"बुखार", r"ताप", r"ज्वर", r"गरम अंग"
     ],
     "skin_nodules": [
         r"\bskin lumps\b", r"\blumps?\b", r"\bhard lumps?\b", r"\bnodules?\b", r"\bskin nodules?\b", r"\bbumps?\b",
-        r"\bgathaan\b", r"\bgathe\b", r"\bcircular nodules?\b", r"\bcutaneous nodules?\b", r"\bsit-fasts?\b"
+        r"\bgathaan\b", r"\bgathe\b", r"\bcircular nodules?\b", r"\bcutaneous nodules?\b", r"\bsit-fasts?\b",
+        r"\bskin lesions?\b", r"\blesions?\b", r"\bskin eruptions?\b", r"\bcutaneous lesions?\b", r"\brash\b", r"\bskin rash\b",
+        r"गांठे?", r"गाठी?", r"फोड", r"गुठली", r"लम्पी", r"त्वचेवर गाठी"
     ],
     "oral_vesicles": [
         r"\bblisters?\b", r"\bblisters? in mouth\b", r"\boral blisters?\b", r"\bvesicles?\b", r"\bmouth sores?\b",
-        r"\bulcers? in mouth\b", r"\bchhale\b", r"\btongue lesions?\b", r"\bmouth ulcers?\b", r"\berosions?\b"
+        r"\bulcers? in mouth\b", r"\bchhale\b", r"\btongue lesions?\b", r"\bmouth ulcers?\b", r"\berosions?\b",
+        r"\bmouth blisters?\b", r"\boral sores?\b", r"\btongue blisters?\b",
+        r"छाले", r"मुंह के छाले", r"तोंडातील फोड", r"तोंडात फोड", r"व्रण"
     ],
     "excessive_salivation": [
         r"\bsalivat\w*\b", r"\bdrool\w*\b", r"\blaar\b", r"\bropy saliva\b", r"\bstringy saliva\b",
-        r"\bfrothing\b", r"\bfrothing at mouth\b", r"\bexcessive saliva\b", r"\blip smacking\b"
+        r"\bfrothing\b", r"\bfrothing at mouth\b", r"\bexcessive saliva\b", r"\blip smacking\b",
+        r"\bexcessive drooling\b", r"\bmouth watering\b", r"\bfoaming\b",
+        r"लार", r"लाळ", r"फेन", r"झाग"
     ],
     "lameness": [
         r"\blameness\b", r"\blimp\w*\b", r"\blangda\w*\b", r"\bunwillingness to move\b", r"\breluctant to walk\b",
-        r"\bleg pain\b", r"\bfoot pain\b", r"\bshaking feet\b", r"\brecumbency\b", r"\bunable to stand\b"
+        r"\bleg pain\b", r"\bfoot pain\b", r"\bshaking feet\b", r"\brecumbency\b", r"\bunable to stand\b",
+        r"\babnormal movement\b", r"\bunsteady\b", r"\bstaggering\b", r"\bwobbly\b", r"\blurching\b",
+        r"लंगड़ा\w*", r"लंगड\w*", r"चालण्यात अडचण"
     ],
     "hoof_lesions": [
         r"\bfoot sores?\b", r"\bhoof lesions?\b", r"\bblisters? on feet\b", r"\bblisters? on foot\b",
-        r"\bcoronary band\b", r"\binterdigital\b", r"\bhoof sores?\b", r"\bfoot lesions?\b", r"\bkhur\b"
+        r"\bcoronary band\b", r"\binterdigital\b", r"\bhoof sores?\b", r"\bfoot lesions?\b", r"\bkhur\b",
+        r"खुर", r"पायातील फोड"
     ],
     "anorexia": [
         r"\bstopped eating\b", r"\bnot eating\b", r"\banorexia\b", r"\bloss of appetite\b", r"\boff feed\b",
-        r"\bchara nahi kha rahi\b", r"\bdana nahi kha\w*\b", r"\breduced feed intake\b", r"\bdull\b"
+        r"\bchara nahi kha rahi\b", r"\bdana nahi kha\w*\b", r"\breduced feed intake\b", r"\bdull\b",
+        r"\bweakness\b", r"\bkamzori\b", r"\bletharg\w*\b", r"\bdullness\b", r"\bsust\b",
+        r"चारा न खाणे", r"खाना नहीं खा\w*", r"भूख कम", r"अशक्तपणा", r"कमजोरी", r"चारा बंद"
     ],
     "drop_in_milk_yield": [
         r"\bdrop in milk\b", r"\bmilk yield decreased\b", r"\bmilk reduction\b", r"\bdoodh kam\b",
-        r"\bmilk fell\b", r"\bdecreased milk\b", r"\bloss of milk\b"
+        r"\bmilk fell\b", r"\bdecreased milk\b", r"\bloss of milk\b", r"\breduced milk production\b", r"\breduced milk\b",
+        r"दूध कम", r"दूध घटले", r"दूध उत्पादनात घट"
     ],
     "enlarged_lymph_nodes": [
         r"\blymph node\b", r"\benlarged lymph\b", r"\bswollen glands?\b", r"\bprescapular\b",
-        r"\bgland swelling\b", r"\bgilthi\b"
+        r"\bgland swelling\b", r"\bgilthi\b",
+        r"गाठ", r"गिलटी"
     ],
     "limb_edema": [
-        r"\bswollen legs?\b", r"\bleg swelling\b", r"\blimb edema\b", r"\boedema\b", r"\bswollen feet\b"
+        r"\bswollen legs?\b", r"\bleg swelling\b", r"\blimb edema\b", r"\boedema\b", r"\bswollen feet\b",
+        r"\bswelling\b", r"\bswollen\b", r"\bsoojan\b",
+        r"सूजन", r"सूज", r"पायांना सूज"
     ],
     "throat_swelling": [
         r"\bswollen throat\b", r"\bbrisket swelling\b", r"\bgala ghotu\b", r"\bthroat swelling\b",
-        r"\bneck swelling\b", r"\bsubmandibular edema\b", r"\bbrisket edema\b"
+        r"\bneck swelling\b", r"\bsubmandibular edema\b", r"\bbrisket edema\b", r"\bswollen neck\b", r"\bswelling in throat\b",
+        r"गले में सूजन", r"गळ्याला सूज", r"गला घोटू", r"गळसुज"
     ],
     "dyspnea": [
         r"\bdifficulty breathing\b", r"\brespiratory distress\b", r"\bpanting\b", r"\bstridor\b",
-        r"\bheavy breathing\b", r"\bbreathing hard\b", r"\bopen mouth breathing\b"
+        r"\bheavy breathing\b", r"\bbreathing hard\b", r"\bopen mouth breathing\b",
+        r"\bcough\w*\b", r"\bkhansi\b", r"\bdhasle\b", r"\bnasal discharge\b", r"\brunny nose\b", r"\bnose discharge\b", r"\bnak se pani\b",
+        r"खांसी", r"खोकला", r"सांस लेने में", r"श्वास घेण्यास", r"नाकातून स्राव"
     ],
     "crepitating_swelling": [
         r"\bcrackling\b", r"\bcrackling sound\b", r"\bcrepitation\b", r"\bcrepitating\b",
         r"\bgas in muscle\b", r"\bswelling on thigh\b", r"\bswelling on rump\b", r"\bswelling on shoulder\b",
-        r"\bblack quarter swelling\b"
+        r"\bblack quarter swelling\b", r"\bcrackling swelling\b", r"\bcrackling muscle\b",
+        r"चरचराहट", r"कुरकूर"
     ],
     "sudden_death": [
         r"\bsudden death\b", r"\bdied suddenly\b", r"\bfound dead\b", r"\bperacute death\b",
-        r"\bcollapsed and died\b", r"\bmar gayi achanak\b"
+        r"\bcollapsed and died\b", r"\bmar gayi achanak\b", r"\bachanak maut\b",
+        r"अचानक मौत", r"अचानक मृत्यू", r"मरी हुई", r"मेली"
     ],
     "unclotted_orifice_bleeding": [
         r"\bdark unclotted blood\b", r"\bunclotted blood\b", r"\bbleeding from nose\b", r"\bbleeding from nostrils\b",
         r"\bblood from anus\b", r"\bblood from rectum\b", r"\bblood oozing\b", r"\btarry blood\b", r"\bblack blood\b",
-        r"\bdark blood\b", r"\bblood from nostrils?\b", r"\bblood from nose\b"
+        r"\bdark blood\b", r"\bblood from nostrils?\b", r"\bblood from nose\b",
+        r"\bbleeding from orifices?\b", r"\bblood from orifices?\b", r"\bkala khoon\b", r"\bbleeding\b",
+        r"काला खून", r"काळे रक्त", r"रक्तस्राव"
     ],
     "absence_of_rigor_mortis": [
         r"\bno rigor mortis\b", r"\babsence of rigor mortis\b", r"\bbody did not stiffen\b", r"\bnot stiff\b", r"\bsoft carcass\b"
     ],
     "late_term_abortion": [
         r"\babortion\b", r"\baborted\b", r"\bgarbhpat\b", r"\b7th month\b", r"\b8th month\b",
-        r"\blate term abortion\b", r"\bpremature calf\b", r"\bretained placenta\b"
+        r"\blate term abortion\b", r"\bpremature calf\b", r"\bretained placenta\b", r"\blate pregnancy abortion\b",
+        r"गर्भपात"
+    ],
+    "diarrhea": [
+        r"\bdiarrhea\b", r"\bloose motions?\b", r"\bdast\b", r"\bpatla gobar\b", r"\bscours?\b", r"\bwatery dung\b",
+        r"दस्त", r"जुलाब", r"हगवण"
     ]
 }
 

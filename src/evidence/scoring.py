@@ -44,27 +44,40 @@ class DeterministicEvidenceScorer:
         locations_observed = set(observations.anatomical_locations)
         host_species = animal_context.species.lower()
 
-        differentials: List[ConditionDifferential] = []
+        differentials_scored: List[Any] = []
 
-        # Special check: If no symptoms observed and vision is decisively healthy
-        if not symptoms_observed and visual_analysis.available and visual_analysis.predicted_class == "healthy" and (visual_analysis.confidence or 0.0) >= 0.85:
-            differentials.append(
-                ConditionDifferential(
-                    disease="Clinically Normal / Healthy (No Significant Disease Evidence)",
-                    pathogen="None (Normal physiological baseline)",
-                    support_level="high",
-                    supporting_evidence=[
-                        f"Vision classifier identified normal bovine features with {round((visual_analysis.confidence or 0.0)*100, 1)}% confidence.",
-                        "Zero abnormal clinical symptoms reported in input narrative.",
-                        "Normal appetite and activity indicated."
-                    ],
-                    contradicting_or_missing_evidence=[
-                        "No clinical lesions or pathological signs detected."
-                    ],
-                    sources=["ICAR-IVRI Clinical Examination Guidelines for Ruminants"]
-                )
+        # Special check: If no clinical symptoms are observed, evaluate physiological baseline
+        if not symptoms_observed:
+            # Case 1: Vision classifier affirmatively identified normal/healthy bovine baseline
+            if visual_analysis.available and visual_analysis.predicted_class == "healthy":
+                conf_str = f" with {round((visual_analysis.confidence or 0.0)*100, 1)}% confidence" if visual_analysis.confidence else ""
+                return [
+                    ConditionDifferential(
+                        disease="Clinically Normal / Healthy (No Significant Disease Evidence)",
+                        pathogen="None (Normal physiological baseline)",
+                        support_level="high",
+                        supporting_evidence=[
+                            f"Vision classifier identified normal bovine features{conf_str}.",
+                            "Zero abnormal clinical symptoms reported in intake evaluation.",
+                            "Physiological baseline indicators remain nominal."
+                        ],
+                        contradicting_or_missing_evidence=[
+                            "No clinical lesions, fever, or pathognomonic disease signs detected."
+                        ],
+                        sources=["ICAR-IVRI Clinical Examination Guidelines for Ruminants"]
+                    )
+                ]
+
+            # Case 2: Vision classifier identified specific disease lesions (e.g. lumpy or FMD with >= 70% confidence)
+            has_visual_lesions = (
+                visual_analysis.available
+                and visual_analysis.predicted_class in ["lumpy", "foot-and-mouth"]
+                and (visual_analysis.confidence or 0.0) >= 0.70
             )
-            return differentials
+            if not has_visual_lesions:
+                # No photo or non-diagnostic photo, and no specific symptoms reported.
+                # Safe fallback: Zero hallucinations, record data gaps.
+                return []
 
         for profile in self.disease_profiles:
             # 1. Species compatibility check
@@ -79,12 +92,25 @@ class DeterministicEvidenceScorer:
             matched_hallmarks = [s for s in profile.hallmark_symptoms if s in symptoms_observed]
             unmatched_hallmarks = [s for s in profile.hallmark_symptoms if s not in symptoms_observed]
 
+            # 3. Secondary symptoms matching (Supporting weight: +1 each)
+            matched_secondary = [s for s in profile.secondary_symptoms if s in symptoms_observed]
+
+            # Clinical Rule: A disease candidate REQUIRES at least one clinical sign (hallmark or secondary)
+            # OR direct photographic lesion evidence. Environmental cofactors (weather/NADRES) alone cannot diagnose a disease.
+            has_clinical_sign = bool(matched_hallmarks or matched_secondary)
+            has_visual_marker = bool(
+                visual_analysis.available
+                and visual_analysis.predicted_class == ("lumpy" if profile.disease_id == "lumpy_skin_disease" else "foot-and-mouth" if profile.disease_id == "foot_and_mouth_disease" else None)
+                and (visual_analysis.confidence or 0.0) >= 0.70
+            )
+            if not (has_clinical_sign or has_visual_marker):
+                continue
+
             for h in matched_hallmarks:
                 score_points += 3
                 supporting_evidence.append(f"Hallmark pathognomonic sign observed: '{h.replace('_', ' ')}'.")
 
             # 3. Secondary symptoms matching (Supporting weight: +1 each)
-            matched_secondary = [s for s in profile.secondary_symptoms if s in symptoms_observed]
             for s in matched_secondary:
                 score_points += 1
                 supporting_evidence.append(f"Secondary clinical sign observed: '{s.replace('_', ' ')}'.")
@@ -171,7 +197,7 @@ class DeterministicEvidenceScorer:
             else:
                 continue  # No evidence support at all
 
-            differentials.append(
+            differentials_scored.append((
                 ConditionDifferential(
                     disease=profile.name,
                     pathogen=profile.pathogen,
@@ -179,14 +205,19 @@ class DeterministicEvidenceScorer:
                     supporting_evidence=supporting_evidence,
                     contradicting_or_missing_evidence=missing_evidence,
                     sources=profile.official_sources
-                )
-            )
+                ),
+                score_points,
+                len(matched_hallmarks)
+            ))
 
-        # Sort differentials: 'high' first, then 'moderate', then 'low'
+        # Sort differentials: 'high' first, then 'moderate', then 'low',
+        # breaking ties by highest evidence score_points and most matched hallmark signs
         order = {"high": 0, "moderate": 1, "low": 2}
-        differentials.sort(key=lambda d: order.get(d.support_level, 3))
+        differentials_scored.sort(
+            key=lambda item: (order.get(item[0].support_level, 3), -item[1], -item[2])
+        )
 
-        return differentials
+        return [item[0] for item in differentials_scored]
 
 
 def score_evidence(
