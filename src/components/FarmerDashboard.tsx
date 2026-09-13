@@ -227,13 +227,6 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <Plus size={16} strokeWidth={2.5} />
             <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
           </button>
-          <button
-            onClick={onOpenReport}
-            className="btn-primary"
-            style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
-          >
-            {t.dashboard.quickReport}
-          </button>
         </div>
       </div>
 

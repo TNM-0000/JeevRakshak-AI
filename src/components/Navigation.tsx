@@ -284,7 +284,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </nav>
 
         {/* Role-Specific Primary Quick Action CTA (Sticky at left bottom corner) */}
-        <div style={{ marginTop: 'auto', paddingTop: '16px', position: 'sticky', bottom: 0, background: '#ffffff', zIndex: 10 }}>
+        <div style={{ marginTop: 'auto', paddingTop: '16px', position: 'sticky', bottom: 0, background: '#faf8f2', zIndex: 10 }}>
           {currentRole === 'farmer' && (
             <button
               onClick={() => onSelectTab('report')}
