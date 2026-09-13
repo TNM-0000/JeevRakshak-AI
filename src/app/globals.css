@@ -1,16 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Brand Palettes - Emerald / Forest MedTech */
-  --primary: #059669;
-  --primary-hover: #047857;
-  --primary-deep: #064e3b;
-  --primary-light: #ecfdf5;
-  --primary-border: #a7f3d0;
-  --primary-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+  /* Brand Palettes - Earth & Saffron Sovereign (Option B) */
+  --primary: #1b5e4b;
+  --primary-hover: #134638;
+  --primary-deep: #0a2e23;
+  --primary-light: #edf6f2;
+  --primary-border: #abd4c3;
+  --primary-gradient: linear-gradient(135deg, #1b5e4b 0%, #114537 100%);
   
-  /* Accent & Status Tones */
-  --critical: #dc2626;
+  /* Saffron Sovereign Accent */
+  --accent: #d97706;
+  --accent-hover: #b45309;
+  --accent-deep: #92400e;
+  --accent-light: #fffbeb;
+  --accent-border: #fde68a;
+  --accent-gradient: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+  
+  /* Accent & Status Tones (Warm Earth MedTech) */
+  --critical: #c02626;
   --critical-bg: #fef2f2;
   --critical-border: #fecaca;
   
@@ -18,29 +26,31 @@
   --warning-bg: #fffbeb;
   --warning-border: #fde68a;
   
-  --stable: #10b981;
-  --stable-bg: #ecfdf5;
-  --stable-border: #a7f3d0;
+  --stable: #15803d;
+  --stable-bg: #f0fdf4;
+  --stable-border: #bbf7d0;
   
-  --info: #2563eb;
-  --info-bg: #eff6ff;
-  --info-border: #bfdbfe;
+  --info: #0369a1;
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
 
-  /* Surfaces & Typography */
-  --bg-app: #f8fafc;
+  /* Surfaces & Typography (Warm Sandstone Beige & Earth Stone) */
+  --bg-app: #f4f0e6;
   --surface: #ffffff;
-  --surface-raised: #f1f5f9;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --border-subtle: #e2e8f0;
-  --border-card: #e5e7eb;
+  --surface-raised: #ebe4d5;
+  --surface-subtle: #faf7f0;
+  --text-main: #1c1917;
+  --text-muted: #6e675b;
+  --text-light: #9c9486;
+  --border-subtle: #e2dbcd;
+  --border-card: #d8cfbe;
   
-  /* Shadows & Glassmorphism */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.05);
-  --shadow-glow: 0 0 20px rgba(5, 150, 105, 0.25);
+  /* Shadows & Ambient Earth Glow */
+  --shadow-sm: 0 1px 3px rgba(44, 39, 32, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(44, 39, 32, 0.08), 0 2px 6px -1px rgba(44, 39, 32, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(44, 39, 32, 0.1), 0 4px 8px -2px rgba(44, 39, 32, 0.05);
+  --shadow-glow: 0 0 20px rgba(27, 94, 75, 0.22);
+  --shadow-saffron: 0 0 20px rgba(217, 119, 6, 0.25);
   
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -60,7 +70,7 @@
 }
 
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
 }
@@ -104,12 +114,14 @@ a {
   position: relative;
   max-width: 100vw;
   width: 100%;
-  overflow-x: hidden;
 }
 
 @media (min-width: 1024px) {
   .app-shell {
     flex-direction: row;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
   }
 }
 
@@ -117,13 +129,14 @@ a {
 .desktop-sidebar {
   display: none;
   width: 280px;
-  background: #ffffff;
+  background: #faf8f2;
   border-right: 1px solid var(--border-subtle);
   padding: 24px 20px;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
+  max-height: 100vh;
   overflow-y: auto;
   z-index: 40;
   flex-shrink: 0;
@@ -148,6 +161,10 @@ a {
 @media (min-width: 1024px) {
   .app-main {
     padding-bottom: 40px;
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 
@@ -171,16 +188,18 @@ a {
 .top-header {
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(244, 240, 230, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border-subtle);
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 30;
+  z-index: 100;
   width: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
 }
 
 @media (min-width: 1024px) {
@@ -242,7 +261,7 @@ a {
 /* Role Selector Pills */
 .role-pill-group {
   display: flex;
-  background: #f1f5f9;
+  background: var(--surface-raised);
   padding: 3px 4px;
   border-radius: var(--radius-full);
   gap: 4px;
@@ -268,9 +287,9 @@ a {
 }
 
 .role-pill.active {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--primary-hover);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(44, 39, 32, 0.1);
 }
 
 /* Mobile Bottom Navigation Dock */
@@ -279,7 +298,7 @@ a {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(250, 248, 242, 0.96);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--border-subtle);
@@ -288,7 +307,7 @@ a {
   align-items: center;
   padding: 6px 8px 10px 8px;
   z-index: 50;
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 -4px 16px rgba(44, 39, 32, 0.08);
   max-width: 100vw;
 }
 
@@ -326,7 +345,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+  box-shadow: 0 4px 14px rgba(27, 94, 75, 0.4);
   margin-top: -24px;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 3px solid #ffffff;
@@ -339,7 +358,7 @@ a {
 
 /* UI Cards */
 .glass-card {
-  background: #ffffff;
+  background: var(--surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-sm);
@@ -355,7 +374,7 @@ a {
 }
 
 .glass-card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--primary-border);
   box-shadow: var(--shadow-md);
 }
 
@@ -409,14 +428,14 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 2px 8px rgba(27, 94, 75, 0.3);
   transition: all 0.2s ease;
   min-height: 42px;
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+  box-shadow: 0 4px 12px rgba(27, 94, 75, 0.4);
 }
 
 .btn-primary:disabled {
@@ -426,7 +445,7 @@ a {
 }
 
 .btn-secondary {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-main);
   border: 1px solid var(--border-subtle);
   font-weight: 600;
@@ -443,7 +462,28 @@ a {
 
 .btn-secondary:hover {
   background: var(--surface-raised);
-  border-color: #cbd5e1;
+  border-color: var(--border-card);
+}
+
+.btn-accent {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+  transition: all 0.2s ease;
+  min-height: 42px;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
 }
 
 @media (min-width: 640px) {
@@ -488,7 +528,7 @@ a {
   border: 1px solid var(--border-subtle);
   font-family: inherit;
   font-size: 0.92rem;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-main);
   outline: none;
   transition: border-color 0.2s ease;
@@ -497,7 +537,7 @@ a {
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+  box-shadow: 0 0 0 3px rgba(27, 94, 75, 0.15);
 }
 
 /* Custom Modal Backdrop & Card */
@@ -623,7 +663,7 @@ a {
   font-weight: 600;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-subtle);
-  background: #f8fafc;
+  background: var(--surface-raised);
   color: var(--text-muted);
 }
 .modal-tab-btn.active {
@@ -655,3 +695,209 @@ a {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+@keyframes pulseGlowAmber {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(217, 119, 6, 0);
+  }
+}
+
+@keyframes pulseGlowGreen {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(27, 94, 75, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(27, 94, 75, 0);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ambient Warm Earth & Saffron Atmosphere */
+.ambient-hero-bg {
+  position: relative;
+  background-color: var(--bg-app);
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 5% 30%, rgba(27, 94, 75, 0.12), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 95% 45%, rgba(234, 88, 12, 0.10), transparent 60%);
+}
+
+/* Saffron Sovereign Primary CTA */
+.btn-saffron {
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.96rem;
+  padding: 12px 26px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(217, 119, 6, 0.35);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-saffron:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 26px rgba(217, 119, 6, 0.45);
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+}
+
+.btn-saffron:active {
+  transform: scale(0.97);
+}
+
+/* Forest Earth Primary CTA */
+.btn-earth {
+  background: linear-gradient(135deg, #1b5e4b 0%, #114537 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.96rem;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(27, 94, 75, 0.3);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-earth:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 22px rgba(27, 94, 75, 0.42);
+  background: linear-gradient(135deg, #134638 0%, #0a2e23 100%);
+}
+
+.btn-earth:active {
+  transform: scale(0.97);
+}
+
+/* High-Impact Gradient Typography */
+.text-gradient-saffron {
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 45%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline;
+}
+
+.text-gradient-earth {
+  background: linear-gradient(135deg, #1b5e4b 0%, #2d6a4f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline;
+}
+
+/* Enhanced Glass Cards with warm hover depth */
+.glass-card-hover {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(217, 119, 6, 0.35);
+  box-shadow: 0 14px 28px -6px rgba(44, 39, 32, 0.1), 0 4px 10px rgba(217, 119, 6, 0.08);
+}
+
+.animate-pulse-amber {
+  animation: pulseGlowAmber 2.5s infinite;
+}
+
+.animate-pulse-green {
+  animation: pulseGlowGreen 2.5s infinite;
+}
+
+.animate-float-gentle {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Full-Page Location Setup Grid */
+.location-fullpage-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .location-fullpage-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+/* Sticky "Add Sick Animal" Floating Action Button throughout whole document */
+.sticky-sick-animal-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-decoration: none;
+}
+
+.sticky-sick-animal-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.55);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+@media (max-width: 1023px) {
+  .sticky-sick-animal-fab {
+    bottom: 84px; /* elevated above mobile navigation dock */
+    right: 18px;
+    padding: 11px 18px;
+    font-size: 0.84rem;
+  }
+}
+
+

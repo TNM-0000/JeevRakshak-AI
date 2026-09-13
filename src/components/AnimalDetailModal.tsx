@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { dataService } from '@/lib/supabase/dataService';
+import {
+  dataService,
+  localizeSpecies,
+  localizeBreed,
+  localizeTreatment,
+  localizeVaccine,
+} from '@/lib/supabase/dataService';
 import {
   AnimalWithDetails,
   AnimalTreatment,
@@ -39,7 +45,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
   onClose,
   onReportAnimal,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [animal, setAnimal] = useState<AnimalWithDetails | null>(null);
   const [activeTab, setActiveTab] = useState<'report' | 'timeline' | 'vaccines' | 'treatments' | 'labs'>('report');
   const [reportGeneratedNotice, setReportGeneratedNotice] = useState<string | null>(null);
@@ -151,7 +157,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
 
   useEffect(() => {
     loadAnimal();
-  }, [animalId]);
+  }, [animalId, language]);
 
   if (!animal) return null;
 
@@ -207,12 +213,12 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
               </span>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              {animal.species} • {animal.breed} • {animal.sex === 'female' ? t.animalProfile.female : t.animalProfile.male}
+              {localizeSpecies(animal.species, language)} • {localizeBreed(animal.breed, language)} • {animal.sex === 'female' ? t.animalProfile.female : t.animalProfile.male}
             </p>
           </div>
           <button
             onClick={onClose}
-            style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--surface-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-subtle)' }}
           >
             <X size={18} />
           </button>
@@ -220,20 +226,24 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
 
         {/* Quick Meta Cards */}
         <div className="modal-meta-grid">
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.species}</div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{animal.species}</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{localizeSpecies(animal.species, language)}</div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.breed}</div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{animal.breed}</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{localizeBreed(animal.breed, language)}</div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.animalProfile.sex}</div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700, textTransform: 'capitalize' }}>{animal.sex}</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, textTransform: 'capitalize' }}>
+              {animal.sex === 'female' ? t.animalProfile.female : t.animalProfile.male}
+            </div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>DOB</div>
+          <div style={{ background: 'var(--surface-raised)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              {language === 'mr' ? 'जन्मतारीख' : language === 'hi' ? 'जन्म तिथि' : 'DOB'}
+            </div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{animal.date_of_birth || '2022'}</div>
           </div>
         </div>
@@ -282,12 +292,17 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
               onClose();
               onReportAnimal(animal.id);
             }}
-            className="btn-secondary"
-            style={{ padding: '10px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-            title="Custom Report Wizard"
+            className="btn-saffron"
+            style={{ flex: 1, padding: '10px 16px', fontSize: '0.85rem' }}
           >
-            <Activity size={15} />
-            <span>Report Symptom</span>
+            <Activity size={16} />
+            <span>
+              {language === 'mr'
+                ? `${animal.tag_number} साठी लक्षणाची तक्रार करा`
+                : language === 'hi'
+                ? `${animal.tag_number} के लिए लक्षण रिपोर्ट करें`
+                : `Report Symptom for ${animal.tag_number}`}
+            </span>
           </button>
         </div>
 
@@ -557,7 +572,9 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
         {/* Tab 1: Health Timeline */}
         {activeTab === 'timeline' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Historical Reports & Assessments</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              {language === 'mr' ? 'मागील अहवाल व मूल्यांकन' : language === 'hi' ? 'ऐतिहासिक रिपोर्ट व मूल्यांकन' : 'Historical Reports & Assessments'}
+            </div>
             <div style={{ position: 'relative', paddingLeft: '20px', borderLeft: '2px solid var(--border-subtle)' }}>
               <div style={{ marginBottom: '16px', position: 'relative' }}>
                 <span
@@ -571,10 +588,18 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                     background: 'var(--warning)',
                   }}
                 />
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>September 2026 • Live Report</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Fever + Reduced appetite</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'सप्टेंबर २०२६ • थेट अहवाल' : language === 'hi' ? 'सितंबर 2026 • लाइव रिपोर्ट' : 'September 2026 • Live Report'}
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+                  {language === 'mr' ? 'ताप + चारा खाण्यात घट' : language === 'hi' ? 'बुखार + भूख में कमी' : 'Fever + Reduced appetite'}
+                </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Assessed as probable respiratory illness. Triage level elevated.
+                  {language === 'mr'
+                    ? 'संभाव्य श्वसन आजार म्हणून मूल्यांकन. ट्राइएज पातळी वाढवली.'
+                    : language === 'hi'
+                    ? 'संभावित श्वसन रोग के रूप में मूल्यांकन। ट्राइएज स्तर बढ़ाया गया।'
+                    : 'Assessed as probable respiratory illness. Triage level elevated.'}
                 </div>
               </div>
 
@@ -590,9 +615,15 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                     background: 'var(--stable)',
                   }}
                 />
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>November 2025 • Routine Checkup</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Routine FMD Vaccination Completed</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Animal in good physical condition. Normal lactation.</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'नोव्हेंबर २०२५ • नियमित तपासणी' : language === 'hi' ? 'नवंबर 2025 • नियमित जांच' : 'November 2025 • Routine Checkup'}
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+                  {language === 'mr' ? 'नियमित लाळ-खुरकूत (FMD) लसीकरण पूर्ण' : language === 'hi' ? 'नियमित खुरपका-मुंहपका (FMD) टीकाकरण पूर्ण' : 'Routine FMD Vaccination Completed'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'पशूची शारीरिक स्थिती उत्तम. दूध उत्पादन सुरळीत.' : language === 'hi' ? 'पशु अच्छी शारीरिक स्थिति में है। सामान्य दुग्ध उत्पादन।' : 'Animal in good physical condition. Normal lactation.'}
+                </div>
               </div>
             </div>
           </div>
@@ -602,7 +633,9 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
         {activeTab === 'vaccines' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>Recorded Vaccinations</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                {language === 'mr' ? 'नोंदवलेले लसीकरण' : language === 'hi' ? 'दर्ज टीकाकरण' : 'Recorded Vaccinations'}
+              </span>
               <button
                 onClick={() => setShowAddVaccine(!showAddVaccine)}
                 className="btn-secondary"
@@ -614,9 +647,11 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
             </div>
 
             {showAddVaccine && (
-              <form onSubmit={handleSaveVaccine} style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
+              <form onSubmit={handleSaveVaccine} style={{ background: 'var(--surface-raised)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Vaccine Name</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    {language === 'mr' ? 'लसीचे नाव' : language === 'hi' ? 'टीके का नाम' : 'Vaccine Name'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -628,7 +663,9 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                   />
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Next Due Date</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    {language === 'mr' ? 'पुढील देय तारीख' : language === 'hi' ? 'अगली देय तिथि' : 'Next Due Date'}
+                  </label>
                   <input
                     type="date"
                     value={vaccineDueDate}
@@ -638,7 +675,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                   />
                 </div>
                 <button type="submit" className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
-                  Save Vaccination
+                  {language === 'mr' ? 'लसीकरण जतन करा' : language === 'hi' ? 'टीकाकरण सहेजें' : 'Save Vaccination'}
                 </button>
               </form>
             )}
@@ -648,20 +685,22 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                 animal.vaccinations.map((vac) => (
                   <div key={vac.id} style={{ padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)', background: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{vac.vaccine_name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{localizeVaccine(vac.vaccine_name, language)}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        Administered: {vac.vaccination_date}
+                        {language === 'mr' ? 'लस दिली:' : language === 'hi' ? 'टीका दिया गया:' : 'Administered:'} {vac.vaccination_date}
                       </div>
                     </div>
                     {vac.next_due_date && (
                       <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
-                        Due: {vac.next_due_date}
+                        {language === 'mr' ? 'पुढील तारीख:' : language === 'hi' ? 'अगली तिथि:' : 'Due:'} {vac.next_due_date}
                       </span>
                     )}
                   </div>
                 ))
               ) : (
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No vaccination records yet.</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'कोणतेही लसीकरण रेकॉर्ड नाही.' : language === 'hi' ? 'कोई टीकाकरण रिकॉर्ड नहीं है।' : 'No vaccination records yet.'}
+                </div>
               )}
             </div>
           </div>
@@ -671,7 +710,9 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
         {activeTab === 'treatments' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>Prescribed Treatments</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                {language === 'mr' ? 'विहित उपचार' : language === 'hi' ? 'निर्धारित उपचार' : 'Prescribed Treatments'}
+              </span>
               <button
                 onClick={() => setShowAddTreatment(!showAddTreatment)}
                 className="btn-secondary"
@@ -683,9 +724,11 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
             </div>
 
             {showAddTreatment && (
-              <form onSubmit={handleSaveTreatment} style={{ background: '#f8fafc', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
+              <form onSubmit={handleSaveTreatment} style={{ background: 'var(--surface-raised)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medicine / Treatment Name</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    {language === 'mr' ? 'औषध / उपचाराचे नाव' : language === 'hi' ? 'दवा / उपचार का नाम' : 'Medicine / Treatment Name'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -697,7 +740,9 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                   />
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Dosage & Route</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    {language === 'mr' ? 'डोस व मार्ग' : language === 'hi' ? 'खुराक व मार्ग' : 'Dosage & Route'}
+                  </label>
                   <input
                     type="text"
                     value={treatmentDosage}
@@ -708,7 +753,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                   />
                 </div>
                 <button type="submit" className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
-                  Save Treatment
+                  {language === 'mr' ? 'उपचार जतन करा' : language === 'hi' ? 'उपचार सहेजें' : 'Save Treatment'}
                 </button>
               </form>
             )}
@@ -718,21 +763,23 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
                 animal.treatments.map((tr) => (
                   <div key={tr.id} style={{ padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)', background: '#ffffff' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{tr.treatment_name}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{localizeTreatment(tr.treatment_name, language)}</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tr.treatment_date}</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Dosage: {tr.dosage}
+                      {language === 'mr' ? 'डोस:' : language === 'hi' ? 'खुराक:' : 'Dosage:'} {tr.dosage}
                     </div>
                     {tr.notes && (
                       <div style={{ fontSize: '0.75rem', color: 'var(--primary-deep)', marginTop: '4px', background: 'var(--primary-light)', padding: '4px 8px', borderRadius: '4px' }}>
-                        Note: {tr.notes}
+                        {language === 'mr' ? 'टीप:' : language === 'hi' ? 'नोट:' : 'Note:'} {tr.notes}
                       </div>
                     )}
                   </div>
                 ))
               ) : (
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No active treatments.</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {language === 'mr' ? 'कोणतेही सक्रिय उपचार नाहीत.' : language === 'hi' ? 'कोई सक्रिय उपचार नहीं है।' : 'No active treatments.'}
+                </div>
               )}
             </div>
           </div>
@@ -743,11 +790,19 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-card)', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>Nasal Swab (Respiratory Panel)</span>
-                <span className="badge badge-warning">Testing in Progress</span>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                  {language === 'mr' ? 'नाकातील स्त्राव (श्वसन पॅनेल चाचणी)' : language === 'hi' ? 'नेजल स्वैब (श्वसन पैनल जांच)' : 'Nasal Swab (Respiratory Panel)'}
+                </span>
+                <span className="badge badge-warning">
+                  {language === 'mr' ? 'चाचणी सुरू आहे' : language === 'hi' ? 'जांच जारी है' : 'Testing in Progress'}
+                </span>
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                District Veterinary Lab Pune • Received 09:30 AM
+                {language === 'mr'
+                  ? 'जिल्हा पशुवैद्यकीय प्रयोगशाळा पुणे • प्राप्त सकाळी ०९:३०'
+                  : language === 'hi'
+                  ? 'जिला पशु चिकित्सा प्रयोगशाला पुणे • प्राप्त सुबह 09:30'
+                  : 'District Veterinary Lab Pune • Received 09:30 AM'}
               </div>
             </div>
           </div>

@@ -4,20 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, Database, CheckCircle2, ChevronDown, User, LogOut } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut, ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
+  onRoleChange?: (role: UserRole) => void;
   onOpenNotifications: () => void;
+  onRegisterAnimal?: () => void;
+  onBack?: () => void;
   onSignOut?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onSignOut }) => {
+export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpenNotifications, onRegisterAnimal, onBack, onSignOut }) => {
   const { language, setLanguage, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [seeding, setSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const currentUser = dataService.getCurrentUser();
 
   useEffect(() => {
@@ -26,115 +26,63 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    setSeedMessage(null);
-    const res = await dataService.seedSupabaseMaster();
-    setSeedMessage(res.message);
-    setSeeding(false);
-    setTimeout(() => setSeedMessage(null), 4000);
-  };
-
   return (
-    <header className="top-header">
+    <>
+      <header className="top-header">
       {/* Primary Top Row: Brand & Actions */}
       <div className="header-primary-row">
-        {/* Brand & Govt Badge */}
+        {/* Back Button & Brand */}
         <div className="header-brand">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: '20px',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                height: '34px',
+                background: '#f8fafc',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+              title={language === 'mr' ? 'मागे जा' : language === 'hi' ? 'पीछे जाएं' : 'Go Back'}
+            >
+              <ArrowLeft size={14} strokeWidth={2.5} />
+              <span>{language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}</span>
+            </button>
+          )}
           <div
             style={{
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
               flexShrink: 0,
             }}
           >
             <Shield size={18} strokeWidth={2.4} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                {t.appName}
-              </h1>
-              <span
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  border: '1px solid #fde68a',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                MH
-              </span>
-            </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Govt. of Maharashtra • #26128
-            </p>
+            <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+              {t.appName}
+            </h1>
           </div>
         </div>
 
-        {/* Actions: Language, Sync, Notification Bell */}
+        {/* Actions: Sign Out Profile, Language Dropdown (Right-Most) */}
         <div className="header-actions">
-          {/* Language Selector */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as AppLanguage)}
-              className="form-select"
-              style={{
-                padding: '4px 22px 4px 8px',
-                fontSize: '0.76rem',
-                fontWeight: 600,
-                borderRadius: '20px',
-                background: '#f1f5f9',
-                border: '1px solid var(--border-subtle)',
-                cursor: 'pointer',
-                appearance: 'none',
-                width: 'auto',
-                minHeight: '34px',
-                height: '34px',
-              }}
-            >
-              <option value="en">EN</option>
-              <option value="hi">हिन्दी</option>
-              <option value="mr">मराठी</option>
-            </select>
-            <ChevronDown
-              size={12}
-              style={{ position: 'absolute', right: '8px', pointerEvents: 'none', color: 'var(--text-muted)' }}
-            />
-          </div>
-
-          {/* Supabase Master Sync Button */}
-          <button
-            onClick={handleSeedDatabase}
-            disabled={seeding}
-            className="btn-secondary"
-            style={{
-              padding: '5px 10px',
-              fontSize: '0.75rem',
-              borderRadius: '20px',
-              minHeight: '34px',
-              height: '34px',
-            }}
-            title="Seed master locations and disease catalog to connected Supabase database"
-          >
-            <Database size={13} color="var(--primary)" />
-            <span style={{ display: 'none' }} className="desktop-sync-label">
-              {seeding ? 'Syncing...' : 'Sync'}
-            </span>
-          </button>
-
           {/* Notification Bell */}
           <button
             onClick={onOpenNotifications}
@@ -143,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              background: '#f8fafc',
+              background: 'var(--surface-raised)',
               border: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
@@ -151,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               color: 'var(--text-main)',
               flexShrink: 0,
             }}
-            aria-label="Notifications"
+            aria-label={language === 'mr' ? 'सूचना' : language === 'hi' ? 'सूचनाएं' : 'Notifications'}
           >
             <Bell size={16} />
             {unreadCount > 0 && (
@@ -176,7 +124,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               </span>
             )}
           </button>
-
           {/* User Account Profile & Sign Out / Landing */}
           {onSignOut && (
             <button
@@ -192,56 +139,76 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
                 alignItems: 'center',
                 gap: '5px',
               }}
-              title={currentUser ? `Profile: ${currentUser.full_name} (${currentUser.phone}). Click to Sign Out / Switch.` : 'Sign Out / Switch'}
+              title={
+                currentUser
+                  ? language === 'mr'
+                    ? `प्रोफाइल: ${currentUser.full_name} (${currentUser.phone}). लॉग आउट करा`
+                    : language === 'hi'
+                    ? `प्रोफ़ाइल: ${currentUser.full_name} (${currentUser.phone}). लॉग आउट करें`
+                    : `Profile: ${currentUser.full_name} (${currentUser.phone}). Click to Sign Out.`
+                  : language === 'mr'
+                  ? 'लॉग आउट'
+                  : language === 'hi'
+                  ? 'लॉग आउट'
+                  : 'Sign Out'
+              }
             >
               <User size={13} color="var(--primary)" />
-              <span style={{ display: 'none', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="desktop-user-label">
-                {currentUser?.full_name?.split(' ')[0] || 'User'}
+              <span style={{ display: 'none', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="desktop-user-label">
+                {currentUser?.full_name?.split(' ')[0] || (language === 'mr' ? 'वापरकर्ता' : language === 'hi' ? 'उपयोगकर्ता' : 'User')}
               </span>
-              <LogOut size={12} style={{ color: 'var(--text-muted)' }} />
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary-hover)',
+                  padding: '1px 7px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--primary-border)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t.roles[currentRole]}
+              </span>
+              <LogOut size={12} color="var(--text-muted)" style={{ marginLeft: '2px' }} />
             </button>
           )}
-        </div>
-      </div>
 
-      {/* Role Switcher Row: Horizontally swipeable on mobile */}
-      <div className="header-role-row">
-        <div className="role-pill-group" title={t.dashboard.switchRoleNotice}>
-          {(['farmer', 'field_worker', 'veterinarian', 'government'] as UserRole[]).map((r) => (
-            <button
-              key={r}
-              className={`role-pill ${currentRole === r ? 'active' : ''}`}
-              onClick={() => onRoleChange(r)}
+          {/* Language Selector (Positioned at the Right-Most Corner) */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as AppLanguage)}
+              className="form-select"
+              style={{
+                padding: '4px 22px 4px 8px',
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                borderRadius: '20px',
+                background: '#f1f5f9',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                appearance: 'none',
+                width: 'auto',
+                minHeight: '34px',
+                height: '34px',
+              }}
+              title={language === 'mr' ? 'भाषा निवडा' : language === 'hi' ? 'भाषा चुनें' : 'Select Language'}
             >
-              {t.roles[r]}
-            </button>
-          ))}
+              <option value="en">EN</option>
+              <option value="hi">हिन्दी</option>
+              <option value="mr">मराठी</option>
+            </select>
+            <ChevronDown
+              size={12}
+              style={{ position: 'absolute', right: '8px', pointerEvents: 'none', color: 'var(--text-muted)' }}
+            />
+          </div>
         </div>
       </div>
 
-      {seedMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '70px',
-            right: '20px',
-            background: '#064e3b',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: '12px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 9999,
-          }}
-        >
-          <CheckCircle2 size={16} />
-          <span>{seedMessage}</span>
-        </div>
-      )}
-    </header>
+      </header>
+    </>
   );
 };

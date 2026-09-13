@@ -5,7 +5,6 @@ export interface Translations {
   tagline: string;
   roles: {
     farmer: string;
-    field_worker: string;
     veterinarian: string;
     government: string;
   };
@@ -172,7 +171,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'Protect every herd. Detect risk before it spreads.',
     roles: {
       farmer: 'Farmer',
-      field_worker: 'Field Worker',
       veterinarian: 'Veterinarian',
       government: 'Government Official',
     },
@@ -208,7 +206,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'Next action',
       roleSwitcher: 'Switch Role (Demonstration)',
       switchRoleNotice: 'You are currently viewing as',
-      quickReport: 'Report Sick Animal',
+      quickReport: 'Register Animal',
     },
     reporting: {
       newReport: 'New Health Report',
@@ -230,7 +228,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       sampleNeeded: 'Sample / test needed',
       sampleNeededDesc: 'Request diagnostic sample collection',
       otherIssue: 'Other health concern',
-      selectAnimal: 'Select Animal Tag',
+      selectAnimal: 'Select Animal',
       symptomsCount: 'symptoms selected',
       mortalityCount: 'Mortality Count (if any)',
       additionalNotes: 'Additional observations / Notes',
@@ -272,7 +270,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       pending: 'Pending',
       confirmed: 'Confirmed',
       resolved: 'Resolved',
-      reviewCase: 'Review Case',
+      reviewCase: 'Case Details',
       navigate: 'Navigate',
       urgent: 'URGENT',
       collectSample: 'Collect Sample',
@@ -337,7 +335,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'हर पशुधन की सुरक्षा। बीमारी फैलने से पहले पहचान।',
     roles: {
       farmer: 'पशुपालक / किसान',
-      field_worker: 'क्षेत्र कार्यकर्ता (फील्ड वर्कर)',
       veterinarian: 'पशु चिकित्सक (डॉक्टर)',
       government: 'शासकीय अधिकारी',
     },
@@ -373,7 +370,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'अगला कदम',
       roleSwitcher: 'भूमिका बदलें (डेमो)',
       switchRoleNotice: 'आप इस रूप में देख रहे हैं:',
-      quickReport: 'बीमार पशु की रिपोर्ट करें',
+      quickReport: 'पशु पंजीकृत करें',
     },
     reporting: {
       newReport: 'नई स्वास्थ्य रिपोर्ट',
@@ -395,7 +392,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       sampleNeeded: 'सैंपल / जांच आवश्यक',
       sampleNeededDesc: 'लैब जांच हेतु नमूना संग्रह अनुरोध',
       otherIssue: 'अन्य स्वास्थ्य समस्या',
-      selectAnimal: 'पशु टैग चुनें',
+      selectAnimal: 'पशु चुनें',
       symptomsCount: 'लक्षण चुने गए',
       mortalityCount: 'मृत्यु संख्या (यदि कोई हो)',
       additionalNotes: 'अतिरिक्त विवरण / नोट्स',
@@ -437,7 +434,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       pending: 'लंबित',
       confirmed: 'पुष्ट',
       resolved: 'समाधान हुआ',
-      reviewCase: 'केस समीक्षा',
+      reviewCase: 'केस विवरण',
       navigate: 'मार्गदर्शन',
       urgent: 'अत्यावश्यक',
       collectSample: 'सैंपल लें',
@@ -502,7 +499,6 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
     tagline: 'प्रत्येक जनावराचे रक्षण. रोग फैलावण्यापूर्वीच नियंत्रण.',
     roles: {
       farmer: 'शेतकरी / पशुपालक',
-      field_worker: 'क्षेत्रीय कर्मचारी (फील्ड वर्कर)',
       veterinarian: 'पशुवैद्यकीय अधिकारी (डॉक्टर)',
       government: 'शासकीय अधिकारी',
     },
@@ -538,7 +534,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       nextAction: 'पुढील कृती',
       roleSwitcher: 'भूमिका बदला (डेमो)',
       switchRoleNotice: 'तुम्ही सध्या या भूमिकेत आहात:',
-      quickReport: 'आजारी जनावराची नोंद करा',
+      quickReport: 'पशू नोंदणी करा',
     },
     reporting: {
       newReport: 'नवीन आरोग्य अहवाल',
@@ -560,7 +556,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       sampleNeeded: 'नमुना / चाचणी आवश्यक',
       sampleNeededDesc: 'लॅब तपासणीसाठी नमुना संकलन',
       otherIssue: 'इतर आरोग्य तक्रार',
-      selectAnimal: 'जनावराचा टॅग क्रमांक निवडा',
+      selectAnimal: 'जनावर निवडा',
       symptomsCount: 'लक्षणे निवडली',
       mortalityCount: 'मृत्यू संख्या (असल्यास)',
       additionalNotes: 'अधिक निरीक्षणे / नोंदी',
@@ -602,7 +598,7 @@ export const translations: Record<'en' | 'hi' | 'mr', Translations> = {
       pending: 'प्रलंबित',
       confirmed: 'निश्चित',
       resolved: 'पूर्ण झाले',
-      reviewCase: 'केस तपासा',
+      reviewCase: 'केस तपशील',
       navigate: 'मार्ग पहा',
       urgent: 'तातडीचे',
       collectSample: 'नमुना (सॅम्पल) घ्या',
