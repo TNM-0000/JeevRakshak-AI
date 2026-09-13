@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Omit<DiseaseAlert, 'id' | 'created_at' | 'status'> & {
       sendNotifications?: boolean;
-      channels?: ('sms' | 'email')[];
+      channels?: ('telegram' | 'email' | 'sms')[];
     };
 
     if (!body.disease_name || !body.district || !body.risk_level || !body.recommended_action) {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       }
 
       const matches = findRecipientsForAlert(profiles, newAlert, rolesMap);
-      const chosenChannels = body.channels || ['sms', 'email'];
+      const chosenChannels = body.channels || ['telegram', 'email'];
 
       for (const match of matches) {
         const notifType =

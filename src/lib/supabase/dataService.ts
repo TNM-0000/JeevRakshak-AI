@@ -62,8 +62,9 @@ import {
   initialNotifications,
   initialDiseaseAlerts,
 } from './seedData';
-import { DiseaseAlert, AlertStatus } from '@/types/notificationSystem';
+import { DiseaseAlert, AlertStatus, TelegramConnection, TelegramLinkingToken } from '@/types/notificationSystem';
 import { notificationService } from '@/lib/notifications/notificationService';
+import { notificationStore } from '@/lib/notifications/notificationStore';
 
 import {
   getLocalizedField,
@@ -190,6 +191,10 @@ export interface RegisteredAccount {
   first_login_at?: string;
   first_account_notif_sent?: boolean;
   first_login_notif_sent?: boolean;
+  telegram_chat_id?: string;
+  telegram_username?: string;
+  telegram_connected?: boolean;
+  telegram_connected_at?: string;
 }
 
 export interface OldDataSummary {
@@ -542,6 +547,8 @@ export class LocalStore {
   advisories: HealthAdvisory[] = [...initialAdvisories];
   notifications: AppNotification[] = [...initialNotifications];
   diseaseAlerts: DiseaseAlert[] = [...initialDiseaseAlerts];
+  telegramConnections: TelegramConnection[] = [];
+  telegramLinkingTokens: TelegramLinkingToken[] = [];
   ivrCalls: IVRCall[] = [...initialIVRCalls];
   ivrReports: IVRReport[] = [...initialIVRReports];
   ivrCallbacks: IVRCallbackRequest[] = [...initialIVRCallbacks];
@@ -722,6 +729,12 @@ export class LocalStore {
         const savedIVRFeedback = localStorage.getItem('jr_ivr_feedback');
         if (savedIVRFeedback) this.ivrFeedback = JSON.parse(savedIVRFeedback);
 
+        const savedTg = localStorage.getItem('jr_telegram_connections');
+        if (savedTg) this.telegramConnections = JSON.parse(savedTg);
+
+        const savedTokens = localStorage.getItem('jr_telegram_linking_tokens');
+        if (savedTokens) this.telegramLinkingTokens = JSON.parse(savedTokens);
+
         const savedPrescriptions = localStorage.getItem('jr_prescriptions');
         if (savedPrescriptions) {
           this.prescriptions = JSON.parse(savedPrescriptions);
@@ -820,6 +833,8 @@ export class LocalStore {
         localStorage.setItem('jr_ivr_feedback', JSON.stringify(this.ivrFeedback));
         localStorage.setItem('jr_prescriptions', JSON.stringify(this.prescriptions));
         localStorage.setItem('jr_disease_alerts', JSON.stringify(this.diseaseAlerts));
+        localStorage.setItem('jr_telegram_connections', JSON.stringify(this.telegramConnections));
+        localStorage.setItem('jr_telegram_linking_tokens', JSON.stringify(this.telegramLinkingTokens));
       } catch {
         // ignore
       }
@@ -1354,7 +1369,7 @@ export const dataService = {
         userRole: params.role,
         region: [params.village, params.block, params.district].filter(Boolean).join(', ') || 'Maharashtra',
         relatedEventId: `account_created_${profileId}`,
-        preferredChannels: ['sms', 'email'],
+        preferredChannels: ['telegram', 'email'],
         variables: {
           user_name: params.full_name,
           user_role: params.role === 'farmer' ? 'Farmer (पशुपालक)' : params.role === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
@@ -1474,6 +1489,44 @@ export const dataService = {
           animalsCount: effectiveAnimalsCount,
           reportsCount: userReports.length,
         };
+
+        // FIRST SUCCESSFUL LOGIN NOTIFICATION (TELEGRAM + EMAIL)
+        // Strictly sent once on very first login; NEVER sent on subsequent logins
+        const isFirstLogin = !(matched?.first_login_notif_sent || profile.first_login_notif_sent || profile.first_login_at);
+        if (isFirstLogin) {
+          const nowIso = new Date().toISOString();
+          if (matched) {
+            matched.first_login_notif_sent = true;
+            matched.first_login_at = nowIso;
+          }
+          profile.first_login_notif_sent = true;
+          profile.first_login_at = profile.first_login_at || nowIso;
+
+          notificationService.dispatch({
+            type: 'FIRST_LOGIN',
+            userId: profileId,
+            userName: profile.full_name,
+            userPhone: profile.phone || matched?.phone,
+            userEmail: profile.email || matched?.email,
+            userRole: profileRole,
+            region: [profile.village, profile.block, profile.district].filter(Boolean).join(', ') || 'Maharashtra',
+            relatedEventId: `first_login_${profileId}`,
+            preferredChannels: ['telegram', 'email'],
+            variables: {
+              user_name: profile.full_name,
+              user_role: profileRole === 'farmer' ? 'Farmer (पशुपालक)' : profileRole === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+              region: profile.district || 'Maharashtra',
+              due_date: new Date().toLocaleDateString('en-IN'),
+            },
+          }).catch((e) => console.warn('[FirstLogin Notification Exception]:', e));
+
+          dbUpdate('profiles', { first_login_notif_sent: true, first_login_at: profile.first_login_at }, { id: profileId }).catch(() => {});
+        }
+
+        // Auto-check upcoming vaccination doses and dispatch reminders to Telegram
+        this.checkAndDispatchUserVaccinationReminders(profileId).catch((e) =>
+          console.warn('[Auto-Vaccination Check Exception]:', e)
+        );
 
         localStore.save();
         return {
@@ -1598,6 +1651,42 @@ export const dataService = {
           animalsCount: effectiveAnimalsCount,
           reportsCount: userReports.length,
         };
+
+        // FIRST SUCCESSFUL LOGIN NOTIFICATION (TELEGRAM + EMAIL)
+        // Strictly sent once on very first login; NEVER sent on subsequent logins
+        const isFirstLogin = !(matched.first_login_notif_sent || profile.first_login_notif_sent || profile.first_login_at || matched.first_login_at);
+        if (isFirstLogin) {
+          const nowIso = new Date().toISOString();
+          matched.first_login_notif_sent = true;
+          matched.first_login_at = nowIso;
+          profile.first_login_notif_sent = true;
+          profile.first_login_at = profile.first_login_at || nowIso;
+
+          notificationService.dispatch({
+            type: 'FIRST_LOGIN',
+            userId: profile.id,
+            userName: profile.full_name,
+            userPhone: profile.phone || matched.phone,
+            userEmail: profile.email || matched.email,
+            userRole: matched.role,
+            region: [profile.village, profile.block, profile.district].filter(Boolean).join(', ') || 'Maharashtra',
+            relatedEventId: `first_login_${profile.id}`,
+            preferredChannels: ['telegram', 'email'],
+            variables: {
+              user_name: profile.full_name,
+              user_role: matched.role === 'farmer' ? 'Farmer (पशुपालक)' : matched.role === 'veterinarian' ? 'Veterinarian (पशुवैद्यक)' : 'Government Official',
+              region: profile.district || 'Maharashtra',
+              due_date: new Date().toLocaleDateString('en-IN'),
+            },
+          }).catch((e) => console.warn('[FirstLogin Notification Exception]:', e));
+
+          dbUpdate('profiles', { first_login_notif_sent: true, first_login_at: matched.first_login_at }, { id: profile.id }).catch(() => {});
+        }
+
+        // Auto-check upcoming vaccination doses and dispatch reminders to Telegram
+        this.checkAndDispatchUserVaccinationReminders(profile.id).catch((e) =>
+          console.warn('[Auto-Vaccination Check Exception]:', e)
+        );
 
         localStore.save();
         return {
@@ -2355,7 +2444,121 @@ export const dataService = {
     };
     localStore.vaccinations.unshift(newVac);
     localStore.save();
+
+    // If next_due_date is specified and upcoming (within 7 days), dispatch Telegram reminder immediately
+    if (newVac.next_due_date) {
+      const animal = localStore.animals.find((a) => String(a.id) === String(newVac.animal_id));
+      const ownerId = animal?.owner_profile_id || localStore.currentUser?.id;
+      if (ownerId) {
+        this.checkAndDispatchUserVaccinationReminders(ownerId).catch(() => {});
+      }
+    }
+
     return newVac;
+  },
+
+  // Check and dispatch vaccination reminders for a user's animals (Upcoming <= 7 days, Due today, Overdue)
+  async checkAndDispatchUserVaccinationReminders(userId: string): Promise<number> {
+    try {
+      const allAnimals = await this.getAnimals();
+      const userHerds = (await this.getHerds()).filter((h) => String(h.owner_profile_id) === String(userId));
+      const userHerdIds = new Set(userHerds.map((h) => String(h.id)));
+      userHerdIds.add(`herd-${userId}`);
+
+      const userAnimals = allAnimals.filter(
+        (a) =>
+          String(a.owner_profile_id) === String(userId) ||
+          (a.herd_id && userHerdIds.has(String(a.herd_id))) ||
+          (userId === 'demo-farmer-1' && (!a.owner_profile_id || a.owner_profile_id === 'prof-local-farmer' || a.owner_profile_id === 'demo-farmer-1'))
+      );
+
+      const allVaccinations = await this.getVaccinations();
+      const profile = localStore.profiles.find((p) => p.id === userId) || localStore.currentUser;
+      const userName = profile?.full_name || 'Livestock Owner';
+      const userPhone = profile?.phone;
+      const userEmail = profile?.email;
+      const regionName = profile?.district ? `${profile.district}, Maharashtra` : 'Maharashtra';
+
+      let dispatchedCount = 0;
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      for (const animal of userAnimals) {
+        const vacs = (animal.vaccinations && animal.vaccinations.length > 0)
+          ? animal.vaccinations
+          : allVaccinations.filter((v) => String(v.animal_id) === String(animal.id));
+
+        for (const vac of vacs) {
+          if (!vac.next_due_date) continue;
+
+          const target = new Date(vac.next_due_date);
+          target.setHours(0, 0, 0, 0);
+          const daysDiff = Math.round((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+          // If due within 7 days (including today)
+          if (daysDiff >= 0 && daysDiff <= 7) {
+            const isDueToday = daysDiff === 0;
+            const notifType = isDueToday ? 'VACCINATION_DUE' : 'VACCINATION_UPCOMING';
+            const relatedEventId = `vac_${vac.id || animal.id}_due_${vac.next_due_date}`;
+
+            await notificationService.dispatch({
+              type: notifType,
+              userId,
+              userName,
+              userPhone: userPhone || undefined,
+              userEmail: userEmail || undefined,
+              userRole: 'farmer',
+              region: regionName,
+              relatedEventId,
+              preferredChannels: ['telegram', 'email'],
+              variables: {
+                farmer_name: userName,
+                animal_tag: animal.tag_number,
+                animal_type: animal.species,
+                vaccine_name: vac.vaccine_name || 'Scheduled Vaccine',
+                due_date: vac.next_due_date,
+                recommended_action: isDueToday
+                  ? 'Administer scheduled dose today. Contact local veterinary polyclinic.'
+                  : `Vaccine dose due in ${daysDiff} day${daysDiff > 1 ? 's' : ''} (${vac.next_due_date}). Arrange with polyclinic.`,
+                contact_information: 'Local Veterinary Dispensary / Helpline: 1962',
+              },
+            });
+            dispatchedCount++;
+          } else if (daysDiff < 0) {
+            const overdueDays = Math.abs(daysDiff);
+            const notifType = 'VACCINATION_OVERDUE';
+            const relatedEventId = `vac_${vac.id || animal.id}_overdue_w${Math.floor(overdueDays / 7)}`;
+
+            await notificationService.dispatch({
+              type: notifType,
+              userId,
+              userName,
+              userPhone: userPhone || undefined,
+              userEmail: userEmail || undefined,
+              userRole: 'farmer',
+              region: regionName,
+              relatedEventId,
+              preferredChannels: ['telegram', 'email'],
+              variables: {
+                farmer_name: userName,
+                animal_tag: animal.tag_number,
+                animal_type: animal.species,
+                vaccine_name: vac.vaccine_name || 'Scheduled Vaccine',
+                due_date: vac.next_due_date,
+                overdue_days: overdueDays,
+                recommended_action: `URGENT: Vaccination is overdue by ${overdueDays} day${overdueDays > 1 ? 's' : ''}. Contact polyclinic immediately.`,
+                contact_information: 'Local Veterinary Dispensary / Helpline: 1962',
+              },
+            });
+            dispatchedCount++;
+          }
+        }
+      }
+      return dispatchedCount;
+    } catch (err) {
+      console.warn('[checkAndDispatchUserVaccinationReminders Error]:', err);
+      return 0;
+    }
   },
 
   // 8. Diagnostic Samples
@@ -3299,6 +3502,15 @@ export const dataService = {
     });
     localStore.save();
 
+    // If booster_date is scheduled and upcoming, dispatch Telegram reminder
+    if (vac.booster_date) {
+      const animal = localStore.animals.find((a) => String(a.id) === String(vac.animal_id) || a.tag_number === vac.animal_tag);
+      const ownerId = animal?.owner_profile_id;
+      if (ownerId) {
+        this.checkAndDispatchUserVaccinationReminders(ownerId).catch(() => {});
+      }
+    }
+
     this._saveDoctorStore(doctorId, store);
     return newVac;
   },
@@ -3512,6 +3724,9 @@ export const dataService = {
           first_login_at: acc.first_login_at,
           first_account_notif_sent: acc.first_account_notif_sent,
           first_login_notif_sent: acc.first_login_notif_sent,
+          telegram_chat_id: acc.telegram_chat_id,
+          telegram_username: acc.telegram_username,
+          telegram_connected: acc.telegram_connected,
         });
       }
     }
@@ -3879,5 +4094,113 @@ export const dataService = {
     localStore.ivrAnnouncements.unshift(created);
     localStore.save();
     return created;
+  },
+
+  // 18. Telegram Bot Connectivity & Account Linking
+  async getTelegramConnection(userId: string): Promise<TelegramConnection | null> {
+    const conn = await notificationStore.getTelegramConnection(userId);
+    if (conn) return conn;
+    const found = localStore.telegramConnections.find(
+      (c) => c.user_id === userId && c.status === 'connected'
+    );
+    return found || null;
+  },
+
+  async getTelegramConnectionByChatId(chatId: string): Promise<TelegramConnection | null> {
+    const conn = await notificationStore.getTelegramConnectionByChatId(chatId);
+    if (conn) return conn;
+    const found = localStore.telegramConnections.find(
+      (c) => c.telegram_chat_id === String(chatId) && c.status === 'connected'
+    );
+    return found || null;
+  },
+
+  async createTelegramLinkingToken(userId: string): Promise<string> {
+    const token = await notificationStore.createTelegramLinkingToken(userId);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    const linkTokenRecord: TelegramLinkingToken = {
+      token,
+      user_id: userId,
+      created_at: new Date().toISOString(),
+      expires_at: expiresAt,
+      used: false,
+    };
+
+    localStore.telegramLinkingTokens.unshift(linkTokenRecord);
+    localStore.save();
+
+    return token;
+  },
+
+  async verifyTelegramLinkingToken(
+    token: string,
+    chatId: string,
+    username?: string,
+    firstName?: string
+  ): Promise<{ success: boolean; connection?: TelegramConnection; error?: string }> {
+    const res = await notificationStore.verifyTelegramLinkingToken(token, chatId, username, firstName);
+    if (res.success && res.connection) {
+      const conn = res.connection;
+      const now = conn.connected_at;
+
+      // Invalidate previous in localStore
+      for (const c of localStore.telegramConnections) {
+        if (c.user_id === conn.user_id || c.telegram_chat_id === String(chatId)) {
+          c.status = 'disconnected';
+          c.disconnected_at = now;
+        }
+      }
+
+      localStore.telegramConnections.unshift(conn);
+
+      // Update profile
+      const profile = localStore.profiles.find((p) => p.id === conn.user_id);
+      if (profile) {
+        profile.telegram_chat_id = String(chatId);
+        profile.telegram_username = username;
+        profile.telegram_connected = true;
+        profile.telegram_connected_at = now;
+      }
+      const acc = localStore.registeredAccounts.find((a) => a.id === conn.user_id);
+      if (acc) {
+        acc.telegram_chat_id = String(chatId);
+        acc.telegram_username = username;
+        acc.telegram_connected = true;
+        acc.telegram_connected_at = now;
+      }
+
+      localStore.save();
+    }
+    return res;
+  },
+
+  async disconnectTelegram(userId: string): Promise<boolean> {
+    await notificationStore.disconnectTelegram(userId);
+    const now = new Date().toISOString();
+    let disconnected = false;
+
+    for (const c of localStore.telegramConnections) {
+      if (c.user_id === userId && c.status === 'connected') {
+        c.status = 'disconnected';
+        c.disconnected_at = now;
+        c.updated_at = now;
+        disconnected = true;
+      }
+    }
+
+    const profile = localStore.profiles.find((p) => p.id === userId);
+    if (profile) {
+      profile.telegram_connected = false;
+      profile.telegram_chat_id = undefined;
+    }
+    const acc = localStore.registeredAccounts.find((a) => a.id === userId);
+    if (acc) {
+      acc.telegram_connected = false;
+      acc.telegram_chat_id = undefined;
+    }
+
+    localStore.save();
+    return disconnected || true;
   },
 };

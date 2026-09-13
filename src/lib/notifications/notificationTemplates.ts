@@ -1,15 +1,15 @@
 // JeevRakshak AI - Notification Templates & Variable Interpolator
-// Strictly supports 12 official SIH event types (No OTPs)
+// Strictly supports official SIH event types (Telegram & Email, No OTPs)
 
 import {
   NotificationType,
   NotificationTemplateVariables,
-  NotificationChannel,
 } from '@/types/notificationSystem';
 
 export interface RenderedMessage {
   subject?: string;
-  smsContent: string;
+  telegramContent: string;
+  smsContent: string; // legacy fallback
   emailText: string;
   emailHtml: string;
 }
@@ -25,6 +25,7 @@ export const NOTIFICATION_TEMPLATES: Record<
   NotificationType,
   {
     subject: string;
+    telegram: string;
     sms: string;
     emailHeadline: string;
     emailBody: string;
@@ -32,6 +33,7 @@ export const NOTIFICATION_TEMPLATES: Record<
 > = {
   ACCOUNT_CREATED: {
     subject: 'Welcome to JeevRakshak – Account Successfully Created',
+    telegram: `🎉 <b>Welcome to JeevRakshak!</b>\n\nYour <b>{{user_role}}</b> account has been successfully created, {{user_name}}.\n\nYou can use JeevRakshak to manage animal-health information and receive vaccination reminders and regional disease alerts.\n\n📍 Region: <b>{{region}}</b>\n📞 Emergency Vet Line: <b>1962</b>`,
     sms: 'Welcome to JeevRakshak, {{user_name}}. Your {{user_role}} account has been created successfully. You can now use the platform to manage animal health records and receive important regional alerts. Helpline: 1962.',
     emailHeadline: 'Welcome to JeevRakshak AI Livestock Health Network',
     emailBody: `Dear {{user_name}},<br><br>
@@ -45,17 +47,29 @@ For assistance, contact your local veterinary dispensary or call Toll-Free Helpl
   },
 
   FIRST_LOGIN: {
-    subject: 'Welcome to JeevRakshak – First Login Successful',
-    sms: 'Welcome to JeevRakshak, {{user_name}}. You have successfully logged in for the first time. You can now access your animal health information and important regional alerts.',
-    emailHeadline: 'First Login Successful – Welcome to JeevRakshak AI',
+    subject: 'JeevRakshak – Successful Login Notification',
+    telegram: `🔐 <b>JeevRakshak AI — Login Notification</b>\n\nHello <b>{{user_name}}</b>, your account was successfully logged in.\n\n📍 Monitored Region: <b>{{region}}</b>\n🛡️ Role: <b>{{user_role}}</b>\n🕒 Login Time: <b>{{due_date}}</b>\n\nYou will receive timely vaccination reminders and regional disease outbreak advisories directly in this chat.`,
+    sms: 'Welcome to JeevRakshak, {{user_name}}. You have successfully logged in. Access your animal health info and alerts anytime.',
+    emailHeadline: 'Login Notification – JeevRakshak AI',
     emailBody: `Dear {{user_name}},<br><br>
-You have successfully signed in to JeevRakshak AI for the first time as <strong>{{user_role}}</strong>.<br><br>
-Your profile is now active to receive automated health alerts, upcoming vaccination notifications, and regional disease containment advisories tailored to your region: <strong>{{region}}</strong>.<br><br>
-Ensure your herd and contact details remain up to date to receive timely alerts.`,
+You have successfully signed in to JeevRakshak AI as <strong>{{user_role}}</strong>.<br><br>
+Region: <strong>{{region}}</strong>.<br><br>
+Automated biosecurity notices and vaccination reminders will be dispatched directly to your Telegram and Email.`,
+  },
+
+  TELEGRAM_CONNECTED: {
+    subject: 'JeevRakshak Telegram Notifications Connected',
+    telegram: `✅ <b>Welcome to JeevRakshak!</b>\n\nYour Telegram account has been successfully connected.\n\nYou can now receive:\n• Vaccination reminders\n• Regional disease alerts\n• Important animal-health notifications\n\nYou can manage your notification preferences from the JeevRakshak platform anytime.`,
+    sms: 'Your JeevRakshak Telegram channel has been successfully connected. You will now receive instant animal-health and disease alerts.',
+    emailHeadline: 'Telegram Notifications Successfully Connected',
+    emailBody: `Dear {{user_name}},<br><br>
+Your Telegram account has been linked to JeevRakshak AI.<br><br>
+You will now receive instant animal-health notifications, disease outbreak alerts, and vaccination schedule countdowns directly on Telegram.`,
   },
 
   VACCINATION_UPCOMING: {
     subject: 'Upcoming Vaccination Reminder: {{animal_tag}} ({{vaccine_name}})',
+    telegram: `🐄 <b>Vaccination Reminder</b>\n\n<b>Animal:</b> {{animal_tag}} ({{animal_type}})\n<b>Vaccine:</b> {{vaccine_name}}\n<b>Due Date:</b> {{due_date}}\n\nPlease contact your veterinarian or authorized veterinary dispensary before the scheduled date.`,
     sms: 'Vaccination Reminder: Your animal {{animal_tag}} ({{animal_type}}) is due for {{vaccine_name}} vaccination on {{due_date}}. Please contact your local veterinarian or veterinary center.',
     emailHeadline: 'Upcoming Vaccination Schedule',
     emailBody: `Dear {{farmer_name}},<br><br>
@@ -67,6 +81,7 @@ Please arrange with your designated veterinary dispensary or registered field ve
 
   VACCINATION_DUE: {
     subject: 'Action Required: Vaccination Due Today for {{animal_tag}}',
+    telegram: `⚠️ <b>URGENT: Vaccination Due Today</b>\n\n<b>Animal:</b> {{animal_tag}} ({{animal_type}})\n<b>Vaccine:</b> {{vaccine_name}}\n<b>Due Date:</b> TODAY ({{due_date}})\n\nTimely immunization under NADCP is vital to safeguard your herd against contagion.`,
     sms: 'URGENT VACCINATION DUE: Your animal {{animal_tag}} is due for {{vaccine_name}} TODAY ({{due_date}}). Ensure vaccination to prevent contagious infection.',
     emailHeadline: 'Vaccination Due Today – Action Required',
     emailBody: `Dear {{farmer_name}},<br><br>
@@ -76,97 +91,95 @@ Timely vaccination under the National Animal Disease Control Programme (NADCP) i
   },
 
   VACCINATION_OVERDUE: {
-    subject: 'CRITICAL: Overdue Vaccination for {{animal_tag}} ({{vaccine_name}})',
-    sms: 'OVERDUE VACCINATION ALERT: Animal {{animal_tag}} is OVERDUE for {{vaccine_name}} vaccination by {{overdue_days}} days. Immediate veterinary administration required.',
-    emailHeadline: 'Urgent Notice: Overdue Vaccination Record',
+    subject: 'CRITICAL ALERT: Overdue Vaccination for {{animal_tag}}',
+    telegram: `🚨 <b>OVERDUE VACCINATION ALERT</b>\n\n<b>Animal:</b> {{animal_tag}} ({{animal_type}})\n<b>Vaccine:</b> {{vaccine_name}}\n<b>Status:</b> Overdue by {{overdue_days}} days\n\nImmediate veterinary intervention required to prevent disease transmission across your herd.`,
+    sms: 'CRITICAL: {{vaccine_name}} for {{animal_tag}} is OVERDUE by {{overdue_days}} days. High contagion risk. Contact local vet dispensary immediately.',
+    emailHeadline: 'Critical Warning: Vaccination Overdue',
     emailBody: `Dear {{farmer_name}},<br><br>
-<span style="color: #dc2626; font-weight: bold;">ATTENTION REQUIRED:</span> Vaccination for <strong>{{animal_tag}}</strong> ({{animal_type}}) with <strong>{{vaccine_name}}</strong> was due on {{due_date}} and is now <strong>OVERDUE</strong>.<br><br>
-Unvaccinated livestock in {{region}} are at heightened risk of contagious disease spread.<br><br>
-<strong>Immediate Action:</strong><br>
-Please contact your local veterinary polyclinic or mobile van immediately to administer the missed dose.`,
+Vaccination for <strong>{{animal_tag}}</strong> ({{animal_type}}) with <strong>{{vaccine_name}}</strong> is currently <strong>OVERDUE by {{overdue_days}} days</strong>.<br><br>
+Unvaccinated livestock in active grazing areas present a high biological vulnerability.<br><br>
+<strong>Immediate Steps:</strong><br>
+1. Restrict herd movement outside farm premises.<br>
+2. Contact the Baramati/Shirur Mobile Veterinary Dispensary.<br>
+3. Request an expedited field visit.`,
   },
 
   DISEASE_ALERT: {
-    subject: 'Regional Animal Disease Alert: {{disease_name}} in {{region}}',
-    sms: 'IMPORTANT DISEASE ALERT: {{disease_name}} cases have been reported in {{region}}. Risk Level: {{risk_level}}. Please monitor your animals and contact a vet if concerning signs appear.',
-    emailHeadline: 'Official Regional Animal Disease Alert',
-    emailBody: `Official Disease Alert issued by <strong>{{source_authority}}</strong>.<br><br>
-<strong>Disease:</strong> {{disease_name}}<br>
-<strong>Affected Region:</strong> {{region}}<br>
-<strong>Current Risk Level:</strong> <span style="font-weight: bold; text-transform: uppercase;">{{risk_level}}</span><br>
-<strong>Suspected / Confirmed Cases:</strong> {{case_count}}<br><br>
-<strong>Summary:</strong><br>
-{{alert_summary}}<br><br>
-<strong>Recommended Actions:</strong><br>
-{{recommended_action}}<br><br>
-<strong>Official Source / Authority:</strong> {{source_authority}}<br>
-<strong>Veterinary Helpline:</strong> 1962`,
+    subject: 'REGIONAL HEALTH ALERT: {{disease_name}} in {{region}}',
+    telegram: `⚠️ <b>REGIONAL DISEASE ALERT</b>\n\n<b>Disease:</b> {{disease_name}}\n<b>Region:</b> {{region}}\n<b>Risk Level:</b> {{risk_level}}\n<b>Cases Reported:</b> {{case_count}}\n\nCases have been confirmed in your sector. Please monitor your animals closely and contact a veterinarian if symptoms appear.\n\n<b>Action:</b> {{recommended_action}}\n<b>Authority:</b> {{source_authority}}`,
+    sms: 'REGIONAL DISEASE ALERT: {{disease_name}} reported in {{region}} ({{case_count}} cases, Risk: {{risk_level}}). {{recommended_action}} Helpline: 1962.',
+    emailHeadline: 'Regional Disease Advisory Notification',
+    emailBody: `Dear Livestock Stakeholder,<br><br>
+An active animal disease advisory has been issued for <strong>{{region}}</strong> regarding <strong>{{disease_name}}</strong>.<br><br>
+<strong>Surveillance Summary:</strong><br>
+• Risk Level: <strong>{{risk_level}}</strong><br>
+• Verified Cases: <strong>{{case_count}}</strong><br>
+• Issuing Authority: {{source_authority}}<br><br>
+<strong>Containment Measures:</strong><br>
+{{recommended_action}}`,
   },
 
   HIGH_RISK_ALERT: {
-    subject: 'HIGH RISK ALERT: {{disease_name}} Threat Detected in {{region}}',
-    sms: 'HIGH RISK DISEASE ALERT: High risk of {{disease_name}} detected in {{region}}. Restrict animal movement and isolate any sick animals immediately.',
-    emailHeadline: 'High Risk Animal Health Warning',
-    emailBody: `A HIGH RISK disease situation has been confirmed for <strong>{{region}}</strong>.<br><br>
-<strong>Disease:</strong> {{disease_name}}<br>
-<strong>Risk Classification:</strong> HIGH RISK<br><br>
-{{alert_summary}}<br><br>
-<strong>Preventive Measures Required:</strong><br>
-• Restrict interstate and inter-village animal transport.<br>
-• Disinfect shed perimeters and quarantine new livestock.<br>
-• Immediately report any oral blisters, skin nodules, or unusual fever via JeevRakshak AI.`,
+    subject: 'HIGH RISK OUTBREAK ALERT: {{disease_name}} in {{region}}',
+    telegram: `🟠 <b>HIGH RISK DISEASE OUTBREAK</b>\n\n<b>Disease:</b> {{disease_name}}\n<b>Region:</b> {{region}}\n<b>Risk:</b> HIGH ({{case_count}} verified cases)\n\n<b>Urgent Protocol:</b>\n{{recommended_action}}\n\nDo not transport livestock out of this block. Mobile Vet Squad (1962) deployed.`,
+    sms: '[HIGH RISK] {{disease_name}} cluster in {{region}} ({{case_count}} cases). Maintain isolation & biosecurity barrier. Call 1962 for assistance.',
+    emailHeadline: 'High-Risk Outbreak Containment Notice',
+    emailBody: `URGENT BIOSECURITY ALERT<br><br>
+A cluster of <strong>{{disease_name}}</strong> with <strong>{{case_count}} cases</strong> has been identified in <strong>{{region}}</strong>.<br><br>
+<strong>Mandatory Biosecurity Directives:</strong><br>
+{{recommended_action}}<br><br>
+Report any unexplained fever, salivation, or vesicular lesions immediately to Emergency Line 1962.`,
   },
 
   CRITICAL_ALERT: {
-    subject: 'CRITICAL OUTBREAK ALERT: {{disease_name}} in {{region}} – Immediate Action Required',
-    sms: 'CRITICAL OUTBREAK ALERT: Confirmed {{disease_name}} outbreak in {{region}}. Ring vaccination & strict biosecurity activated. Emergency Vet Line: 1962.',
-    emailHeadline: 'CRITICAL LIVESTOCK OUTBREAK NOTIFICATION',
-    emailBody: `<div style="border-left: 4px solid #dc2626; padding-left: 12px; margin-bottom: 16px;">
-<strong style="color: #dc2626; font-size: 16px;">CRITICAL OUTBREAK DECLARATION</strong><br>
-Authorized by: {{source_authority}}
-</div>
-Confirmed outbreak of <strong>{{disease_name}}</strong> in <strong>{{region}}</strong> with {{case_count}} active cases.<br><br>
+    subject: 'CRITICAL BIOSECURITY OUTBREAK: {{disease_name}} in {{region}}',
+    telegram: `🔴 <b>CRITICAL LIVESTOCK OUTBREAK</b>\n\n<b>Disease:</b> {{disease_name}}\n<b>Region:</b> {{region}}\n<b>Risk:</b> CRITICAL\n<b>Confirmed Cases:</b> {{case_count}}\n\n<b>Immediate Containment:</b>\n{{recommended_action}}\n\nStrict quarantine active within 5km radius. Emergency Vet Van (1962) on site.`,
+    sms: '[CRITICAL ALERT] Confirmed {{disease_name}} in {{region}} ({{case_count}} cases). Immediate herd quarantine and ring vaccination active. Emergency Vet Line: 1962.',
+    emailHeadline: 'CRITICAL EPIDEMIC DECLARATION',
+    emailBody: `CRITICAL LIVESTOCK OUTBREAK NOTIFICATION<br><br>
+<strong>CRITICAL OUTBREAK DECLARATION</strong><br>
+Authorized by: {{source_authority}}<br><br>
+Confirmed outbreak of <strong>{{disease_name}}</strong> in <strong>{{region}}</strong> with <strong>{{case_count}} active cases</strong>.<br><br>
 <strong>Immediate Containment Protocol:</strong><br>
 {{recommended_action}}<br><br>
 Do NOT move animals outside containment zone. Mobile veterinary emergency van (1962) has been deployed in your sector.`,
   },
 
   SEASONAL_ALERT: {
-    subject: 'Seasonal Animal Health Advisory: {{region}}',
-    sms: 'Seasonal Animal Health Alert: Increased disease risk ({{disease_name}}) reported for {{region}}. Monitor your livestock and adhere to official veterinary guidance.',
-    emailHeadline: 'Seasonal Livestock Health Advisory',
-    emailBody: `Dear Livestock Owner / Veterinarian,<br><br>
-Seasonal weather shifts in {{region}} present elevated risk for <strong>{{disease_name}}</strong>.<br><br>
+    subject: 'Seasonal Health Advisory: Vector & Monsoon Prevention',
+    telegram: `🌦️ <b>Seasonal Livestock Health Advisory</b>\n\n<b>Region:</b> {{region}}\n<b>Advisory:</b> {{alert_summary}}\n\n<b>Recommended Steps:</b>\n{{recommended_action}}`,
+    sms: 'SEASONAL ADVISORY ({{region}}): {{alert_summary}} Recommended: {{recommended_action}} - JeevRakshak AI.',
+    emailHeadline: 'Seasonal Livestock Management Advisory',
+    emailBody: `Dear Farmer / Veterinarian,<br><br>
+Please observe seasonal bio-risk guidance for <strong>{{region}}</strong>:<br><br>
 <strong>Advisory Summary:</strong><br>
 {{alert_summary}}<br><br>
-<strong>Guidance:</strong><br>
-{{recommended_action}}<br><br>
-Issued in public interest by Department of Animal Husbandry.`,
+<strong>Prophylactic Measures:</strong><br>
+{{recommended_action}}`,
   },
 
   VACCINATION_CAMPAIGN: {
-    subject: 'Government Vaccination Campaign: {{vaccine_name}} in {{region}}',
-    sms: 'Vaccination Campaign: {{vaccine_name}} campaign is being conducted in your area ({{region}}) from {{campaign_dates}}. Contact your nearest authorized veterinary center.',
-    emailHeadline: 'Official Livestock Vaccination Campaign Announcement',
-    emailBody: `Under the National Animal Disease Control Programme (NADCP), a mass vaccination drive has been scheduled:<br><br>
-<strong>Vaccine / Disease:</strong> {{vaccine_name}} ({{disease_name}})<br>
-<strong>Target Coverage Area:</strong> {{region}}<br>
-<strong>Campaign Window:</strong> {{campaign_dates}}<br><br>
-<strong>Eligibility & Instructions:</strong><br>
-{{recommended_action}}<br><br>
-Free vaccination is provided at all Government Veterinary Dispensaries and Mobile Units.`,
+    subject: 'NADCP Vaccination Campaign in {{region}}',
+    telegram: `📢 <b>Vaccination Campaign Announcement</b>\n\n<b>Campaign:</b> {{vaccine_name}} Mass Immunization\n<b>Region:</b> {{region}}\n<b>Dates:</b> {{campaign_dates}}\n\nFree vaccination provided by Department of Animal Husbandry. Bring your herd ear tags.`,
+    sms: 'VACCINATION DRIVE: Free {{vaccine_name}} drive in {{region}} from {{campaign_dates}}. Bring your animals to designated camps. JeevRakshak AI.',
+    emailHeadline: 'National Animal Disease Control Programme (NADCP) Drive',
+    emailBody: `Dear Livestock Rearers of {{region}},<br><br>
+The Department of Animal Husbandry announces the <strong>{{vaccine_name}}</strong> vaccination campaign.<br><br>
+<strong>Schedule & Location:</strong><br>
+• Campaign Period: <strong>{{campaign_dates}}</strong><br>
+• Designated Centers: Village Gram Panchayat & Taluka Polyclinic<br><br>
+Ensure all cattle, buffaloes, and small ruminants are tagged and vaccinated.`,
   },
 
   VET_INTERVENTION_ALERT: {
-    subject: 'VET OPERATIONAL ALERT: {{region}} – Interventions Required',
-    sms: 'REGIONAL VET ALERT: {{disease_name}} risk elevated in your assigned area ({{region}}). {{overdue_count}} overdue vaccinations and {{reports_requiring_review}} cases require review.',
-    emailHeadline: 'Veterinarian Clinical & Field Action Directive',
-    emailBody: `Dear Dr. {{vet_name}},<br><br>
-This is an operational intelligence dispatch for your assigned jurisdiction: <strong>{{region}}</strong>.<br><br>
-<strong>Current Situation:</strong><br>
-• Disease: <strong>{{disease_name}}</strong> (Risk Level: <strong>{{risk_level}}</strong>)<br>
-• Active Disease Reports Requiring Review: <strong>{{reports_requiring_review}}</strong><br>
+    subject: 'Veterinary Operational Directive: Overdue Clusters in {{region}}',
+    telegram: `🚨 <b>Vet Action Alert</b>\n\n<b>Sector:</b> {{region}}\n<b>Target Disease:</b> {{disease_name}}\n<b>Risk Priority:</b> {{risk_level}}\n\n📊 <b>Operational Summary:</b>\n• Overdue Herd Vaccinations: <b>{{overdue_count}}</b>\n• Cases Requiring Review: <b>{{reports_requiring_review}}</b>\n\n👉 <i>Open JeevRakshak Doctor Dashboard for patient queue and ring vaccination protocol.</i>`,
+    sms: 'VET DIRECTIVE ({{region}}): {{overdue_count}} animals overdue for {{disease_name}}. {{reports_requiring_review}} reports need triage. Check dashboard.',
+    emailHeadline: 'Field Intervention Directive for Veterinarians',
+    emailBody: `Dear Doctor {{vet_name}},<br><br>
+Surveillance telemetry indicates actionable veterinary follow-ups in your jurisdiction (<strong>{{region}}</strong>):<br><br>
 • Overdue Vaccinations in Sector: <strong>{{overdue_count}}</strong><br>
+• Triage Reports Awaiting Confirmation: <strong>{{reports_requiring_review}}</strong><br>
 • Suspected Cases: <strong>{{case_count}}</strong><br><br>
 <strong>Clinical Directive:</strong><br>
 {{recommended_action}}<br><br>
@@ -175,6 +188,7 @@ Please access your Veterinarian Workspace on JeevRakshak AI to review patient lo
 
   IMPORTANT_ANNOUNCEMENT: {
     subject: 'Important Animal Health Announcement – JeevRakshak AI',
+    telegram: `📢 <b>Important Animal Health Announcement</b>\n\n<b>Region:</b> {{region}}\n\n{{alert_summary}}\n\n<b>Action Advised:</b> {{recommended_action}}\n<b>Authority:</b> {{source_authority}}`,
     sms: 'IMPORTANT ANNOUNCEMENT (JeevRakshak AI): {{alert_summary}} Helpline: 1962.',
     emailHeadline: 'Important Departmental Announcement',
     emailBody: `Dear {{user_name}},<br><br>
@@ -193,6 +207,7 @@ export function renderNotificationMessage(
   const tpl = NOTIFICATION_TEMPLATES[type] || NOTIFICATION_TEMPLATES.IMPORTANT_ANNOUNCEMENT;
 
   const subject = interpolateTemplate(tpl.subject, variables);
+  const telegramContent = interpolateTemplate(tpl.telegram, variables);
   const rawSms = interpolateTemplate(tpl.sms, variables);
   const emailHeadline = interpolateTemplate(tpl.emailHeadline, variables);
   const emailBody = interpolateTemplate(tpl.emailBody, variables);
@@ -236,6 +251,7 @@ export function renderNotificationMessage(
 
   return {
     subject,
+    telegramContent,
     smsContent: rawSms,
     emailText,
     emailHtml,

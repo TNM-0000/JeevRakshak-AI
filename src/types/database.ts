@@ -73,6 +73,10 @@ export interface Profile {
   first_login_at?: string;
   first_account_notif_sent?: boolean;
   first_login_notif_sent?: boolean;
+  telegram_chat_id?: string;
+  telegram_username?: string;
+  telegram_connected?: boolean;
+  telegram_connected_at?: string;
   created_at?: string;
   updated_at?: string;
 }

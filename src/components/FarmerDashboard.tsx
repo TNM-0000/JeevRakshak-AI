@@ -28,6 +28,7 @@ import {
   Plus,
   X,
   Pill,
+  Send,
 } from 'lucide-react';
 import { DiseaseAlert } from '@/types/notificationSystem';
 import { NotificationPreferencesModal } from './notifications/NotificationPreferencesModal';
@@ -133,6 +134,9 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
     dataService.getDiseaseAlerts().then((alerts) => {
       setDiseaseAlerts(alerts.filter((a) => a.status === 'active'));
     });
+    if (currentUser?.id) {
+      dataService.checkAndDispatchUserVaccinationReminders(currentUser.id).catch(() => {});
+    }
   }, [currentUser, language, defaultFarmName]);
 
   const locationLabel = currentUser?.district
@@ -207,8 +211,8 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
               fontWeight: 700,
             }}
           >
-            <Bell size={14} color="#059669" />
-            <span>Alerts & SMS</span>
+            <Send size={14} color="#0088cc" />
+            <span>{language === 'mr' ? 'टेलिग्राम व सूचना' : language === 'hi' ? 'टेलीग्राम व सूचनाएं' : 'Telegram & Alerts'}</span>
           </button>
           <button
             type="button"

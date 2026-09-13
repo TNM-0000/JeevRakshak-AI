@@ -1,9 +1,10 @@
-// JeevRakshak AI - Regional Disease Alert & Notification System Types
+// JeevRakshak AI - Regional Disease Alert & Telegram/Email Notification System Types
 // Strictly mirrors requirements for SIH 2026
 
 export type NotificationType =
   | 'ACCOUNT_CREATED'
   | 'FIRST_LOGIN'
+  | 'TELEGRAM_CONNECTED'
   | 'VACCINATION_UPCOMING'
   | 'VACCINATION_DUE'
   | 'VACCINATION_OVERDUE'
@@ -21,9 +22,30 @@ export type AlertStatus = 'active' | 'resolved' | 'expired';
 
 export type TargetAudience = 'farmers' | 'vets' | 'both';
 
-export type NotificationChannel = 'sms' | 'email';
+export type NotificationChannel = 'telegram' | 'email' | 'sms';
 
 export type DeliveryStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'CANCELLED';
+
+export interface TelegramConnection {
+  id: string;
+  user_id: string;
+  telegram_chat_id: string;
+  telegram_username?: string;
+  first_name?: string;
+  status: 'connected' | 'disconnected';
+  connected_at: string;
+  disconnected_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TelegramLinkingToken {
+  token: string;
+  user_id: string;
+  created_at: string;
+  expires_at: string;
+  used: boolean;
+}
 
 export interface DiseaseAlert {
   id: string;
@@ -74,8 +96,9 @@ export interface NotificationHistoryRecord {
 
 export interface NotificationPreferences {
   user_id: string;
-  sms_enabled: boolean;
+  telegram_enabled: boolean;
   email_enabled: boolean;
+  sms_enabled?: boolean;
   vaccination_reminders: boolean;
   disease_alerts: boolean;
   regional_risk_alerts: boolean;
@@ -114,6 +137,7 @@ export interface DispatchNotificationParams {
   userName: string;
   userPhone?: string;
   userEmail?: string;
+  userTelegramChatId?: string;
   userRole: 'farmer' | 'veterinarian' | 'government';
   region?: string;
   variables: NotificationTemplateVariables;

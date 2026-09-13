@@ -48,11 +48,12 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
     'Department of Animal Husbandry, Govt of Maharashtra'
   );
   const [targetAudience, setTargetAudience] = useState<TargetAudience>('both');
-  const [smsChannel, setSmsChannel] = useState(true);
+  const [telegramChannel, setTelegramChannel] = useState(true);
   const [emailChannel, setEmailChannel] = useState(true);
+  const [smsChannel, setSmsChannel] = useState(false);
 
-  // Preview tab: 'composer' | 'preview_sms' | 'preview_email'
-  const [activeTab, setActiveTab] = useState<'composer' | 'preview_sms' | 'preview_email'>('composer');
+  // Preview tab: 'composer' | 'preview_telegram' | 'preview_email' | 'preview_sms'
+  const [activeTab, setActiveTab] = useState<'composer' | 'preview_telegram' | 'preview_email' | 'preview_sms'>('composer');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -84,11 +85,12 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
     setSuccessMsg(null);
 
     const channels: NotificationChannel[] = [];
-    if (smsChannel) channels.push('sms');
+    if (telegramChannel) channels.push('telegram');
     if (emailChannel) channels.push('email');
+    if (smsChannel) channels.push('sms');
 
     if (channels.length === 0) {
-      setErrorMsg('Please select at least one delivery channel (SMS or Email).');
+      setErrorMsg('Please select at least one delivery channel (Telegram or Email).');
       setLoading(false);
       return;
     }
@@ -196,10 +198,10 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.12rem', fontWeight: 800 }}>
-                Declare Regional Disease Alert & Dispatch SMS/Email
+                Declare Regional Disease Alert &amp; Dispatch Telegram / Email
               </h3>
               <p style={{ margin: 0, fontSize: '0.76rem', color: '#D8F3DC' }}>
-                Government Disease Containment & Automated Stakeholder Dispatch Engine
+                Government Disease Containment &amp; Automated Stakeholder Dispatch Engine
               </p>
             </div>
           </div>
@@ -251,23 +253,23 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('preview_sms')}
+            onClick={() => setActiveTab('preview_telegram')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
               padding: '10px 16px',
               fontSize: '0.82rem',
-              fontWeight: activeTab === 'preview_sms' ? 800 : 600,
-              color: activeTab === 'preview_sms' ? '#2D6A4F' : '#64748B',
-              borderBottom: activeTab === 'preview_sms' ? '2px solid #2D6A4F' : 'none',
+              fontWeight: activeTab === 'preview_telegram' ? 800 : 600,
+              color: activeTab === 'preview_telegram' ? '#0088cc' : '#64748B',
+              borderBottom: activeTab === 'preview_telegram' ? '2px solid #0088cc' : 'none',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
             }}
           >
-            <Smartphone size={15} />
-            <span>2. Preview SMS</span>
+            <Send size={15} />
+            <span>2. Preview Telegram Bot</span>
           </button>
           <button
             type="button"
@@ -288,6 +290,26 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
           >
             <Mail size={15} />
             <span>3. Preview Email</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('preview_sms')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 16px',
+              fontSize: '0.82rem',
+              fontWeight: activeTab === 'preview_sms' ? 800 : 600,
+              color: activeTab === 'preview_sms' ? '#2D6A4F' : '#64748B',
+              borderBottom: activeTab === 'preview_sms' ? '2px solid #2D6A4F' : 'none',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Smartphone size={15} />
+            <span>4. Preview SMS</span>
           </button>
         </div>
 
@@ -502,14 +524,20 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                     Dispatch Channels
                   </label>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', height: '42px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
-                      <input type="checkbox" checked={smsChannel} onChange={(e) => setSmsChannel(e.target.checked)} />
-                      <span>SMS Gateway</span>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', height: '42px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#0088cc', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={telegramChannel} onChange={(e) => setTelegramChannel(e.target.checked)} />
+                      <Send size={14} />
+                      <span>Telegram Bot</span>
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#059669', cursor: 'pointer' }}>
                       <input type="checkbox" checked={emailChannel} onChange={(e) => setEmailChannel(e.target.checked)} />
+                      <Mail size={14} />
                       <span>Email Delivery</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontWeight: 500, color: '#64748B', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={smsChannel} onChange={(e) => setSmsChannel(e.target.checked)} />
+                      <span>SMS (Legacy)</span>
                     </label>
                   </div>
                 </div>
@@ -517,7 +545,123 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
             </form>
           )}
 
-          {/* TAB 2: LIVE SMS PREVIEW */}
+          {/* TAB 2: LIVE TELEGRAM BOT PREVIEW */}
+          {activeTab === 'preview_telegram' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '440px',
+                  background: '#E6EBEE',
+                  borderRadius: '24px',
+                  padding: '16px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  border: '1px solid #CBD5E1',
+                }}
+              >
+                {/* Telegram Bot Header Bar */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    background: '#0088cc',
+                    color: '#FFFFFF',
+                    borderRadius: '16px',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      color: '#0088cc',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.82rem',
+                    }}
+                  >
+                    JR
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 800 }}>JeevRakshak AI Bot</div>
+                    <div style={{ fontSize: '0.68rem', opacity: 0.9 }}>@JeevRakshakBot • official bot</div>
+                  </div>
+                </div>
+
+                {/* Telegram Chat Bubble */}
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '16px 16px 16px 4px',
+                    padding: '14px 16px',
+                    fontSize: '0.82rem',
+                    lineHeight: 1.5,
+                    color: '#0F172A',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: (previewRender.telegramContent || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br />')
+                        .replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/g, '<strong>$1</strong>')
+                        .replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/g, '<em>$1</em>')
+                        .replace(/&lt;code&gt;(.*?)&lt;\/code&gt;/g, '<code>$1</code>'),
+                    }}
+                  />
+                  <div
+                    style={{
+                      textAlign: 'right',
+                      fontSize: '0.68rem',
+                      color: '#64748B',
+                      marginTop: '6px',
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span style={{ color: '#0088cc', fontWeight: 800 }}>✓✓</span>
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontSize: '0.76rem', color: '#64748B', textAlign: 'center', maxWidth: '440px' }}>
+                Instant broadcast dispatched directly to linked Telegram accounts of farmers &amp; veterinarians in <strong>{fullRegionName}</strong>.
+              </p>
+            </div>
+          )}
+
+          {/* TAB 3: LIVE EMAIL PREVIEW */}
+          {activeTab === 'preview_email' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '0.82rem' }}>
+                <div><strong>Subject:</strong> {previewRender.subject}</div>
+                <div style={{ marginTop: '4px' }}><strong>From:</strong> JeevRakshak AI &lt;alerts@jeevrakshak.org&gt;</div>
+              </div>
+              <div
+                style={{
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  background: '#FFFFFF',
+                  padding: '16px',
+                }}
+                dangerouslySetInnerHTML={{ __html: previewRender.emailHtml }}
+              />
+            </div>
+          )}
+
+          {/* TAB 4: LIVE SMS PREVIEW */}
           {activeTab === 'preview_sms' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
               <div
@@ -553,28 +697,8 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
                 </div>
               </div>
               <p style={{ fontSize: '0.76rem', color: '#64748B', textAlign: 'center', maxWidth: '440px' }}>
-                This message will be dispatched directly to mobile numbers registered in <strong>{fullRegionName}</strong>.
+                Legacy fallback message dispatched directly to mobile numbers registered in <strong>{fullRegionName}</strong>.
               </p>
-            </div>
-          )}
-
-          {/* TAB 3: LIVE EMAIL PREVIEW */}
-          {activeTab === 'preview_email' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '0.82rem' }}>
-                <div><strong>Subject:</strong> {previewRender.subject}</div>
-                <div style={{ marginTop: '4px' }}><strong>From:</strong> JeevRakshak AI &lt;alerts@jeevrakshak.org&gt;</div>
-              </div>
-              <div
-                style={{
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  background: '#FFFFFF',
-                  padding: '16px',
-                }}
-                dangerouslySetInnerHTML={{ __html: previewRender.emailHtml }}
-              />
             </div>
           )}
         </div>
@@ -611,7 +735,7 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
             {activeTab === 'composer' ? (
               <button
                 type="button"
-                onClick={() => setActiveTab('preview_sms')}
+                onClick={() => setActiveTab('preview_telegram')}
                 style={{
                   padding: '10px 18px',
                   borderRadius: '12px',

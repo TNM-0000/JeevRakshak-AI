@@ -780,8 +780,8 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 cursor: 'pointer',
               }}
             >
-              <Bell size={14} />
-              <span>{language === 'mr' ? 'सूचना सेटिंग्ज' : 'SMS / Alert Preferences'}</span>
+              <Send size={14} />
+              <span>{language === 'mr' ? 'टेलिग्राम व सूचना' : 'Telegram & Alerts'}</span>
             </button>
           </div>
         </div>

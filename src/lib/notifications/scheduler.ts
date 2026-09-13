@@ -71,7 +71,7 @@ export async function runSchedulerCycle(params: {
     const daysUntilDue = getDaysDifference(vac.next_due_date);
     const regionName = owner.village ? `${owner.village}, ${owner.block || owner.district}` : owner.district || 'Pune';
 
-    // A. 7 Days Before (Upcoming) -> SMS + Email
+    // A. 7 Days Before (Upcoming) -> Telegram + Email
     if (daysUntilDue === 7 || (daysUntilDue > 0 && daysUntilDue <= 7)) {
       const relatedEventId = `vac_${vac.id}_7d_${vac.next_due_date}`;
       const res = await notificationService.dispatch({
@@ -83,7 +83,7 @@ export async function runSchedulerCycle(params: {
         userRole: 'farmer',
         region: regionName,
         relatedEventId,
-        preferredChannels: ['sms', 'email'],
+        preferredChannels: ['telegram', 'email'],
         variables: {
           farmer_name: owner.full_name,
           animal_tag: animal.tag_number,
@@ -94,11 +94,11 @@ export async function runSchedulerCycle(params: {
         },
       });
 
-      if (res.smsResult?.sent || res.emailResult?.sent) {
+      if (res.telegramResult?.sent || res.emailResult?.sent) {
         upcomingCount++;
       }
     }
-    // B. Due Date (0 days) -> SMS + Email
+    // B. Due Date (0 days) -> Telegram + Email
     else if (daysUntilDue === 0) {
       const relatedEventId = `vac_${vac.id}_due_${vac.next_due_date}`;
       const res = await notificationService.dispatch({
@@ -110,7 +110,7 @@ export async function runSchedulerCycle(params: {
         userRole: 'farmer',
         region: regionName,
         relatedEventId,
-        preferredChannels: ['sms', 'email'],
+        preferredChannels: ['telegram', 'email'],
         variables: {
           farmer_name: owner.full_name,
           animal_tag: animal.tag_number,
@@ -121,7 +121,7 @@ export async function runSchedulerCycle(params: {
         },
       });
 
-      if (res.smsResult?.sent || res.emailResult?.sent) {
+      if (res.telegramResult?.sent || res.emailResult?.sent) {
         dueCount++;
       }
     }
@@ -144,7 +144,7 @@ export async function runSchedulerCycle(params: {
         userRole: 'farmer',
         region: regionName,
         relatedEventId,
-        preferredChannels: ['sms', 'email'],
+        preferredChannels: ['telegram', 'email'],
         variables: {
           farmer_name: owner.full_name,
           animal_tag: animal.tag_number,
@@ -156,7 +156,7 @@ export async function runSchedulerCycle(params: {
         },
       });
 
-      if (res.smsResult?.sent || res.emailResult?.sent) {
+      if (res.telegramResult?.sent || res.emailResult?.sent) {
         overdueCount++;
       }
     }
@@ -182,7 +182,7 @@ export async function runSchedulerCycle(params: {
         userRole: 'veterinarian',
         region: vet.block || vet.district || 'Pune',
         relatedEventId,
-        preferredChannels: ['sms', 'email'],
+        preferredChannels: ['telegram', 'email'],
         variables: {
           vet_name: vet.full_name,
           disease_name: 'FMD / Brucellosis',
@@ -194,7 +194,7 @@ export async function runSchedulerCycle(params: {
         },
       });
 
-      if (res.smsResult?.sent || res.emailResult?.sent) {
+      if (res.telegramResult?.sent || res.emailResult?.sent) {
         vetInterventionsCount++;
       }
     }

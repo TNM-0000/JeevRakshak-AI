@@ -1,5 +1,6 @@
 // JeevRakshak AI - Notification Dispatcher & Idempotency Service
 // Connects triggers, preferences, template rendering, delivery providers, and audit logging
+// Channels: Telegram Bot & Email (SMS as optional fallback)
 
 import {
   NotificationType,
@@ -10,56 +11,11 @@ import {
   DispatchNotificationParams,
 } from '@/types/notificationSystem';
 import { renderNotificationMessage } from './notificationTemplates';
-import { getSmsProvider, getEmailProvider } from './mockProviders';
-import { dbInsert, dbUpdate } from '@/lib/supabase/dataService';
+import { getTelegramProvider, getEmailProvider, getSmsProvider } from './mockProviders';
+import { notificationStore } from './notificationStore';
 
-// In-memory persistent cache for fast lookup & offline fallback
-class NotificationAuditStore {
-  history: NotificationHistoryRecord[] = [];
-  preferences: Map<string, NotificationPreferences> = new Map();
-  sentDeduplicationKeys: Set<string> = new Set();
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedHistory = localStorage.getItem('jr_notification_history');
-        if (savedHistory) {
-          this.history = JSON.parse(savedHistory);
-          for (const item of this.history) {
-            if (item.related_event_id) {
-              this.sentDeduplicationKeys.add(`${item.user_id}:${item.notification_type}:${item.channel}:${item.related_event_id}`);
-            }
-          }
-        }
-        const savedPrefs = localStorage.getItem('jr_notification_preferences');
-        if (savedPrefs) {
-          const parsed = JSON.parse(savedPrefs);
-          if (Array.isArray(parsed)) {
-            for (const p of parsed) {
-              this.preferences.set(p.user_id, p);
-            }
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }
-
-  save() {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('jr_notification_history', JSON.stringify(this.history.slice(0, 500)));
-        const prefArray = Array.from(this.preferences.values());
-        localStorage.setItem('jr_notification_preferences', JSON.stringify(prefArray));
-      } catch {
-        // ignore
-      }
-    }
-  }
-}
-
-export const auditStore = new NotificationAuditStore();
+// In-memory set of sent deduplication keys to prevent spam in current process
+const sentDeduplicationKeys = new Set<string>();
 
 export const notificationService = {
   /**
@@ -73,47 +29,14 @@ export const notificationService = {
    * Retrieves or builds default notification preferences for a user.
    */
   getPreferences(userId: string): NotificationPreferences {
-    const existing = auditStore.preferences.get(userId);
-    if (existing) return existing;
-
-    const defaultPrefs: NotificationPreferences = {
-      user_id: userId,
-      sms_enabled: true,
-      email_enabled: true,
-      vaccination_reminders: true,
-      disease_alerts: true,
-      regional_risk_alerts: true,
-      vaccination_campaigns: true,
-      health_announcements: true,
-      updated_at: new Date().toISOString(),
-    };
-    auditStore.preferences.set(userId, defaultPrefs);
-    auditStore.save();
-    return defaultPrefs;
+    return notificationStore.getPreferences(userId);
   },
 
   /**
    * Updates notification preferences for a user.
    */
   async updatePreferences(userId: string, updates: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
-    const current = this.getPreferences(userId);
-    const updated: NotificationPreferences = {
-      ...current,
-      ...updates,
-      user_id: userId,
-      updated_at: new Date().toISOString(),
-    };
-    auditStore.preferences.set(userId, updated);
-    auditStore.save();
-
-    // Persist to Supabase table
-    try {
-      await dbInsert('notification_preferences', [updated]);
-    } catch {
-      // ignore
-    }
-
-    return updated;
+    return await notificationStore.updatePreferences(userId, updates);
   },
 
   /**
@@ -125,8 +48,9 @@ export const notificationService = {
       return true;
     }
 
-    if (channel === 'sms' && !prefs.sms_enabled) return false;
+    if (channel === 'telegram' && !prefs.telegram_enabled) return false;
     if (channel === 'email' && !prefs.email_enabled) return false;
+    if (channel === 'sms' && !prefs.sms_enabled) return false;
 
     switch (type) {
       case 'VACCINATION_UPCOMING':
@@ -143,20 +67,22 @@ export const notificationService = {
         return prefs.health_announcements;
       case 'ACCOUNT_CREATED':
       case 'FIRST_LOGIN':
+      case 'TELEGRAM_CONNECTED':
       case 'VET_INTERVENTION_ALERT':
-        return true; // System & operational alerts always deliverable
+        return true; // System & operational alerts are always deliverable
       default:
         return true;
     }
   },
 
   /**
-   * Primary method to dispatch a notification via SMS and/or Email.
+   * Primary method to dispatch a notification via Telegram and/or Email.
    * Enforces strict idempotency, preference filtering, and audit logging.
    */
   async dispatch(params: DispatchNotificationParams): Promise<{
-    smsResult?: { sent: boolean; reason?: string };
+    telegramResult?: { sent: boolean; reason?: string };
     emailResult?: { sent: boolean; reason?: string };
+    smsResult?: { sent: boolean; reason?: string };
   }> {
     const {
       type,
@@ -164,6 +90,7 @@ export const notificationService = {
       userName,
       userPhone,
       userEmail,
+      userTelegramChatId,
       userRole,
       region,
       variables,
@@ -174,7 +101,7 @@ export const notificationService = {
       isCriticalOverride,
     } = params;
 
-    // In browser client: route dispatch through server API so real SMS/Email providers run on backend
+    // In browser client: route dispatch through server API so real Telegram/Email providers run on backend
     if (typeof window !== 'undefined') {
       try {
         const apiRes = await fetch('/api/notifications', {
@@ -192,7 +119,7 @@ export const notificationService = {
     }
 
     const prefs = this.getPreferences(userId);
-    const targetChannels: NotificationChannel[] = preferredChannels || ['sms', 'email'];
+    const targetChannels: NotificationChannel[] = preferredChannels || ['telegram', 'email'];
 
     // Render message content with variables
     const rendered = renderNotificationMessage(type, {
@@ -201,70 +128,66 @@ export const notificationService = {
       farmer_name: userName,
       vet_name: userName,
       user_role: userRole === 'farmer' ? 'Farmer' : userRole === 'veterinarian' ? 'Veterinarian' : 'Government Official',
-      region: region || variables.region || 'Pune District',
+      region: region || variables.region || 'Maharashtra',
     });
 
     const results: {
-      smsResult?: { sent: boolean; reason?: string };
+      telegramResult?: { sent: boolean; reason?: string };
       emailResult?: { sent: boolean; reason?: string };
+      smsResult?: { sent: boolean; reason?: string };
     } = {};
 
-    // 1. Process SMS Channel
-    if (targetChannels.includes('sms')) {
-      const dedupKey = this.getDeduplicationKey(userId, type, 'sms', relatedEventId);
+    // 1. Process Telegram Channel
+    if (targetChannels.includes('telegram')) {
+      const dedupKey = this.getDeduplicationKey(userId, type, 'telegram', relatedEventId);
 
-      if (auditStore.sentDeduplicationKeys.has(dedupKey)) {
-        results.smsResult = { sent: false, reason: 'Duplicate prevented by idempotency engine' };
-      } else if (!userPhone) {
-        results.smsResult = { sent: false, reason: 'No valid phone number on profile' };
-        await this.recordHistory({
-          user_id: userId,
-          user_name: userName,
-          user_phone: userPhone,
-          user_email: userEmail,
-          user_type: userRole,
-          notification_type: type,
-          channel: 'sms',
-          disease_id: diseaseId,
-          disease_name: diseaseName,
-          region,
-          subject: rendered.subject,
-          message: rendered.smsContent,
-          delivery_status: 'FAILED',
-          failure_reason: 'Missing recipient phone number',
-          related_event_id: relatedEventId,
-          created_at: new Date().toISOString(),
-        });
-      } else if (!this.isNotificationAllowed(prefs, type, 'sms', isCriticalOverride)) {
-        results.smsResult = { sent: false, reason: 'Suppressed by user notification preferences' };
+      if (sentDeduplicationKeys.has(dedupKey)) {
+        results.telegramResult = { sent: false, reason: 'Duplicate prevented by idempotency engine' };
       } else {
-        const smsProvider = getSmsProvider();
-        const sendRes = await smsProvider.sendSms(userPhone, rendered.smsContent);
+        // Resolve Telegram Chat ID
+        let chatId = userTelegramChatId;
+        if (!chatId) {
+          const conn = await notificationStore.getTelegramConnection(userId);
+          if (conn && conn.status === 'connected') {
+            chatId = conn.telegram_chat_id;
+          }
+        }
 
-        auditStore.sentDeduplicationKeys.add(dedupKey);
+        if (!chatId) {
+          results.telegramResult = { sent: false, reason: 'Telegram account not connected' };
+        } else if (!this.isNotificationAllowed(prefs, type, 'telegram', isCriticalOverride)) {
+          results.telegramResult = { sent: false, reason: 'Suppressed by user notification preferences' };
+        } else {
+          const telegramProvider = getTelegramProvider();
+          const sendRes = await telegramProvider.sendMessage(chatId, rendered.telegramContent, 'HTML');
 
-        const status: DeliveryStatus = sendRes.success ? 'SENT' : 'FAILED';
-        await this.recordHistory({
-          user_id: userId,
-          user_name: userName,
-          user_phone: userPhone,
-          user_email: userEmail,
-          user_type: userRole,
-          notification_type: type,
-          channel: 'sms',
-          disease_id: diseaseId,
-          disease_name: diseaseName,
-          region,
-          subject: rendered.subject,
-          message: rendered.smsContent,
-          delivery_status: status,
-          failure_reason: sendRes.error,
-          related_event_id: relatedEventId,
-          created_at: new Date().toISOString(),
-          sent_at: new Date().toISOString(),
-        });
+          if (sendRes.success) {
+            sentDeduplicationKeys.add(dedupKey);
+          }
 
-        results.smsResult = { sent: sendRes.success, reason: sendRes.error };
+          const status: DeliveryStatus = sendRes.success ? 'SENT' : 'FAILED';
+          await notificationStore.recordHistory({
+            user_id: userId,
+            user_name: userName,
+            user_phone: userPhone,
+            user_email: userEmail,
+            user_type: userRole,
+            notification_type: type,
+            channel: 'telegram',
+            disease_id: diseaseId,
+            disease_name: diseaseName,
+            region,
+            subject: rendered.subject,
+            message: rendered.telegramContent,
+            delivery_status: status,
+            failure_reason: sendRes.error,
+            related_event_id: relatedEventId,
+            created_at: new Date().toISOString(),
+            sent_at: sendRes.success ? new Date().toISOString() : undefined,
+          });
+
+          results.telegramResult = { sent: sendRes.success, reason: sendRes.error };
+        }
       }
     }
 
@@ -272,10 +195,9 @@ export const notificationService = {
     if (targetChannels.includes('email')) {
       const dedupKey = this.getDeduplicationKey(userId, type, 'email', relatedEventId);
 
-      if (auditStore.sentDeduplicationKeys.has(dedupKey)) {
+      if (sentDeduplicationKeys.has(dedupKey)) {
         results.emailResult = { sent: false, reason: 'Duplicate prevented by idempotency engine' };
       } else if (!userEmail) {
-        // Many farmers may not have an email; skip gracefully without error
         results.emailResult = { sent: false, reason: 'No email address registered' };
       } else if (!this.isNotificationAllowed(prefs, type, 'email', isCriticalOverride)) {
         results.emailResult = { sent: false, reason: 'Suppressed by user notification preferences' };
@@ -288,10 +210,12 @@ export const notificationService = {
           rendered.emailText
         );
 
-        auditStore.sentDeduplicationKeys.add(dedupKey);
+        if (sendRes.success) {
+          sentDeduplicationKeys.add(dedupKey);
+        }
 
         const status: DeliveryStatus = sendRes.success ? 'SENT' : 'FAILED';
-        await this.recordHistory({
+        await notificationStore.recordHistory({
           user_id: userId,
           user_name: userName,
           user_phone: userPhone,
@@ -308,10 +232,53 @@ export const notificationService = {
           failure_reason: sendRes.error,
           related_event_id: relatedEventId,
           created_at: new Date().toISOString(),
-          sent_at: new Date().toISOString(),
+          sent_at: sendRes.success ? new Date().toISOString() : undefined,
         });
 
         results.emailResult = { sent: sendRes.success, reason: sendRes.error };
+      }
+    }
+
+    // 3. Process SMS Channel (Legacy fallback if requested)
+    if (targetChannels.includes('sms')) {
+      const dedupKey = this.getDeduplicationKey(userId, type, 'sms', relatedEventId);
+
+      if (sentDeduplicationKeys.has(dedupKey)) {
+        results.smsResult = { sent: false, reason: 'Duplicate prevented by idempotency engine' };
+      } else if (!userPhone) {
+        results.smsResult = { sent: false, reason: 'No valid phone number on profile' };
+      } else if (!this.isNotificationAllowed(prefs, type, 'sms', isCriticalOverride)) {
+        results.smsResult = { sent: false, reason: 'Suppressed by user notification preferences' };
+      } else {
+        const smsProvider = getSmsProvider();
+        const sendRes = await smsProvider.sendSms(userPhone, rendered.smsContent);
+
+        if (sendRes.success) {
+          sentDeduplicationKeys.add(dedupKey);
+        }
+
+        const status: DeliveryStatus = sendRes.success ? 'SENT' : 'FAILED';
+        await notificationStore.recordHistory({
+          user_id: userId,
+          user_name: userName,
+          user_phone: userPhone,
+          user_email: userEmail,
+          user_type: userRole,
+          notification_type: type,
+          channel: 'sms',
+          disease_id: diseaseId,
+          disease_name: diseaseName,
+          region,
+          subject: rendered.subject,
+          message: rendered.smsContent,
+          delivery_status: status,
+          failure_reason: sendRes.error,
+          related_event_id: relatedEventId,
+          created_at: new Date().toISOString(),
+          sent_at: sendRes.success ? new Date().toISOString() : undefined,
+        });
+
+        results.smsResult = { sent: sendRes.success, reason: sendRes.error };
       }
     }
 
@@ -319,59 +286,16 @@ export const notificationService = {
   },
 
   /**
-   * Internal helper to record an audit log in memory and Supabase.
+   * Internal helper to record an audit log.
    */
   async recordHistory(record: Omit<NotificationHistoryRecord, 'id'>): Promise<NotificationHistoryRecord> {
-    const newRecord: NotificationHistoryRecord = {
-      ...record,
-      id: `notif_hist_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    };
-
-    auditStore.history.unshift(newRecord);
-    auditStore.save();
-
-    // Persist to Supabase notification_history table
-    try {
-      await dbInsert('notification_history', [{
-        user_id: newRecord.user_id,
-        user_name: newRecord.user_name,
-        user_phone: newRecord.user_phone,
-        user_email: newRecord.user_email,
-        user_type: newRecord.user_type,
-        notification_type: newRecord.notification_type,
-        channel: newRecord.channel,
-        disease_id: newRecord.disease_id,
-        disease_name: newRecord.disease_name,
-        region: newRecord.region,
-        subject: newRecord.subject,
-        message: newRecord.message,
-        delivery_status: newRecord.delivery_status,
-        failure_reason: newRecord.failure_reason,
-        related_event_id: newRecord.related_event_id,
-        created_at: newRecord.created_at,
-        sent_at: newRecord.sent_at,
-      }]);
-    } catch {
-      // ignore
-    }
-
-    return newRecord;
+    return await notificationStore.recordHistory(record);
   },
 
   /**
    * Fetches history logs with optional filtering.
    */
   getHistory(filters?: { userId?: string; channel?: NotificationChannel; type?: NotificationType }): NotificationHistoryRecord[] {
-    let items = [...auditStore.history];
-    if (filters?.userId) {
-      items = items.filter((i) => i.user_id === filters.userId);
-    }
-    if (filters?.channel) {
-      items = items.filter((i) => i.channel === filters.channel);
-    }
-    if (filters?.type) {
-      items = items.filter((i) => i.notification_type === filters.type);
-    }
-    return items;
+    return notificationStore.getHistory(filters);
   },
 };

@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
+  Send,
 } from 'lucide-react';
 import { NotificationHistoryRecord, NotificationChannel, NotificationType } from '@/types/notificationSystem';
 import { notificationService } from '@/lib/notifications/notificationService';
@@ -27,7 +28,7 @@ export const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> =
   defaultLimit = 15,
 }) => {
   const [history, setHistory] = useState<NotificationHistoryRecord[]>([]);
-  const [selectedChannel, setSelectedChannel] = useState<'all' | 'sms' | 'email'>('all');
+  const [selectedChannel, setSelectedChannel] = useState<'all' | 'telegram' | 'email' | 'sms'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -81,14 +82,14 @@ export const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> =
             {title}
           </h3>
           <p style={{ fontSize: '0.78rem', color: '#52796F', margin: 0 }}>
-            Real-time delivery verification for SMS and Email notifications dispatched to farmers & vets
+            Real-time delivery verification for Telegram, Email, and SMS notifications dispatched to farmers &amp; vets
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Channel Filter */}
           <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '10px', padding: '3px' }}>
-            {(['all', 'sms', 'email'] as const).map((ch) => (
+            {(['all', 'telegram', 'email', 'sms'] as const).map((ch) => (
               <button
                 key={ch}
                 type="button"
@@ -175,7 +176,9 @@ export const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> =
               </tr>
             ) : (
               filtered.slice(0, 50).map((record) => {
+                const isTelegram = record.channel === 'telegram';
                 const isSms = record.channel === 'sms';
+                const isEmail = record.channel === 'email';
                 const isSuccess = record.delivery_status === 'SENT' || record.delivery_status === 'DELIVERED';
                 const formattedTime = new Date(record.created_at).toLocaleTimeString([], {
                   hour: '2-digit',
@@ -195,11 +198,11 @@ export const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> =
                           borderRadius: '8px',
                           fontWeight: 800,
                           fontSize: '0.7rem',
-                          background: isSms ? '#EFF6FF' : '#F5F3FF',
-                          color: isSms ? '#1D4ED8' : '#6D28D9',
+                          background: isTelegram ? '#E0F2FE' : isSms ? '#EFF6FF' : '#F5F3FF',
+                          color: isTelegram ? '#0369A1' : isSms ? '#1D4ED8' : '#6D28D9',
                         }}
                       >
-                        {isSms ? <Smartphone size={13} /> : <Mail size={13} />}
+                        {isTelegram ? <Send size={13} /> : isSms ? <Smartphone size={13} /> : <Mail size={13} />}
                         <span>{record.channel.toUpperCase()}</span>
                       </span>
                     </td>
