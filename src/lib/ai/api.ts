@@ -46,6 +46,10 @@ export function getAiApiBaseUrl(): string {
   if (envUrl && envUrl.trim()) {
     return envUrl.trim().replace(/\/+$/, '');
   }
+  // In the browser, use relative path to route through Next.js same-origin rewrite proxy
+  if (typeof window !== 'undefined') {
+    return '';
+  }
   return 'http://127.0.0.1:8000';
 }
 

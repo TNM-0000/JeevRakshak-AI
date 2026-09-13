@@ -2716,7 +2716,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '14px' }}>
               {diagnoses.map((d) => (
                 <div
                   key={d.id}
@@ -3049,7 +3049,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '14px' }}>
               {vaccinations.map((v) => (
                 <div
                   key={v.id}
@@ -4077,7 +4077,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             Direct messaging, voice advisories and video appointment scheduling with registered farmers
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '14px' }}>
             <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, marginBottom: '6px' }}>
                 <Video size={18} color="#0284c7" />
@@ -4704,55 +4704,61 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 </div>
 
                 <div style={{ marginBottom: '14px' }}>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Medication List</label>
-                  {rxMedicines.map((m, idx) => (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
-                      <input
-                        type="text"
-                        value={m.name}
-                        onChange={(e) => {
-                          const updated = [...rxMedicines];
-                          updated[idx].name = e.target.value;
-                          setRxMedicines(updated);
-                        }}
-                        className="form-input"
-                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                      />
-                      <input
-                        type="text"
-                        value={m.dosage}
-                        onChange={(e) => {
-                          const updated = [...rxMedicines];
-                          updated[idx].dosage = e.target.value;
-                          setRxMedicines(updated);
-                        }}
-                        className="form-input"
-                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                      />
-                      <input
-                        type="text"
-                        value={m.frequency}
-                        onChange={(e) => {
-                          const updated = [...rxMedicines];
-                          updated[idx].frequency = e.target.value;
-                          setRxMedicines(updated);
-                        }}
-                        className="form-input"
-                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                      />
-                      <input
-                        type="text"
-                        value={m.duration}
-                        onChange={(e) => {
-                          const updated = [...rxMedicines];
-                          updated[idx].duration = e.target.value;
-                          setRxMedicines(updated);
-                        }}
-                        className="form-input"
-                        style={{ fontSize: '0.78rem', padding: '6px 8px' }}
-                      />
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                    Medication List (Medicine / Dosage / Frequency / Duration)
+                  </label>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', paddingBottom: '4px' }}>
+                    <div style={{ minWidth: '380px' }}>
+                      {rxMedicines.map((m, idx) => (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                          <input
+                            type="text"
+                            value={m.name}
+                            onChange={(e) => {
+                              const updated = [...rxMedicines];
+                              updated[idx].name = e.target.value;
+                              setRxMedicines(updated);
+                            }}
+                            className="form-input"
+                            style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                          />
+                          <input
+                            type="text"
+                            value={m.dosage}
+                            onChange={(e) => {
+                              const updated = [...rxMedicines];
+                              updated[idx].dosage = e.target.value;
+                              setRxMedicines(updated);
+                            }}
+                            className="form-input"
+                            style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                          />
+                          <input
+                            type="text"
+                            value={m.frequency}
+                            onChange={(e) => {
+                              const updated = [...rxMedicines];
+                              updated[idx].frequency = e.target.value;
+                              setRxMedicines(updated);
+                            }}
+                            className="form-input"
+                            style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                          />
+                          <input
+                            type="text"
+                            value={m.duration}
+                            onChange={(e) => {
+                              const updated = [...rxMedicines];
+                              updated[idx].duration = e.target.value;
+                              setRxMedicines(updated);
+                            }}
+                            className="form-input"
+                            style={{ fontSize: '0.78rem', padding: '6px 8px' }}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '16px' }}>
@@ -4970,7 +4976,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+              <div className="responsive-grid-3" style={{ gap: '10px', marginBottom: '12px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: '0.78rem' }}>Species</label>
                   <select

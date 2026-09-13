@@ -185,13 +185,13 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Farm Location Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>
             <MapPin size={14} />
             <span>{locationLabel}</span>
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
+          <h2 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.4rem)', fontWeight: 800 }}>{farmName || defaultFarmName}</h2>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
@@ -239,33 +239,34 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         style={{
           background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
           borderRadius: 'var(--radius-xl)',
-          padding: '20px 24px',
+          padding: '16px 18px',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '16px',
+          gap: '14px',
           boxShadow: '0 4px 15px rgba(45, 106, 79, 0.2)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: '1 1 240px' }}>
           <div
             style={{
-              width: '46px',
-              height: '46px',
+              width: '44px',
+              height: '44px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#52b788',
+              flexShrink: 0,
             }}
           >
-            <Phone size={22} />
+            <Phone size={20} />
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.74rem', background: '#52b788', color: '#1b4332', padding: '2px 8px', borderRadius: '12px', fontWeight: 800 }}>
                 {language === 'mr' ? 'मोफत टोल-फ्री हेल्पलाइन' : language === 'hi' ? 'टोल-फ्री हेल्पलाइन' : 'TOLL FREE 24x7'}
               </span>
@@ -573,7 +574,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             {language === 'mr' ? 'सर्व जनावरांचे लसीकरण अद्ययावत आहे.' : language === 'hi' ? 'सभी पशुओं का टीकाकरण अद्यतित है।' : 'All animals are up to date on vaccinations.'}
           </p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '12px' }}>
             {vaccinationList.slice(0, 4).map((vac, idx) => {
               const isOverdue = vac.statusTag === 'overdue';
               const isDueToday = vac.statusTag === 'due_today';
@@ -864,7 +865,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="responsive-grid-2" style={{ gap: "12px" }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
                     {language === 'mr' ? 'प्रजाती' : language === 'hi' ? 'प्रजाति' : 'Species'}
@@ -908,7 +909,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="responsive-grid-2" style={{ gap: "12px" }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.82rem", fontWeight: 700 }}>
                     {language === 'mr' ? 'लिंग' : language === 'hi' ? 'लिंग' : 'Sex'}

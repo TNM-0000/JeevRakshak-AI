@@ -908,7 +908,14 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                 }}
                 className="btn-primary"
-                style={{ padding: '14px 30px', fontSize: '1rem', borderRadius: 'var(--radius-full)', gap: '8px' }}
+                style={{
+                  padding: '14px 28px',
+                  fontSize: '1rem',
+                  borderRadius: 'var(--radius-full)',
+                  gap: '8px',
+                  minWidth: 'min(100%, 200px)',
+                  width: 'auto',
+                }}
               >
                 <span>{copy.getStarted}</span>
                 <ArrowRight size={18} />
@@ -920,7 +927,12 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                   setErrorMsg(null);
                 }}
                 className="btn-secondary"
-                style={{ padding: '14px 26px', fontSize: '0.95rem', borderRadius: 'var(--radius-full)' }}
+                style={{
+                  padding: '14px 26px',
+                  fontSize: '0.95rem',
+                  borderRadius: 'var(--radius-full)',
+                  minWidth: 'min(100%, 150px)',
+                }}
               >
                 <span>{copy.signIn}</span>
               </button>
@@ -1642,7 +1654,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
 
             {/* 3-ROLE SELECTOR CARDS */}
             <div style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div className="responsive-grid-3" style={{ gap: '10px' }}>
                 {[
                   {
                     id: 'farmer' as UserRole,
@@ -2286,7 +2298,7 @@ export const LandingAndOnboarding: React.FC<LandingAndOnboardingProps> = ({ onCo
                 <span>RESTORED ACCOUNT DATA / पुनर्संचयित जुना डेटा</span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="responsive-grid-2" style={{ gap: '10px' }}>
                 <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
                   <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
                     {ACCOUNT_MODAL_I18N[language as keyof typeof ACCOUNT_MODAL_I18N]?.accountHolder || 'Account Owner'}

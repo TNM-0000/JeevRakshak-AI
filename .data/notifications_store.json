@@ -69,6 +69,18 @@
       "vaccination_campaigns": true,
       "health_announcements": true,
       "updated_at": "2026-09-13T00:34:14.059Z"
+    },
+    {
+      "user_id": "26ac6f8f-7390-4e8e-848d-9865ae4aa644",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T01:36:48.786Z"
     }
   ],
   "history": [

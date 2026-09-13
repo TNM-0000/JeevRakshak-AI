@@ -41,10 +41,10 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '4px 10px',
+                gap: '4px',
+                padding: '4px 8px',
                 borderRadius: '20px',
-                fontSize: '0.76rem',
+                fontSize: '0.74rem',
                 fontWeight: 700,
                 height: '34px',
                 background: '#f8fafc',
@@ -55,13 +55,13 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               title={language === 'mr' ? 'मागे जा' : language === 'hi' ? 'पीछे जाएं' : 'Go Back'}
             >
               <ArrowLeft size={14} strokeWidth={2.5} />
-              <span>{language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}</span>
+              <span className="desktop-sync-label">{language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}</span>
             </button>
           )}
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '10px',
               background: 'var(--primary)',
               display: 'flex',
@@ -72,10 +72,10 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               flexShrink: 0,
             }}
           >
-            <Shield size={18} strokeWidth={2.4} />
+            <Shield size={17} strokeWidth={2.4} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+            <h1 style={{ fontSize: 'clamp(0.88rem, 3.8vw, 1.05rem)', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t.appName}
             </h1>
           </div>
@@ -138,6 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
+                flexShrink: 0,
               }}
               title={
                 currentUser
@@ -158,6 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
                 {currentUser?.full_name?.split(' ')[0] || (language === 'mr' ? 'वापरकर्ता' : language === 'hi' ? 'उपयोगकर्ता' : 'User')}
               </span>
               <span
+                className="header-role-badge"
                 style={{
                   fontSize: '0.66rem',
                   fontWeight: 700,
@@ -171,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               >
                 {t.roles[currentRole]}
               </span>
-              <LogOut size={12} color="var(--text-muted)" style={{ marginLeft: '2px' }} />
+              <LogOut size={12} color="var(--text-muted)" style={{ marginLeft: '1px' }} />
             </button>
           )}
 

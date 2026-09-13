@@ -720,7 +720,7 @@ export const NotificationPreferencesModal: React.FC<NotificationPreferencesModal
             >
               Active Delivery Channels
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="responsive-grid-2" style={{ gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => handleToggle('telegram_enabled')}
@@ -888,7 +888,7 @@ export const NotificationPreferencesModal: React.FC<NotificationPreferencesModal
               Verify live API routing to your Telegram account and registered email address. Results reflect actual backend responses.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div className="responsive-grid-2" style={{ gap: '8px' }}>
               <button
                 type="button"
                 onClick={handleSendTestTelegram}

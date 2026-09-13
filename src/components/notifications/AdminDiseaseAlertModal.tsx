@@ -354,7 +354,7 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
           {/* TAB 1: COMPOSER FORM */}
           {activeTab === 'composer' && (
             <form id="disease-alert-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="responsive-grid-2" style={{ gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                     Disease Name & Catalog ID
@@ -391,7 +391,7 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                     Risk Level Classification
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 65px), 1fr))', gap: '6px' }}>
                     {(['low', 'moderate', 'high', 'critical'] as AlertRiskLevel[]).map((lvl) => {
                       const isSelected = riskLevel === lvl;
                       const colors: Record<AlertRiskLevel, string> = {
@@ -504,7 +504,7 @@ export const AdminDiseaseAlertModal: React.FC<AdminDiseaseAlertModalProps> = ({
               </div>
 
               {/* Target Stakeholders & Channels */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="responsive-grid-2" style={{ gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                     Target Stakeholders

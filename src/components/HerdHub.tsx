@@ -446,7 +446,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="responsive-grid-2" style={{ gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">
                     {language === 'mr' ? 'लिंग' : language === 'hi' ? 'लिंग' : 'Sex'}

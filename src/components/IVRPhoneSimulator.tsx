@@ -438,8 +438,8 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
         onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '1000px',
-          width: '95vw',
-          maxHeight: '92vh',
+          width: 'min(96vw, 1000px)',
+          maxHeight: 'min(94dvh, 850px)',
           padding: 0,
           overflow: 'hidden',
           borderRadius: 'var(--radius-xl)',
@@ -454,7 +454,7 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
         <div
           style={{
             background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
-            padding: '16px 24px',
+            padding: '12px 16px',
             color: '#ffffff',
             display: 'flex',
             justifyContent: 'space-between',
@@ -552,9 +552,9 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
           {/* LEFT COLUMN: Phone Handset Mockup (Green/Emerald Theme) */}
           <div
             style={{
-              flex: '1 1 360px',
-              maxWidth: '440px',
-              padding: '24px 20px',
+              flex: '1 1 min(100%, 340px)',
+              maxWidth: '100%',
+              padding: '20px 14px',
               background: '#f8fafc',
               borderRight: '1px solid var(--border-subtle)',
               display: 'flex',
@@ -849,7 +849,7 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
           </div>
 
           {/* RIGHT COLUMN: Control Desk & Telemetry (Website Design System) */}
-          <div style={{ flex: '1 1 400px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ flex: '1 1 min(100%, 340px)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Session Caller Profile */}
             <div className="glass-card" style={{ padding: '16px 18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -862,7 +862,7 @@ export const IVRPhoneSimulator: React.FC<IVRPhoneSimulatorProps> = ({
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '10px' }}>
                 <div>
                   <label className="form-label" style={{ fontSize: '0.74rem', marginBottom: '4px' }}>Phone Number</label>
                   <input

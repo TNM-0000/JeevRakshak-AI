@@ -434,7 +434,7 @@ export const AnimalDetailModal: React.FC<AnimalDetailModalProps> = ({
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '10px' }}>
                 Vital Clinical Signs Recorded
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              <div className="responsive-grid-2" style={{ gap: '10px' }}>
                 <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Rectal Temperature</div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#dc2626' }}>{reportState.vitals.temp}</div>

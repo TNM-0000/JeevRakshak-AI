@@ -522,7 +522,7 @@ export const FieldHealthCases: React.FC<FieldHealthCasesProps> = ({ onSelectAnim
             </div>
 
             {/* Animal & Location Summary Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '16px' }}>
+            <div className="responsive-grid-2" style={{ gap: '10px', marginBottom: '16px' }}>
               <div style={{ background: '#ffffff', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   {language === 'mr' ? 'जनावर टॅग व प्रजाती' : language === 'hi' ? 'पशु टैग एवं प्रजाति' : 'Animal Tag & Species'}

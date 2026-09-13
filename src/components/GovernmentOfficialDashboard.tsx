@@ -840,7 +840,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
                 </h3>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '12px' }}>
                 {diseaseAlerts.map((alert) => {
                   const isCrit = String(alert.risk_level).toLowerCase() === 'critical';
                   const isHigh = String(alert.risk_level).toLowerCase() === 'high';
@@ -1063,7 +1063,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '18px' }}>
             {[
               { campaign: 'National FMD Control Programme (Phase 4)', target: '3,84,000', achieved: '3,12,850', pct: 81.4, status: 'In Progress' },
               { campaign: 'Lumpy Skin Ring Immunization', target: '1,50,000', achieved: '1,38,000', pct: 92.0, status: 'Near Target' },
@@ -1240,7 +1240,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '18px' }}>
             {[
               {
                 id: 'epidemic_bulletin',
@@ -1463,7 +1463,7 @@ export const GovernmentOfficialDashboard: React.FC<GovernmentOfficialDashboardPr
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '18px' }}>
             <div style={{ background: 'var(--surface-raised)', borderRadius: '20px', padding: '22px', border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
                 <Lock size={18} color="var(--primary)" />

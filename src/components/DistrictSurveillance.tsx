@@ -440,7 +440,7 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
                 gap: '12px',
                 background: 'var(--surface-raised)',
                 padding: '12px 16px',
@@ -488,7 +488,7 @@ export const DistrictSurveillance: React.FC<DistrictSurveillanceProps> = ({
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '14px' }}>
               {language === 'mr' ? 'तालुका साथीचा रोग सारांश (पुणे जिल्हा)' : language === 'hi' ? 'ब्लॉक महामारी सारांश (पुणे ज़िला)' : 'Block Epidemiological Summary (Pune District)'}
             </h3>
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+            <div className="table-responsive" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
               <table style={{ minWidth: '580px', width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>

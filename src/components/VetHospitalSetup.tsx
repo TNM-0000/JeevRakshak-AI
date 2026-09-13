@@ -506,7 +506,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                 <span>{copy.facilitySectionTitle}</span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">{copy.facilityNameLabel} *</label>
                   <input
@@ -655,7 +655,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
               </div>
 
               {/* Coordinates & Address Inputs */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '14px', marginBottom: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">{copy.latLabel} *</label>
                   <input
@@ -683,7 +683,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">{copy.addressLabel} *</label>
                   <input

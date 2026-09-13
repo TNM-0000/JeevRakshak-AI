@@ -540,7 +540,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       setGeneratedReport(report);
       setStep(4);
     } catch (err: any) {
-      console.error('[ReportFlow] AI assessment failed:', err);
+      console.warn('[ReportFlow] AI assessment notice:', err);
       setAiError(
         err?.message ||
           (language === 'mr'
@@ -694,6 +694,9 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     fontSize: '0.72rem',
                     fontWeight: isCurrent ? 800 : 600,
                     color: isCurrent ? 'var(--primary-deep)' : isCompleted ? 'var(--primary)' : 'var(--text-light)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {isCompleted ? (
@@ -772,7 +775,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="responsive-grid-2" style={{ gap: '10px' }}>
                   <div>
                     <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '4px' }}>
                       {language === 'mr' ? 'प्रजाती (Species)' : language === 'hi' ? 'प्रजाति' : 'Species *'}
@@ -1759,18 +1762,18 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     style={{
                       background: 'radial-gradient(ellipse at 90% 10%, rgba(16, 185, 129, 0.25) 0%, transparent 60%), linear-gradient(135deg, #022c22 0%, #064e3b 50%, #065f46 100%)',
                       color: '#ffffff',
-                      padding: '24px 28px',
+                      padding: '18px 16px',
                       position: 'relative',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: '1 1 240px' }}>
                         {/* Government Emblem Medallion */}
                         <div
                           style={{
-                            width: '58px',
-                            height: '58px',
-                            borderRadius: '16px',
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '14px',
                             background: 'rgba(255, 255, 255, 0.12)',
                             border: '2px solid rgba(251, 191, 36, 0.6)',
                             display: 'flex',
@@ -1781,10 +1784,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                             flexShrink: 0,
                           }}
                         >
-                          <ShieldAlert size={32} strokeWidth={2.2} />
+                          <ShieldAlert size={28} strokeWidth={2.2} />
                         </div>
 
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
                             <span
                               style={{
@@ -1806,7 +1809,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                             </span>
                           </div>
 
-                          <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#ffffff', margin: '3px 0 4px 0', letterSpacing: '-0.02em' }}>
+                          <h2 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.45rem)', fontWeight: 800, color: '#ffffff', margin: '3px 0 4px 0', letterSpacing: '-0.02em' }}>
                             {language === 'mr'
                               ? 'साथरोग एआय ट्रायज व निदान अहवाल'
                               : language === 'hi'
@@ -1975,7 +1978,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                   </div>
 
                   {/* 4 Diagnostic Stat Pill Cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '12px' }}>
                     <div
                       style={{
                         background: '#f8fafc',
@@ -2159,7 +2162,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                   </p>
 
                   {/* 3 or 4 Metric Gauges Display */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '12px' }}>
                     {/* Gauge 1: Evidence Support */}
                     <div
                       style={{
@@ -2530,7 +2533,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
                     {/* NADRES Forewarning */}
                     <div
                       style={{
@@ -2834,9 +2837,9 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               }}
               className="btn-secondary"
               style={{
-                flex: 1,
-                minWidth: '170px',
-                padding: '16px',
+                flex: '1 1 170px',
+                minWidth: 'min(100%, 170px)',
+                padding: '14px 16px',
                 borderRadius: 'var(--radius-lg)',
                 border: '1.5px solid #fca5a5',
                 background: '#fef2f2',
@@ -2852,12 +2855,14 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               onClick={() => window.print()}
               className="btn-secondary"
               style={{
-                padding: '16px 22px',
+                padding: '14px 18px',
                 borderRadius: 'var(--radius-lg)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontWeight: 700,
+                flex: '1 1 120px',
+                minWidth: 'min(100%, 120px)',
               }}
             >
               <Printer size={18} />
@@ -2883,9 +2888,9 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               }}
               className="btn-primary"
               style={{
-                flex: 1.6,
-                minWidth: '220px',
-                padding: '16px',
+                flex: '1.6 1 220px',
+                minWidth: 'min(100%, 220px)',
+                padding: '14px 20px',
                 borderRadius: 'var(--radius-lg)',
                 fontSize: '0.96rem',
                 fontWeight: 800,

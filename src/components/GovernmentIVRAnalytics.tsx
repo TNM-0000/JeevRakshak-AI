@@ -190,34 +190,34 @@ export const GovernmentIVRAnalytics: React.FC = () => {
         </div>
 
         {/* Top 4 Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10">
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-            <span className="text-xs text-gray-300 block font-medium">Total Rural Calls</span>
-            <span className="text-2xl sm:text-3xl font-black text-white">{calls.length + 1420}</span>
-            <span className="text-[10px] text-emerald-400 font-semibold block mt-1">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '12px', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#d1d5db', display: 'block', fontWeight: 500 }}>Total Rural Calls</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#ffffff', display: 'block', lineHeight: 1.2 }}>{calls.length + 1420}</span>
+            <span style={{ fontSize: '0.65rem', color: '#34d399', fontWeight: 600, display: 'block', marginTop: '4px' }}>
               ↑ 18% weekly growth
             </span>
           </div>
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-            <span className="text-xs text-emerald-300 block font-medium">Voice Disease Reports</span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-300">{reports.length + 384}</span>
-            <span className="text-[10px] text-emerald-200/80 font-semibold block mt-1">
+          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#6ee7b7', display: 'block', fontWeight: 500 }}>Voice Disease Reports</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#6ee7b7', display: 'block', lineHeight: 1.2 }}>{reports.length + 384}</span>
+            <span style={{ fontSize: '0.65rem', color: '#a7f3d0', fontWeight: 600, display: 'block', marginTop: '4px' }}>
               98.2% auto-transcribed
             </span>
           </div>
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-            <span className="text-xs text-rose-300 block font-medium">1962 SOS Dispatched</span>
-            <span className="text-2xl sm:text-3xl font-black text-rose-300">{emergencies.length + 56}</span>
-            <span className="text-[10px] text-rose-200/80 font-semibold block mt-1">
+          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#fda4af', display: 'block', fontWeight: 500 }}>1962 SOS Dispatched</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#fda4af', display: 'block', lineHeight: 1.2 }}>{emergencies.length + 56}</span>
+            <span style={{ fontSize: '0.65rem', color: '#fecdd3', fontWeight: 600, display: 'block', marginTop: '4px' }}>
               Avg ETA 18.5 mins
             </span>
           </div>
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-            <span className="text-xs text-amber-300 block font-medium">Farmer Grievances</span>
-            <span className="text-2xl sm:text-3xl font-black text-amber-300">
+          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '16px', padding: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#fcd34d', display: 'block', fontWeight: 500 }}>Farmer Grievances</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#fcd34d', display: 'block', lineHeight: 1.2 }}>
               {feedbackList.filter((f) => f.status === 'pending_review').length + 12}
             </span>
-            <span className="text-[10px] text-amber-200/80 font-semibold block mt-1">
+            <span style={{ fontSize: '0.65rem', color: '#fde68a', fontWeight: 600, display: 'block', marginTop: '4px' }}>
               Under DAHO review
             </span>
           </div>
@@ -277,9 +277,9 @@ export const GovernmentIVRAnalytics: React.FC = () => {
       {subTab === 'surveillance' && (
         <div className="space-y-6">
           {/* Taluka Activity & Language Breakdown Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px' }}>
             {/* Taluka Call Distribution Card */}
-            <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+            <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm" style={{ minWidth: 0 }}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-bold text-gray-900">
@@ -385,8 +385,8 @@ export const GovernmentIVRAnalytics: React.FC = () => {
               Real-time incoming disease calls ingested into central epidemiological telemetry
             </p>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+            <div className="table-responsive" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+              <table className="w-full text-xs text-left" style={{ minWidth: '600px', width: '100%' }}>
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 uppercase tracking-wider font-semibold">
                     <th className="pb-3">Case ID</th>
@@ -539,7 +539,7 @@ export const GovernmentIVRAnalytics: React.FC = () => {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mt-3">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '12px', fontSize: '0.75rem', marginTop: '12px' }}>
                     <div className="bg-white p-3 rounded-xl border border-emerald-100 text-gray-800 leading-relaxed">
                       <span className="font-bold text-emerald-900 block mb-1">मराठी मजकूर:</span>
                       {ann.content_mr}
@@ -558,9 +558,9 @@ export const GovernmentIVRAnalytics: React.FC = () => {
 
       {/* MODAL: Create New Voice Broadcast */}
       {showNewBroadcast && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 max-w-xl w-full border border-gray-200 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '12px' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', padding: '20px', width: 'calc(100vw - 24px)', maxWidth: '560px', maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid var(--border-subtle)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}>
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">
                   Issue IVR Voice Broadcast Announcement
@@ -590,7 +590,7 @@ export const GovernmentIVRAnalytics: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '12px' }}>
                 <div>
                   <label className="font-bold text-gray-700 block mb-1">Category</label>
                   <select

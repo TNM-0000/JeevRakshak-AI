@@ -339,14 +339,14 @@ export const Navigation: React.FC<NavigationProps> = ({
               className={`nav-item ${isItemActive('dashboard') ? 'active' : ''}`}
               onClick={() => handleItemClick('dashboard')}
             >
-              <Building2 size={20} />
+              <Building2 size={19} />
               <span>{language === 'mr' ? 'डॅशबोर्ड' : 'Dashboard'}</span>
             </button>
             <button
               className={`nav-item ${isItemActive('disease') ? 'active' : ''}`}
               onClick={() => handleItemClick('disease')}
             >
-              <Activity size={20} />
+              <Activity size={19} />
               <span>{language === 'mr' ? 'रोग पाळत' : 'Disease'}</span>
             </button>
 
@@ -357,21 +357,21 @@ export const Navigation: React.FC<NavigationProps> = ({
               aria-label="1962 Emergency Response"
               style={{ background: '#2D6A4F' }}
             >
-              <AlertTriangle size={22} color="#FFFFFF" />
+              <AlertTriangle size={20} color="#FFFFFF" />
             </button>
 
             <button
               className={`nav-item ${isItemActive('vaccination') ? 'active' : ''}`}
               onClick={() => handleItemClick('vaccination')}
             >
-              <Syringe size={20} />
+              <Syringe size={19} />
               <span>{language === 'mr' ? 'लसीकरण' : 'Vaccine'}</span>
             </button>
             <button
               className={`nav-item ${isItemActive('reports') ? 'active' : ''}`}
               onClick={() => handleItemClick('reports')}
             >
-              <FileText size={20} />
+              <FileText size={19} />
               <span>{language === 'mr' ? 'अहवाल' : 'Reports'}</span>
             </button>
           </>
@@ -379,14 +379,23 @@ export const Navigation: React.FC<NavigationProps> = ({
           <>
             {navItems.slice(0, 2).map((item) => {
               const Icon = item.icon;
+              const shortLabel =
+                item.id === 'home'
+                  ? (language === 'mr' ? 'होम' : language === 'hi' ? 'होम' : 'Home')
+                  : item.id === 'herd'
+                  ? (language === 'mr' ? 'कळप' : language === 'hi' ? 'पशु' : 'Herd')
+                  : item.id === 'vet_desk'
+                  ? (language === 'mr' ? 'डेस्क' : language === 'hi' ? 'डेस्क' : 'Desk')
+                  : item.label;
+
               return (
                 <button
                   key={item.id}
                   className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
                   onClick={() => onSelectTab(item.id as ActiveTab)}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <Icon size={19} />
+                  <span>{shortLabel}</span>
                 </button>
               );
             })}
@@ -403,19 +412,28 @@ export const Navigation: React.FC<NavigationProps> = ({
                     : 'var(--primary-gradient)',
               }}
             >
-              <Plus size={26} strokeWidth={2.8} />
+              <Plus size={24} strokeWidth={2.8} />
             </button>
 
             {navItems.slice(2).map((item) => {
               const Icon = item.icon;
+              const shortLabel =
+                item.id === 'prescriptions'
+                  ? (language === 'mr' ? 'औषधे' : language === 'hi' ? 'दवाइयां' : 'Rx')
+                  : item.id === 'cases'
+                  ? (language === 'mr' ? 'केसेस' : language === 'hi' ? 'केस' : 'Cases')
+                  : item.id === 'alerts'
+                  ? (language === 'mr' ? 'अलर्ट' : language === 'hi' ? 'अलर्ट' : 'Alerts')
+                  : item.label;
+
               return (
                 <button
                   key={item.id}
                   className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
                   onClick={() => onSelectTab(item.id as ActiveTab)}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <Icon size={19} />
+                  <span>{shortLabel}</span>
                 </button>
               );
             })}

@@ -686,7 +686,7 @@ export const FarmerPrescriptions: React.FC<FarmerPrescriptionsProps> = ({
               </div>
 
               {/* Doctor & Patient Two-Column Details */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', borderBottom: '1px solid #cbd5e1', paddingBottom: '12px', marginBottom: '14px', fontSize: '0.8rem' }}>
+              <div className="responsive-grid-2" style={{ gap: '14px', borderBottom: '1px solid #cbd5e1', paddingBottom: '12px', marginBottom: '14px', fontSize: '0.8rem' }}>
                 <div>
                   <div><strong>Veterinary Officer:</strong> {selectedRxForSlip.doctor_name}</div>
                   <div><strong>MSVC Reg. License:</strong> {selectedRxForSlip.license_number}</div>
@@ -709,28 +709,30 @@ export const FarmerPrescriptions: React.FC<FarmerPrescriptionsProps> = ({
                 <div style={{ fontSize: '1.4rem', fontWeight: 900, fontFamily: 'serif', fontStyle: 'italic', marginBottom: '8px' }}>
                   ℞
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
-                  <thead>
-                    <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #0f172a', textAlign: 'left' }}>
-                      <th style={{ padding: '6px 8px' }}>#</th>
-                      <th style={{ padding: '6px 8px' }}>Medicine Name</th>
-                      <th style={{ padding: '6px 8px' }}>Dosage & Route</th>
-                      <th style={{ padding: '6px 8px' }}>Frequency</th>
-                      <th style={{ padding: '6px 8px' }}>Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedRxForSlip.medicines.map((m, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '6px 8px', fontWeight: 700 }}>{i + 1}</td>
-                        <td style={{ padding: '6px 8px', fontWeight: 700 }}>{m.name}</td>
-                        <td style={{ padding: '6px 8px' }}>{m.dosage}</td>
-                        <td style={{ padding: '6px 8px' }}>{m.frequency}</td>
-                        <td style={{ padding: '6px 8px' }}>{m.duration}</td>
+                <div className="table-responsive">
+                  <table style={{ minWidth: '400px', width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #0f172a', textAlign: 'left' }}>
+                        <th style={{ padding: '6px 8px' }}>#</th>
+                        <th style={{ padding: '6px 8px' }}>Medicine Name</th>
+                        <th style={{ padding: '6px 8px' }}>Dosage & Route</th>
+                        <th style={{ padding: '6px 8px' }}>Frequency</th>
+                        <th style={{ padding: '6px 8px' }}>Duration</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {selectedRxForSlip.medicines.map((m, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <td style={{ padding: '6px 8px', fontWeight: 700 }}>{i + 1}</td>
+                          <td style={{ padding: '6px 8px', fontWeight: 700 }}>{m.name}</td>
+                          <td style={{ padding: '6px 8px' }}>{m.dosage}</td>
+                          <td style={{ padding: '6px 8px' }}>{m.frequency}</td>
+                          <td style={{ padding: '6px 8px' }}>{m.duration}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Instructions */}
