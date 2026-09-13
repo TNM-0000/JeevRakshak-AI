@@ -529,13 +529,13 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'rgba(5, 150, 105, 0.1)',
-                color: '#047857',
+                background: 'rgba(27, 94, 75, 0.1)',
+                color: 'var(--primary)',
                 padding: '5px 12px',
                 borderRadius: 'var(--radius-full)',
                 fontSize: '0.78rem',
                 fontWeight: 800,
-                border: '1px solid rgba(5, 150, 105, 0.2)',
+                border: '1px solid var(--primary-border)',
               }}
             >
               <Sparkles size={14} />
@@ -570,10 +570,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     background: isCompleted
                       ? 'var(--primary)'
                       : isCurrent
-                      ? 'linear-gradient(90deg, #059669 0%, #10b981 100%)'
-                      : '#e2e8f0',
+                      ? 'linear-gradient(90deg, var(--primary) 0%, var(--stable) 100%)'
+                      : 'var(--border-subtle)',
                     transition: 'all 0.3s ease',
-                    boxShadow: isCurrent ? '0 0 8px rgba(5, 150, 105, 0.4)' : 'none',
+                    boxShadow: isCurrent ? '0 0 8px rgba(27, 94, 75, 0.4)' : 'none',
                   }}
                 />
                 <div
@@ -741,8 +741,8 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                 title: t.reporting.animalSeemsSick,
                 desc: t.reporting.animalSeemsSickDesc,
                 icon: AlertCircle,
-                color: '#059669',
-                bg: '#ecfdf5',
+                color: 'var(--primary)',
+                bg: 'var(--primary-light)',
               },
               {
                 id: 'died',
@@ -1592,10 +1592,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
               <div
                 style={{
-                  background: '#f8fafc',
+                  background: 'var(--surface-raised)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
-                  border: '1.5px solid #e2e8f0',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1611,10 +1611,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
               <div
                 style={{
-                  background: '#f8fafc',
+                  background: 'var(--surface-raised)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
-                  border: '1.5px solid #e2e8f0',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1630,10 +1630,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
               <div
                 style={{
-                  background: '#f8fafc',
+                  background: 'var(--surface-raised)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
-                  border: '1.5px solid #e2e8f0',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1649,10 +1649,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
               <div
                 style={{
-                  background: '#f8fafc',
+                  background: 'var(--surface-raised)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
-                  border: '1.5px solid #e2e8f0',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1996,10 +1996,11 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               {/* Disease 3: Bovine Ephemeral Fever (44%) */}
               <div
                 style={{
-                  background: '#f8fafc',
+                  background: 'var(--surface)',
                   border: '1px solid var(--border-card)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '16px 20px',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
@@ -2127,7 +2128,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             <div
               style={{
                 marginTop: '12px',
-                background: '#f8fafc',
+                background: 'var(--surface-raised)',
                 padding: '10px 14px',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '0.74rem',
@@ -2248,8 +2249,8 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: '14px',
-                      background: isChecked ? '#f0fdf4' : '#f8fafc',
-                      border: isChecked ? '1.5px solid #86efac' : '1px solid var(--border-card)',
+                      background: isChecked ? 'var(--stable-bg)' : 'var(--surface-raised)',
+                      border: isChecked ? '1.5px solid var(--stable-border)' : '1px solid var(--border-card)',
                       borderRadius: 'var(--radius-md)',
                       padding: '14px 16px',
                     }}
@@ -2302,7 +2303,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               border: '1.5px solid #86efac',
               borderRadius: 'var(--radius-xl)',
               padding: '22px 26px',
-              boxShadow: '0 4px 16px rgba(5, 150, 105, 0.08)',
+              boxShadow: '0 4px 16px rgba(27, 94, 75, 0.08)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -2317,7 +2318,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                    boxShadow: '0 4px 12px rgba(27, 94, 75, 0.3)',
                     flexShrink: 0,
                   }}
                 >
@@ -2453,7 +2454,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                 borderRadius: 'var(--radius-lg)',
                 fontSize: '0.96rem',
                 fontWeight: 800,
-                boxShadow: '0 4px 16px rgba(5, 150, 105, 0.35)',
+                boxShadow: '0 4px 16px rgba(27, 94, 75, 0.35)',
               }}
             >
               <CheckCircle2 size={19} />

@@ -466,21 +466,6 @@ export default function Home() {
           }}
         />
       )}
-
-      {/* Sticky "Add Sick Animal" Floating Button throughout whole document */}
-      {currentRole === 'farmer' && activeTab !== 'report' && (
-        <button
-          type="button"
-          onClick={() => handleTabChange('report')}
-          className="sticky-sick-animal-fab"
-          title={language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}
-        >
-          <Plus size={18} strokeWidth={2.6} />
-          <span>
-            {language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}
-          </span>
-        </button>
-      )}
     </div>
   );
 }

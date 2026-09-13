@@ -231,13 +231,6 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             <Plus size={16} strokeWidth={2.5} />
             <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
           </button>
-          <button
-            onClick={onOpenReport}
-            className="btn-primary"
-            style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
-          >
-            {t.dashboard.quickReport}
-          </button>
         </div>
       </div>
 
@@ -320,7 +313,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
       <div
         className="glass-card"
         style={{
-          background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+          background: 'linear-gradient(135deg, #edf6f2 0%, #fbf9f4 100%)',
           border: '1.5px solid var(--primary-border)',
           borderRadius: 'var(--radius-xl)',
           padding: '24px',
@@ -350,17 +343,17 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
         </div>
 
         <div className="status-metric-grid">
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: 'var(--text-main)' }}>{totalMonitored}</div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.animalsMonitored}</div>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: criticalCount > 0 ? 'var(--critical)' : 'var(--text-main)' }}>
               {criticalCount}
             </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.criticalIssues}</div>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: 'var(--radius-md)', padding: '10px 10px', border: '1px solid var(--border-card)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '12px 10px', border: '1px solid var(--border-card)', textAlign: 'center', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', fontWeight: 800, color: vaccinationsDue > 0 ? 'var(--warning)' : 'var(--text-main)' }}>
               {vaccinationsDue}
             </div>
@@ -442,16 +435,16 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
       <div
         className="glass-card"
         style={{
-          borderLeft: '4px solid #0284c7',
-          background: 'linear-gradient(to right, #f0f9ff 0%, #ffffff 100%)',
+          borderLeft: '4px solid var(--accent)',
+          background: 'linear-gradient(to right, #fffbeb 0%, #ffffff 100%)',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CloudRain size={20} color="#0284c7" />
-          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0369a1' }}>
+          <CloudRain size={20} color="var(--accent)" />
+          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--accent-deep)' }}>
             {t.dashboard.weatherRiskTitle}
           </span>
         </div>
@@ -464,7 +457,7 @@ export const FarmerDashboard: React.FC<FarmerDashboardProps> = ({
             style={{
               fontSize: '0.82rem',
               fontWeight: 700,
-              color: '#0284c7',
+              color: 'var(--accent-deep)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',

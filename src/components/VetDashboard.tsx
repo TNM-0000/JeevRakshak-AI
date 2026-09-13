@@ -89,7 +89,9 @@ export type VetModuleTab =
   | 'reports'
   | 'notifications'
   | 'profile'
-  | 'ivr_cases';
+  | 'ivr_cases'
+  | 'comms'
+  | 'ai_detection';
 
 export const VetDashboard: React.FC<VetDashboardProps> = ({
   onEditHospitalSetup,
@@ -127,6 +129,11 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [speciesFilter, setSpeciesFilter] = useState('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Animal EMR Records Search & Filter
+  const [recordSearchQuery, setRecordSearchQuery] = useState('');
+  const [recordSpeciesFilter, setRecordSpeciesFilter] = useState('all');
+  const [recordStatusFilter, setRecordStatusFilter] = useState('all');
 
   // Modals state
   const [showClaimModal, setShowClaimModal] = useState(false);
@@ -353,6 +360,29 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       })
       .sort(sortCasesByOrder);
   }, [cases, searchQuery, statusFilter, speciesFilter, sortOrder]);
+
+  // Filtered Animal EMR Records
+  const filteredRecords = useMemo(() => {
+    return cases.filter((c) => {
+      const q = recordSearchQuery.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        c.animal_tag.toLowerCase().includes(q) ||
+        c.farmer_name.toLowerCase().includes(q) ||
+        c.animal_species.toLowerCase().includes(q) ||
+        (c.village && c.village.toLowerCase().includes(q)) ||
+        (c.symptoms && c.symptoms.toLowerCase().includes(q));
+      const matchSpecies =
+        recordSpeciesFilter === 'all' ||
+        c.animal_species.toLowerCase().includes(recordSpeciesFilter.toLowerCase());
+      const matchStatus =
+        recordStatusFilter === 'all' ||
+        (recordStatusFilter === 'urgent' && (c.priority === 'urgent' || c.priority === 'critical')) ||
+        (recordStatusFilter === 'resolved' && (c.status === 'resolved' || c.status === 'closed')) ||
+        (recordStatusFilter === 'ongoing' && (c.status === 'treatment_ongoing' || c.status === 'in_diagnosis' || c.status === 'accepted' || c.status === 'assigned'));
+      return matchSearch && matchSpecies && matchStatus;
+    });
+  }, [cases, recordSearchQuery, recordSpeciesFilter, recordStatusFilter]);
 
   // Handlers for interactive actions (Permanent Doctor-linked persistence)
   const handleAcceptCase = async (caseId: string) => {
@@ -675,19 +705,20 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* Top Veterinary Hospital & Doctor Identity Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)',
+          background: 'linear-gradient(135deg, #1b5e4b 0%, #123d31 100%)',
           borderRadius: 'var(--radius-xl)',
           padding: '24px 28px',
           color: '#ffffff',
           boxShadow: 'var(--shadow-md)',
           position: 'relative',
           overflow: 'hidden',
+          border: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
-              <ShieldCheck size={14} color="#95d5b2" />
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.14)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
+              <ShieldCheck size={14} color="#fcd34d" />
               <span>
                 {language === 'mr' ? 'महाराष्ट्र शासन • पशुसंवर्धन विभाग अधिकृत क्लिनिकल डेस्क' : 'GOVERNMENT OF MAHARASHTRA • ANIMAL HUSBANDRY CLINICAL DESK'}
               </span>
@@ -697,7 +728,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               {doctorName}
             </h1>
 
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.82rem', color: '#d8f3dc' }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.82rem', color: '#f4f0e6' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Building2 size={14} /> {doctorHospital}
               </span>
@@ -706,7 +737,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 <MapPin size={14} /> {doctorBlock}, {doctorDistrict}
               </span>
               <span>•</span>
-              <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace', fontWeight: 700 }}>
+              <span style={{ background: 'rgba(255,255,255,0.18)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace', fontWeight: 700 }}>
                 Lic: {doctorLicense}
               </span>
             </div>
@@ -716,25 +747,22 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowClaimModal(true)}
+              className="btn-saffron"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#52b788',
-                color: '#1b4332',
                 padding: '10px 18px',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 fontSize: '0.84rem',
                 fontWeight: 800,
-                border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(82, 183, 136, 0.3)',
               }}
             >
               <Plus size={16} />
               <span>{language === 'mr' ? 'नवीन केसेस स्वीकारा' : 'Claim Incoming Cases'}</span>
               {incomingReports.length > 0 && (
-                <span style={{ background: '#1b4332', color: '#fff', padding: '1px 6px', borderRadius: '10px', fontSize: '0.72rem' }}>
+                <span style={{ background: '#ffffff', color: 'var(--accent)', padding: '1px 7px', borderRadius: '10px', fontSize: '0.74rem', fontWeight: 800 }}>
                   {incomingReports.length}
                 </span>
               )}
@@ -748,14 +776,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(255,255,255,0.15)',
+                  background: 'rgba(255,255,255,0.14)',
                   color: '#ffffff',
                   padding: '10px 14px',
-                  borderRadius: '10px',
+                  borderRadius: '12px',
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   border: '1px solid rgba(255,255,255,0.25)',
                   cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
                 <Compass size={14} />
@@ -794,7 +823,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           gap: '8px',
           overflowX: 'auto',
           paddingBottom: '4px',
-          scrollbarWidth: 'thin',
+          scrollbarWidth: 'none',
         }}
       >
         {navHubs.map((hub) => {
@@ -813,16 +842,16 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 borderRadius: '10px',
                 fontSize: '0.8rem',
                 fontWeight: isActive ? 800 : 600,
-                background: isActive ? '#2d6a4f' : '#ffffff',
+                background: isActive ? 'var(--primary)' : 'var(--surface)',
                 color: isActive ? '#ffffff' : 'var(--text-main)',
-                border: isActive ? '1.5px solid #2d6a4f' : '1px solid var(--border-subtle)',
+                border: isActive ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                boxShadow: isActive ? '0 4px 12px rgba(45, 106, 79, 0.25)' : 'none',
+                boxShadow: isActive ? '0 4px 12px rgba(27, 94, 75, 0.25)' : 'none',
                 transition: 'all 0.15s ease',
               }}
             >
-              <Icon size={15} color={isActive ? '#95d5b2' : '#52796f'} />
+              <Icon size={15} color={isActive ? '#ffffff' : 'var(--primary)'} />
               <span>{hub.label}</span>
               {typeof hub.count === 'number' && (
                 <span
@@ -831,7 +860,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     borderRadius: '10px',
                     fontSize: '0.68rem',
                     fontWeight: 700,
-                    background: isActive ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
+                    background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--surface-raised)',
                     color: isActive ? '#ffffff' : 'var(--text-muted)',
                   }}
                 >
@@ -848,164 +877,317 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Key Statistics Cards (Strictly calculated, 0 for new doctor) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-            {[
-              { title: language === 'mr' ? 'एकूण नियुक्त केसेस' : 'Assigned Cases', val: stats.assignedCases, icon: ClipboardList, color: '#2d6a4f', bg: '#f0fdf4' },
-              { title: language === 'mr' ? 'तपासणी प्रतीक्षा' : 'Pending Queue', val: stats.pendingCases, icon: Clock, color: '#f59e0b', bg: '#fffbeb' },
-              { title: language === 'mr' ? 'उपचार केलेले प्राणी' : 'Animals Treated', val: stats.animalsTreated, icon: Pill, color: '#0284c7', bg: '#f0f9ff' },
-              { title: language === 'mr' ? 'पूर्ण लसीकरण' : 'Vaccinations Done', val: stats.vaccinationsDone, icon: Syringe, color: '#10b981', bg: '#ecfdf5' },
-              { title: language === 'mr' ? 'आणीबाणी अलर्ट (SOS)' : 'Emergency Cases', val: stats.emergencyCases, icon: AlertTriangle, color: '#dc2626', bg: '#fef2f2' },
-              { title: language === 'mr' ? 'शेतकरी प्रत्यक्ष भेटी' : 'Monthly Visits', val: stats.monthlyVisits, icon: MapPin, color: '#8b5cf6', bg: '#f5f3ff' },
-              { title: language === 'mr' ? 'बरे होण्याचे प्रमाण' : 'Recovery Rate', val: `${stats.recoveryRate}%`, icon: TrendingUp, color: '#059669', bg: '#f0fdf4' },
-              { title: language === 'mr' ? 'प्रकोप अहवाल सादर' : 'Reports Submitted', val: stats.reportsSubmitted, icon: ShieldAlert, color: '#e11d48', bg: '#fff1f2' },
-            ].map((card, idx) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={idx}
+          {/* Unified Clinical Telemetry Console (Consolidating all 8 data types into 1 clean dashboard panel) */}
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '16px',
+              border: '1px solid var(--border-card)',
+              boxShadow: 'var(--shadow-sm)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Header strip */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 20px',
+                background: 'var(--surface-raised)',
+                borderBottom: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={16} color="var(--primary)" />
+                <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.02em' }}>
+                  {language === 'mr' ? 'क्लिनिकल कार्यप्रणाली व रुग्ण आकडेवारी' : 'Clinical Caseload & Field Telemetry'}
+                </span>
+                <span
                   style={{
-                    background: card.bg,
-                    border: `1px solid ${card.color}30`,
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: '#166534',
+                    background: '#dcfce7',
+                    padding: '2px 8px',
                     borderRadius: '12px',
-                    padding: '16px',
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '14px',
-                    boxShadow: 'var(--shadow-sm)',
+                    gap: '4px',
                   }}
                 >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} />
+                  {language === 'mr' ? 'थेट समक्रमण' : 'Live Telemetry'}
+                </span>
+              </div>
+
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                {language === 'mr' ? 'सद्यस्थिती सारांश' : 'Active Caseload Summary'}
+              </div>
+            </div>
+
+            {/* 8 Telemetry Metrics in a clean 4-column balanced grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              }}
+            >
+              {[
+                {
+                  id: 'assigned',
+                  title: language === 'mr' ? 'एकूण नियुक्त केसेस' : 'Assigned Cases',
+                  val: stats.assignedCases,
+                  sub: language === 'mr' ? 'सक्रिय केसेस' : 'Active Caseload',
+                  icon: ClipboardList,
+                  color: 'var(--primary)',
+                  badgeColor: 'var(--primary-light)',
+                },
+                {
+                  id: 'pending',
+                  title: language === 'mr' ? 'तपासणी प्रतीक्षा' : 'Pending Queue',
+                  val: stats.pendingCases,
+                  sub: language === 'mr' ? 'तपासणी बाकी' : 'Awaiting Review',
+                  icon: Clock,
+                  color: '#d97706',
+                  badgeColor: '#fffbeb',
+                },
+                {
+                  id: 'emergency',
+                  title: language === 'mr' ? 'आणीबाणी अलर्ट' : 'Emergency (SOS)',
+                  val: stats.emergencyCases,
+                  sub: language === 'mr' ? 'तात्काळ लक्ष' : 'Critical Cases',
+                  icon: AlertTriangle,
+                  color: stats.emergencyCases > 0 ? '#dc2626' : 'var(--text-muted)',
+                  badgeColor: '#fef2f2',
+                },
+                {
+                  id: 'treated',
+                  title: language === 'mr' ? 'उपचार केलेले प्राणी' : 'Animals Treated',
+                  val: stats.animalsTreated,
+                  sub: language === 'mr' ? 'वैद्यकीय उपचार' : 'Completed Care',
+                  icon: Pill,
+                  color: '#0284c7',
+                  badgeColor: '#f0f9ff',
+                },
+                {
+                  id: 'vaccinations',
+                  title: language === 'mr' ? 'पूर्ण लसीकरण' : 'Vaccinations Done',
+                  val: stats.vaccinationsDone,
+                  sub: language === 'mr' ? 'डोस प्रशासित' : 'Doses Administered',
+                  icon: Syringe,
+                  color: '#059669',
+                  badgeColor: '#ecfdf5',
+                },
+                {
+                  id: 'visits',
+                  title: language === 'mr' ? 'शेतकरी प्रत्यक्ष भेटी' : 'Monthly Visits',
+                  val: stats.monthlyVisits,
+                  sub: language === 'mr' ? 'गोठा भेटी' : 'Field Inspections',
+                  icon: MapPin,
+                  color: '#7c3aed',
+                  badgeColor: '#f5f3ff',
+                },
+                {
+                  id: 'recovery',
+                  title: language === 'mr' ? 'बरे होण्याचे प्रमाण' : 'Recovery Rate',
+                  val: `${stats.recoveryRate}%`,
+                  sub: language === 'mr' ? 'उपचार यश' : 'Clinical Efficacy',
+                  icon: TrendingUp,
+                  color: '#1b5e4b',
+                  badgeColor: '#f0fdf4',
+                },
+                {
+                  id: 'reports',
+                  title: language === 'mr' ? 'प्रकोप अहवाल सादर' : 'Reports Submitted',
+                  val: stats.reportsSubmitted,
+                  sub: language === 'mr' ? 'DAHO नोंदणी' : 'DAHO Bulletins',
+                  icon: ShieldAlert,
+                  color: '#e11d48',
+                  badgeColor: '#fff1f2',
+                },
+              ].map((item, idx) => {
+                const Icon = item.icon;
+                return (
                   <div
+                    key={item.id}
                     style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '10px',
-                      background: card.color,
-                      color: '#ffffff',
+                      padding: '16px 20px',
+                      borderRight: '1px solid var(--border-subtle)',
+                      borderBottom: '1px solid var(--border-subtle)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
+                      gap: '14px',
+                      background: 'var(--surface)',
+                      transition: 'background 0.15s ease',
                     }}
                   >
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
-                      {card.val}
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        background: item.badgeColor,
+                        color: item.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Icon size={18} />
                     </div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {card.title}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.title}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
+                          {item.val}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                          {item.sub}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
-          {/* Quick Actions Row */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => setShowClaimModal(true)}
-              className="btn-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '10px 16px', borderRadius: '10px' }}
-            >
-              <Plus size={16} />
-              <span>{language === 'mr' ? 'नवीन केस स्वीकारा' : 'Accept New Farmer Case'}</span>
-            </button>
+          {/* Streamlined Clinical Action Toolbar */}
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '14px',
+              padding: '12px 18px',
+              border: '1px solid var(--border-card)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <span>⚡ {language === 'mr' ? 'त्वरित कृती' : 'Clinical Actions'}:</span>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                const untreated = cases.filter((c) => !isCaseTreated(c));
-                if (untreated.length === 0) {
-                  showToast('All cases are already treated. No active cases require diagnosis.');
-                } else {
-                  setSelectedCaseForAction(untreated[0]);
-                  setShowDiagnosisModal(true);
-                }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                padding: '10px 16px',
-                borderRadius: '10px',
-                background: '#ffffff',
-                border: '1px solid var(--border)',
-                cursor: 'pointer',
-                fontWeight: 700,
-                color: 'var(--text-main)',
-              }}
-            >
-              <Sparkles size={16} color="#0284c7" />
-              <span>{language === 'mr' ? 'एआय निदान चालवा' : 'Run AI Diagnosis'}</span>
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setShowClaimModal(true)}
+                className="btn-saffron"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.8rem',
+                  padding: '8px 16px',
+                  borderRadius: '10px',
+                }}
+              >
+                <Plus size={15} />
+                <span>{language === 'mr' ? 'नवीन केस स्वीकारा' : 'Accept Farmer Case'}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setShowVaccinationModal(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                padding: '10px 16px',
-                borderRadius: '10px',
-                background: '#ffffff',
-                border: '1px solid var(--border)',
-                cursor: 'pointer',
-                fontWeight: 700,
-                color: 'var(--text-main)',
-              }}
-            >
-              <Syringe size={16} color="#10b981" />
-              <span>{language === 'mr' ? 'लसीकरण नोंदवा' : 'Log Vaccination Certificate'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const untreated = cases.filter((c) => !isCaseTreated(c));
+                  if (untreated.length === 0) {
+                    showToast('All cases are already treated. No active cases require diagnosis.');
+                  } else {
+                    setSelectedCaseForAction(untreated[0]);
+                    setShowDiagnosisModal(true);
+                  }
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  background: '#ffffff',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                }}
+              >
+                <Sparkles size={16} color="#0284c7" />
+                <span>{language === 'mr' ? 'एआय निदान चालवा' : 'Run AI Diagnosis'}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setShowVisitModal(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                padding: '10px 16px',
-                borderRadius: '10px',
-                background: '#ffffff',
-                border: '1px solid var(--border)',
-                cursor: 'pointer',
-                fontWeight: 700,
-                color: 'var(--text-main)',
-              }}
-            >
-              <MapPin size={16} color="#8b5cf6" />
-              <span>{language === 'mr' ? 'शेतकरी भेट नोंदवा' : 'Record Field Visit'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowVaccinationModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.8rem',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                }}
+              >
+                <Syringe size={15} color="#059669" />
+                <span>{language === 'mr' ? 'लसीकरण नोंदवा' : 'Log Vaccination'}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setShowDiseaseReportModal(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                padding: '10px 16px',
-                borderRadius: '10px',
-                background: '#ffffff',
-                border: '1px solid #fca5a5',
-                cursor: 'pointer',
-                fontWeight: 700,
-                color: '#dc2626',
-              }}
-            >
-              <ShieldAlert size={16} />
-              <span>{language === 'mr' ? 'प्रकोप अहवाल (DAHO)' : 'Report Outbreak to DAHO'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowVisitModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.8rem',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                }}
+              >
+                <MapPin size={15} color="#7c3aed" />
+                <span>{language === 'mr' ? 'शेतकरी भेट' : 'Record Visit'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDiseaseReportModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.8rem',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: '#dc2626',
+                }}
+              >
+                <ShieldAlert size={15} />
+                <span>{language === 'mr' ? 'प्रकोप अहवाल' : 'Report Outbreak'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Regional Disease & Biosecurity Alerts Banner */}
@@ -1261,7 +1443,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {/* Active Triage Queue Summary */}
-          <div className="card-glass" style={{ padding: '20px' }}>
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '16px',
+              border: '1px solid var(--border-card)',
+              padding: '22px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1297,7 +1487,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#2d6a4f',
+                  color: 'var(--primary)',
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -1316,17 +1506,32 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '40px 20px',
-                  background: '#f8fff9',
-                  border: '1.5px dashed #95d5b2',
+                  padding: '38px 20px',
+                  background: 'var(--surface-raised)',
+                  border: '1.5px dashed var(--border-card)',
                   borderRadius: '12px',
                 }}
               >
-                <FolderOpen size={42} color="#52b788" style={{ margin: '0 auto 10px' }} />
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 6px' }}>
+                <div
+                  style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '50%',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 10px',
+                    color: 'var(--primary)',
+                  }}
+                >
+                  <FolderOpen size={26} />
+                </div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 4px' }}>
                   {language === 'mr' ? 'सध्या कोणतीही केस नियुक्त केलेली नाही' : 'No Cases Assigned Yet'}
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#52796f', maxWidth: '420px', margin: '0 auto 16px', lineHeight: 1.4 }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto 16px', lineHeight: 1.45 }}>
                   {language === 'mr'
                     ? 'नवीन डॉक्टर नोंदणी यशस्वी झाली आहे. आपल्या कार्यक्षेत्रातील स्थानिक शेतकरी केसेस स्वीकारण्यासाठी खालील बटणावर क्लिक करा.'
                     : 'Your veterinary account is initialized. Accept incoming health reports from farmers in your district to begin diagnosis.'}
@@ -1334,8 +1539,8 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowClaimModal(true)}
-                  className="btn-primary"
-                  style={{ fontSize: '0.84rem', padding: '8px 18px', borderRadius: '10px' }}
+                  className="btn-saffron"
+                  style={{ fontSize: '0.84rem', padding: '9px 18px', borderRadius: '10px' }}
                 >
                   <Plus size={16} />
                   <span>{language === 'mr' ? 'केसेस पहा व स्वीकारा' : 'Claim Incoming Farmer Cases'}</span>
@@ -1347,8 +1552,8 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   <div
                     key={c.id}
                     style={{
-                      background: '#ffffff',
-                      border: '1px solid var(--border)',
+                      background: 'var(--surface-raised)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '10px',
                       padding: '12px 16px',
                       display: 'flex',
@@ -1522,7 +1727,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 2: CASE MANAGEMENT (Initially Empty, Dynamic Post-Action)         */}
       {/* ========================================================================= */}
       {activeTab === 'cases' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -1536,7 +1749,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowClaimModal(true)}
-              className="btn-primary"
+              className="btn-saffron"
               style={{ fontSize: '0.84rem', padding: '8px 16px', borderRadius: '10px' }}
             >
               <Plus size={15} />
@@ -2454,7 +2667,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 4: DIAGNOSIS CENTER (AI-Assisted + Manual Diagnosis)              */}
       {/* ========================================================================= */}
       {activeTab === 'diagnosis' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -2485,7 +2706,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {diagnoses.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <Sparkles size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Diagnoses Recorded Yet
@@ -2531,7 +2752,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                     Animal Tag: <strong>{d.animal_tag}</strong> • {new Date(d.diagnosed_at).toLocaleDateString()}
                   </div>
 
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', background: '#f8fafc', padding: '8px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', background: 'var(--surface-raised)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                     <strong>Symptoms Analyzed:</strong> {d.symptoms_analyzed}
                   </div>
 
@@ -2553,7 +2774,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 5: TREATMENT MANAGEMENT                                            */}
       {/* ========================================================================= */}
       {activeTab === 'treatments' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -2584,7 +2813,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {treatments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <Pill size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Treatments Recorded Yet
@@ -2655,7 +2884,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 6: PRESCRIPTION MANAGEMENT (Digital Rx & PDF)                     */}
       {/* ========================================================================= */}
       {activeTab === 'prescriptions' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -2686,7 +2923,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {prescriptions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <Printer size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Prescriptions Issued Yet
@@ -2730,8 +2967,8 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                         gap: '6px',
                         padding: '6px 12px',
                         borderRadius: '6px',
-                        background: '#f8fafc',
-                        border: '1px solid var(--border)',
+                        background: 'var(--surface-raised)',
+                        border: '1px solid var(--border-subtle)',
                         fontSize: '0.76rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -2747,8 +2984,8 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                   </div>
 
                   {/* Medicines table */}
-                  <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px', fontSize: '0.78rem' }}>
-                    <div style={{ fontWeight: 700, marginBottom: '6px', color: '#1b4332' }}>Prescribed Medication Regimen:</div>
+                  <div style={{ background: 'var(--surface-raised)', borderRadius: '8px', padding: '12px', fontSize: '0.78rem', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--primary)' }}>Prescribed Medication Regimen:</div>
                     {rx.medicines.map((m, mIdx) => (
                       <div key={mIdx} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px dashed #e2e8f0' }}>
                         <span style={{ fontWeight: 600 }}>{m.name}</span>
@@ -2771,7 +3008,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 7: VACCINATION MANAGEMENT                                          */}
       {/* ========================================================================= */}
       {activeTab === 'vaccinations' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -2794,7 +3039,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {vaccinations.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <Syringe size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Vaccinations Recorded Yet
@@ -2849,7 +3094,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 8: EMERGENCY SOS CASES                                             */}
       {/* ========================================================================= */}
       {activeTab === 'emergencies' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#dc2626', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2880,7 +3133,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {cases.filter((c) => c.priority === 'urgent' || c.priority === 'critical').length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '36px 20px', background: '#f8fff9', borderRadius: '12px', border: '1px solid #86efac' }}>
+            <div style={{ textAlign: 'center', padding: '36px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1px solid #86efac' }}>
               <CheckCircle2 size={36} color="#166534" style={{ margin: '0 auto 8px' }} />
               <h3 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#166534', margin: '0 0 4px' }}>
                 No Active Emergency Incidents
@@ -2991,7 +3244,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 9: FIELD VISIT MANAGEMENT                                          */}
       {/* ========================================================================= */}
       {activeTab === 'visits' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -3014,7 +3275,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {visits.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <MapPin size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Field Visits Completed Yet
@@ -3071,7 +3332,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 11: DISEASE REPORTING & DAHO NOTIFICATION                           */}
       {/* ========================================================================= */}
       {activeTab === 'reporting' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
@@ -3105,7 +3374,7 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </div>
 
           {diseaseReports.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '44px 20px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
+            <div style={{ textAlign: 'center', padding: '44px 20px', background: 'var(--surface-raised)', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
               <ShieldAlert size={40} color="#52b788" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1b4332', margin: '0 0 4px' }}>
                 No Disease Reports Submitted
@@ -3160,7 +3429,16 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* MODULE 16: DOCTOR PROFILE & LICENSE                                       */}
       {/* ========================================================================= */}
       {activeTab === 'profile' && (
-        <div className="card-glass" style={{ padding: '28px', maxWidth: '720px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '28px',
+            maxWidth: '720px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
             Veterinary Doctor Profile & Registration Credentials
           </h2>
@@ -3220,69 +3498,688 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       {/* OTHER TABS: ANIMAL RECORDS, COMMS, AI LAB, ANALYTICS, REPORTS, NOTIFICATIONS */}
       {/* ========================================================================= */}
       {activeTab === 'records' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Animal Health Electronic Medical Records (EMR)
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Searchable medical histories for all animals examined or treated under your care
-          </p>
-
-          {cases.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', background: '#f8fff9', borderRadius: '12px', border: '1.5px dashed #95d5b2' }}>
-              <FileText size={40} color="#52b788" style={{ margin: '0 auto 8px' }} />
-              <div style={{ fontWeight: 800, color: '#1b4332' }}>No Animal Health Records Found</div>
-              <p style={{ fontSize: '0.78rem', color: '#52796f', margin: '4px 0 0' }}>
-                Records will automatically generate as you accept cases and add clinical diagnoses.
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+          }}
+        >
+          {/* Header Strip */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  {language === 'mr' ? 'पशु आरोग्य डिजिटल वैद्यकीय नोंदी (EMR)' : 'Animal Health Electronic Medical Records (EMR)'}
+                </h2>
+                <span
+                  style={{
+                    background: 'var(--primary-light)',
+                    color: 'var(--primary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  {filteredRecords.length} {language === 'mr' ? 'नोंदी' : 'Records'}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0', maxWidth: '680px' }}>
+                {language === 'mr'
+                  ? 'आपल्या अधिकार क्षेत्रातील सर्व प्राण्यांच्या वैद्यकीय तपासण्या, एआय निदान इतिहास आणि औषधोपचार नोंदी'
+                  : `Official searchable medical histories, diagnosis findings, and treatment ledgers for herd animals in ${doctorDistrict} district.`}
               </p>
             </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setShowClaimModal(true)}
+                className="btn-saffron"
+                style={{ fontSize: '0.8rem', padding: '8px 14px', borderRadius: '10px' }}
+              >
+                <Plus size={14} />
+                <span>{language === 'mr' ? 'नवीन केस जोडा' : 'Add / Claim Animal Case'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search and Filters Bar */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              background: 'var(--surface-raised)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '14px',
+              padding: '14px 16px',
+            }}
+          >
+            {/* Search Input */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+                <input
+                  type="text"
+                  placeholder={
+                    language === 'mr'
+                      ? 'टॅग (उदा. MH-12), शेतकरी नाव, जात किंवा गावावरून शोधा...'
+                      : 'Search by Tag ID (e.g. MH-12), Farmer Name, Breed or Village...'
+                  }
+                  value={recordSearchQuery}
+                  onChange={(e) => setRecordSearchQuery(e.target.value)}
+                  className="form-input"
+                  style={{
+                    paddingLeft: '36px',
+                    fontSize: '0.82rem',
+                    height: '40px',
+                    background: 'var(--surface)',
+                    borderRadius: '10px',
+                  }}
+                />
+                <Search
+                  size={15}
+                  style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--text-muted)',
+                  }}
+                />
+                {recordSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setRecordSearchQuery('')}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-muted)',
+                      padding: 0,
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={recordStatusFilter}
+                onChange={(e) => setRecordStatusFilter(e.target.value)}
+                className="form-select"
+                style={{
+                  width: 'auto',
+                  fontSize: '0.82rem',
+                  height: '40px',
+                  background: 'var(--surface)',
+                  borderRadius: '10px',
+                }}
+              >
+                <option value="all">{language === 'mr' ? 'सर्व स्थिती' : 'All Health Statuses'}</option>
+                <option value="urgent">{language === 'mr' ? 'आणीबाणी / तात्काळ' : 'Urgent / Critical Triage'}</option>
+                <option value="ongoing">{language === 'mr' ? 'उपचार चालू' : 'Under Active Treatment'}</option>
+                <option value="resolved">{language === 'mr' ? 'बरे झालेले' : 'Recovered / Resolved'}</option>
+              </select>
+            </div>
+
+            {/* Species Filter Pills */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                {language === 'mr' ? 'प्राणी वर्गवारी:' : 'Species Filter:'}
+              </span>
+              {[
+                { id: 'all', label: language === 'mr' ? 'सर्व प्राणी' : 'All Animals', count: cases.length },
+                {
+                  id: 'cattle',
+                  label: language === 'mr' ? 'गाय / बैल' : 'Cattle',
+                  count: cases.filter(
+                    (c) => c.animal_species.toLowerCase().includes('cattle') || c.animal_species.toLowerCase().includes('cow')
+                  ).length,
+                },
+                {
+                  id: 'buffalo',
+                  label: language === 'mr' ? 'म्हैस' : 'Buffalo',
+                  count: cases.filter((c) => c.animal_species.toLowerCase().includes('buffalo')).length,
+                },
+                {
+                  id: 'goat',
+                  label: language === 'mr' ? 'शेळी / मेंढी' : 'Goat & Sheep',
+                  count: cases.filter(
+                    (c) => c.animal_species.toLowerCase().includes('goat') || c.animal_species.toLowerCase().includes('sheep')
+                  ).length,
+                },
+              ].map((pill) => {
+                const isSel = recordSpeciesFilter === pill.id;
+                return (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setRecordSpeciesFilter(pill.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '0.74rem',
+                      fontWeight: isSel ? 800 : 600,
+                      background: isSel ? 'var(--primary)' : 'var(--surface)',
+                      color: isSel ? '#ffffff' : 'var(--text-main)',
+                      border: isSel ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>{pill.label}</span>
+                    <span
+                      style={{
+                        fontSize: '0.66rem',
+                        padding: '1px 5px',
+                        borderRadius: '10px',
+                        background: isSel ? 'rgba(255,255,255,0.25)' : 'var(--surface-raised)',
+                        color: isSel ? '#ffffff' : 'var(--text-muted)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {pill.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Records List */}
+          {cases.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '48px 20px',
+                background: 'var(--surface-raised)',
+                borderRadius: '14px',
+                border: '1.5px dashed var(--border-card)',
+              }}
+            >
+              <div
+                style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '50%',
+                  background: 'var(--surface)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  color: 'var(--primary)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <FileText size={26} />
+              </div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 6px' }}>
+                {language === 'mr' ? 'कोणतीही प्राणी आरोग्य नोंद आढळली नाही' : 'No Animal Health Records Found'}
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 auto 16px', maxWidth: '420px', lineHeight: 1.45 }}>
+                {language === 'mr'
+                  ? 'आपल्या क्लिनिक अंतर्गत केसेस स्वीकारल्यानंतर सर्व प्राण्यांच्या डिजिटल वैद्यकीय नोंदी येथे स्वयंचलित तयार होतील.'
+                  : 'Electronic medical records will automatically generate when you claim and triage animal cases from farmers in your taluka.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowClaimModal(true)}
+                className="btn-saffron"
+                style={{ fontSize: '0.84rem', padding: '9px 18px', borderRadius: '10px' }}
+              >
+                <Plus size={16} />
+                <span>{language === 'mr' ? 'केसेस पहा व स्वीकारा' : 'Claim Incoming Farmer Cases'}</span>
+              </button>
+            </div>
+          ) : filteredRecords.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                background: 'var(--surface-raised)',
+                borderRadius: '14px',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                {language === 'mr' ? 'शोधाशी जुळणारी नोंद सापडली नाही' : 'No matching animal records'}
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
+                {language === 'mr' ? 'कृपया शोध शब्द किंवा फिल्टर बदलून पहा.' : 'Try changing your search terms or filter selection.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecordSearchQuery('');
+                  setRecordSpeciesFilter('all');
+                  setRecordStatusFilter('all');
+                }}
+                className="btn-secondary"
+                style={{ fontSize: '0.78rem', padding: '6px 14px', borderRadius: '8px' }}
+              >
+                {language === 'mr' ? 'फिल्टर पूर्ववत करा' : 'Clear All Filters'}
+              </button>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {cases.map((c) => (
-                <div key={c.id} style={{ background: '#fff', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{c.animal_tag} • {c.animal_species}</span>
-                      {isCaseTreated(c) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {filteredRecords.map((c) => {
+                // Find matching diagnosis, treatment, or vaccination for this animal tag
+                const animalDiag = diagnoses.find(
+                  (d) => d.animal_tag.toLowerCase() === c.animal_tag.toLowerCase() || d.case_id === c.id
+                );
+                const animalTreat = treatments.find(
+                  (t) => t.animal_tag.toLowerCase() === c.animal_tag.toLowerCase() || t.case_id === c.id
+                );
+                const animalVac = vaccinations.find(
+                  (v) => v.animal_tag.toLowerCase() === c.animal_tag.toLowerCase()
+                );
+                const isUrgent = c.priority === 'urgent' || c.priority === 'critical';
+
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      background: 'var(--surface-raised)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '14px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      transition: 'all 0.15s ease',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
+                    {/* Top Meta Row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            fontWeight: 800,
+                            fontSize: '1rem',
+                            color: 'var(--text-main)',
+                            fontFamily: 'monospace',
+                            background: 'var(--surface)',
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          🏷️ {c.animal_tag}
+                        </span>
+
+                        <span
+                          style={{
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            padding: '3px 10px',
+                            borderRadius: '20px',
+                            background: 'var(--surface)',
+                            color: 'var(--text-main)',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          {c.animal_species}
+                        </span>
+
                         <span
                           style={{
                             fontSize: '0.7rem',
                             fontWeight: 800,
-                            padding: '1px 6px',
-                            borderRadius: '8px',
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            border: '1px solid #86efac',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
+                            padding: '3px 9px',
+                            borderRadius: '20px',
+                            background: isUrgent ? '#fee2e2' : '#f0fdf4',
+                            color: isUrgent ? '#dc2626' : '#166534',
+                            border: isUrgent ? '1px solid #fecaca' : '1px solid #bbf7d0',
                           }}
                         >
-                          <CheckCircle2 size={10} color="#16a34a" />
-                          {language === 'mr' ? 'उपचारित' : language === 'hi' ? 'उपचारित' : 'Treated'}
+                          {c.priority.toUpperCase()}
                         </span>
-                      )}
+
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            padding: '3px 9px',
+                            borderRadius: '20px',
+                            background: c.status === 'resolved' ? '#dcfce7' : '#e0f2fe',
+                            color: c.status === 'resolved' ? '#166534' : '#0369a1',
+                          }}
+                        >
+                          {c.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                        Case: <span style={{ fontFamily: 'monospace', color: 'var(--text-main)' }}>{c.case_number}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Owner: {c.farmer_name} • {c.village}</div>
+
+                    {/* Middle Detail Row */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '12px',
+                        fontSize: '0.8rem',
+                        color: 'var(--text-main)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {language === 'mr' ? 'शेतकरी / मालक' : 'Owner Details'}:
+                        </span>
+                        <div style={{ fontWeight: 700 }}>
+                          {c.farmer_name} • <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{c.village}, {c.district}</span>
+                        </div>
+                        {c.farmer_phone && (
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            📞 {c.farmer_phone}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {language === 'mr' ? 'तपासलेली लक्षणे' : 'Reported Symptoms'}:
+                        </span>
+                        <div style={{ color: 'var(--text-main)', lineHeight: 1.35 }}>
+                          {c.symptoms}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Medical Findings Strip (Diagnoses, Treatment, Vaccines) */}
+                    {(animalDiag || animalTreat || animalVac) && (
+                      <div
+                        style={{
+                          background: 'var(--surface)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '16px',
+                          fontSize: '0.76rem',
+                        }}
+                      >
+                        {animalDiag && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Sparkles size={14} color="#0284c7" />
+                            <span>
+                              <strong>{language === 'mr' ? 'निदान:' : 'Diagnosis:'}</strong> {animalDiag.disease_name} ({animalDiag.confidence}%)
+                            </span>
+                          </div>
+                        )}
+
+                        {animalTreat && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Pill size={14} color="#166534" />
+                            <span>
+                              <strong>{language === 'mr' ? 'उपचार:' : 'Rx:'}</strong> {animalTreat.medicines}
+                            </span>
+                          </div>
+                        )}
+
+                        {animalVac && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Syringe size={14} color="#059669" />
+                            <span>
+                              <strong>{language === 'mr' ? 'लसीकरण:' : 'Vaccine:'}</strong> {animalVac.vaccine_name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Action Buttons Row */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        paddingTop: '6px',
+                        borderTop: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowDiagnosisModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--surface)',
+                            color: '#0284c7',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <Sparkles size={13} />
+                          <span>{language === 'mr' ? 'एआय निदान' : 'AI Diagnosis'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCaseForAction(c);
+                            setShowTreatmentModal(true);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--surface)',
+                            color: '#166534',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <Pill size={13} />
+                          <span>{language === 'mr' ? 'उपचार / प्रिस्क्रिप्शन' : 'Prescribe Rx'}</span>
+                        </button>
+
+                        {c.status !== 'resolved' && c.status !== 'closed' && (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateStatus(c.id, 'resolved')}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid #bbf7d0',
+                              background: '#f0fdf4',
+                              color: '#166534',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>{language === 'mr' ? 'केस पूर्ण करा' : 'Mark Resolved'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onSelectAnimal) onSelectAnimal(c.animal_id);
+                        }}
+                        className="btn-saffron"
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: '8px',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <FileText size={14} />
+                        <span>{language === 'mr' ? 'संपूर्ण EMR फाईल पहा' : 'View Complete EMR File'}</span>
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onSelectAnimal) onSelectAnimal(c.animal_id);
-                    }}
-                    style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #86efac', padding: '6px 12px', borderRadius: '6px', fontSize: '0.76rem', fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    View EMR File
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
+      {activeTab === 'comms' && (
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+            Farmer Tele-Communication & Virtual Consultation
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            Direct messaging, voice advisories and video appointment scheduling with registered farmers
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, marginBottom: '6px' }}>
+                <Video size={18} color="#0284c7" />
+                <span>Tele-Health Video Room</span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Conduct live visual inspection of animal lesions or behavior via encrypted WebRTC channel.
+              </p>
+              <button
+                type="button"
+                onClick={() => showToast('Virtual consultation room link generated and dispatched to farmer SMS.')}
+                className="btn-primary"
+                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+              >
+                Launch Tele-Consult
+              </button>
+            </div>
+
+            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, marginBottom: '6px' }}>
+                <MessageSquare size={18} color="#166534" />
+                <span>Farmer Direct Chat</span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Send follow-up instructions, dosage reminders and medication alerts directly in Marathi / Hindi.
+              </p>
+              <button
+                type="button"
+                onClick={() => showToast('Chat channel initialized with local village dairy co-op.')}
+                className="btn-secondary"
+                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+              >
+                Open Message Thread
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'ai_detection' && (
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+            AI Livestock Disease Detection Lab
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            Deep learning computer vision & clinical natural language processing for rapid pathogen classification
+          </p>
+
+          <div style={{ background: 'var(--surface-raised)', border: '1.5px dashed #52b788', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
+            <FlaskConical size={36} color="#2d6a4f" style={{ margin: '0 auto 8px' }} />
+            <div style={{ fontWeight: 800, color: '#1b4332', fontSize: '0.94rem' }}>
+              Upload Clinical Lesion Photo or Thermal Scan
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#52796f', margin: '4px auto 14px', maxWidth: '400px' }}>
+              Supports bovine mouth/foot vesicular photos, lumpy skin nodules, and ocular discharge images for instant classification.
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="ai-image-upload"
+              onChange={() => showToast('Image uploaded. AI Vision Model classifies: Foot and Mouth Disease (Confidence: 96.2%).')}
+            />
+            <label
+              htmlFor="ai-image-upload"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#2d6a4f',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <Sparkles size={14} />
+              <span>Analyze Image with AI</span>
+            </label>
+          </div>
+        </div>
+      )}
       {activeTab === 'analytics' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
             Animal Health & Clinical Recovery Trends
           </h2>
@@ -3291,15 +4188,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Cattle Recovery Rate</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '4px' }}>92.4%</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>92.4%</div>
             </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Average Treatment Duration</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0369a1', marginTop: '4px' }}>3.8 Days</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)', marginTop: '4px' }}>3.8 Days</div>
             </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Vaccine Coverage Index</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#8b5cf6', marginTop: '4px' }}>88.6%</div>
             </div>
@@ -3308,7 +4205,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       )}
 
       {activeTab === 'reports' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
             Reports & Export Dossiers
           </h2>
@@ -3353,7 +4258,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
       )}
 
       {activeTab === 'notifications' && (
-        <div className="card-glass" style={{ padding: '24px' }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-card)',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
             Clinical Notifications & Government Orders
           </h2>
@@ -3426,14 +4339,15 @@ export const VetDashboard: React.FC<VetDashboardProps> = ({
                 <div
                   key={inc.id}
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border-card)',
                     borderRadius: '10px',
-                    padding: '12px 14px',
+                    padding: '14px',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: '10px',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
                 >
                   <div>

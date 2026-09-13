@@ -751,12 +751,12 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
   const googleMapUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
 
   return (
-    <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: '#F8FFF9', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', minHeight: 'calc(100vh - 65px)', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
       {/* 1. TOP SUB-HEADER APPLICATION BAR */}
       <div
         style={{
-          background: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
+          background: 'var(--surface)',
+          borderBottom: '1px solid var(--border-card)',
           padding: '12px 24px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -775,8 +775,8 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              background: '#f1f5f9',
-              border: '1px solid #e2e8f0',
+              background: 'var(--surface-raised)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               padding: '8px 14px',
               fontSize: '0.82rem',
@@ -804,7 +804,7 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
-                background: '#2D6A4F',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 fontSize: '0.7rem',
                 fontWeight: 800,
@@ -817,7 +817,7 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
             </span>
           </div>
 
-          <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+          <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
@@ -828,7 +828,7 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
-                background: '#2D6A4F',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 fontSize: '0.7rem',
                 fontWeight: 800,
@@ -841,17 +841,17 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
             </span>
           </div>
 
-          <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+          <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
 
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(45, 106, 79, 0.1)',
+              background: 'var(--primary-light)',
               padding: '4px 12px',
               borderRadius: '20px',
-              border: '1.5px solid rgba(45, 106, 79, 0.35)',
+              border: '1.5px solid var(--primary)',
             }}
           >
             <span
@@ -862,7 +862,7 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
                 width: '20px',
                 height: '20px',
                 borderRadius: '50%',
-                background: '#2D6A4F',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 fontSize: '0.72rem',
                 fontWeight: 800,
@@ -870,12 +870,12 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
             >
               3
             </span>
-            <span style={{ fontSize: '0.8rem', color: '#1B4332', fontWeight: 800 }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 800 }}>
               {copy.stepperLoc}
             </span>
           </div>
 
-          <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
+          <span style={{ color: 'var(--border-card)', fontSize: '0.8rem' }}>/</span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
@@ -886,10 +886,10 @@ export const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = (
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
-                background: '#e2e8f0',
-                color: '#64748b',
+                background: 'var(--border-subtle)',
+                color: 'var(--text-muted)',
                 fontSize: '0.7rem',
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               4

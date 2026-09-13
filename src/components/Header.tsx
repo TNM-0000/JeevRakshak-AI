@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { dataService } from '@/lib/supabase/dataService';
 import { UserRole, AppLanguage, AppNotification } from '@/types/database';
-import { Shield, Bell, ChevronDown, User, LogOut, Plus, ArrowLeft } from 'lucide-react';
+import { Shield, Bell, ChevronDown, User, LogOut, ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
@@ -63,55 +63,67 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange, onOpe
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
               flexShrink: 0,
             }}
           >
             <Shield size={18} strokeWidth={2.4} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                {t.appName}
-              </h1>
-            </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {language === 'mr' ? 'महाराष्ट्र शासन • #२६१२८' : language === 'hi' ? 'महाराष्ट्र सरकार • #26128' : 'Govt. of Maharashtra • #26128'}
-            </p>
+            <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+              {t.appName}
+            </h1>
           </div>
         </div>
 
-        {/* Actions: Register Animal, Sign Out Profile, Language Dropdown (Right-Most) */}
+        {/* Actions: Sign Out Profile, Language Dropdown (Right-Most) */}
         <div className="header-actions">
-          {/* Top Register Animal Button */}
-          {currentRole === 'farmer' && onRegisterAnimal && (
-            <button
-              type="button"
-              onClick={onRegisterAnimal}
-              className="btn-primary"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                borderRadius: '20px',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                height: '34px',
-                whiteSpace: 'nowrap',
-              }}
-              title="Register New Livestock Animal"
-            >
-              <Plus size={14} strokeWidth={2.5} />
-              <span>{language === 'mr' ? 'पशू नोंदणी' : language === 'hi' ? 'पशु पंजीकरण' : 'Register Animal'}</span>
-            </button>
-          )}
-
+          {/* Notification Bell */}
+          <button
+            onClick={onOpenNotifications}
+            style={{
+              position: 'relative',
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              background: 'var(--surface-raised)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-main)',
+              flexShrink: 0,
+            }}
+            aria-label={language === 'mr' ? 'सूचना' : language === 'hi' ? 'सूचनाएं' : 'Notifications'}
+          >
+            <Bell size={16} />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  background: 'var(--critical)',
+                  color: '#fff',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {unreadCount}
+              </span>
+            )}
+          </button>
           {/* User Account Profile & Sign Out / Landing */}
           {onSignOut && (
             <button

@@ -135,7 +135,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="horizontal-scroll-strip" style={{ background: '#f1f5f9', padding: '4px', borderRadius: 'var(--radius-full)' }}>
+        <div className="horizontal-scroll-strip" style={{ background: 'var(--surface-raised)', padding: '4px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)' }}>
           <button
             onClick={() => setFilter('all')}
             style={{
@@ -143,7 +143,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8rem',
               fontWeight: 600,
-              background: filter === 'all' ? '#fff' : 'transparent',
+              background: filter === 'all' ? 'var(--surface)' : 'transparent',
               color: filter === 'all' ? 'var(--text-main)' : 'var(--text-muted)',
               boxShadow: filter === 'all' ? 'var(--shadow-sm)' : 'none',
             }}
@@ -157,7 +157,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8rem',
               fontWeight: 600,
-              background: filter === 'advisories' ? '#fff' : 'transparent',
+              background: filter === 'advisories' ? 'var(--surface)' : 'transparent',
               color: filter === 'advisories' ? 'var(--primary)' : 'var(--text-muted)',
               boxShadow: filter === 'advisories' ? 'var(--shadow-sm)' : 'none',
             }}
@@ -171,7 +171,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8rem',
               fontWeight: 600,
-              background: filter === 'notifications' ? '#fff' : 'transparent',
+              background: filter === 'notifications' ? 'var(--surface)' : 'transparent',
               color: filter === 'notifications' ? 'var(--critical)' : 'var(--text-muted)',
               boxShadow: filter === 'notifications' ? 'var(--shadow-sm)' : 'none',
             }}
@@ -358,7 +358,7 @@ export const AdvisoriesAlerts: React.FC<AdvisoriesAlertsProps> = ({
             <div
               className="glass-card"
               style={{
-                background: '#f8fafc',
+                background: 'var(--surface-raised)',
                 border: '1px dashed var(--border-subtle)',
                 display: 'flex',
                 flexDirection: 'column',
