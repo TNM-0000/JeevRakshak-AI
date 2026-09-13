@@ -16,17 +16,45 @@ import {
   Stethoscope,
   Building2,
   Send,
+  Activity,
+  Syringe,
+  AlertTriangle,
+  Truck,
+  FileText,
+  UserCheck,
+  Settings as SettingsIcon,
+  Phone,
+  Pill,
 } from 'lucide-react';
 
-export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'surveillance' | 'alerts';
+export type ActiveTab = 'home' | 'vet_desk' | 'herd' | 'report' | 'cases' | 'prescriptions' | 'surveillance' | 'alerts';
+
+export type GovCleanModule =
+  | 'dashboard'
+  | 'disease'
+  | 'vaccination'
+  | 'emergency'
+  | 'resources'
+  | 'reports'
+  | 'users'
+  | 'settings'
+  | 'ivr';
 
 interface NavigationProps {
   activeTab: ActiveTab;
   onSelectTab: (tab: ActiveTab) => void;
   currentRole: UserRole;
+  govModule?: GovCleanModule;
+  onSelectGovModule?: (mod: GovCleanModule) => void;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, currentRole }) => {
+export const Navigation: React.FC<NavigationProps> = ({
+  activeTab,
+  onSelectTab,
+  currentRole,
+  govModule = 'dashboard',
+  onSelectGovModule,
+}) => {
   const { language, t } = useLanguage();
   const currentUser = dataService.getCurrentUser();
 
@@ -69,19 +97,49 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
     if (currentRole === 'government') {
       return [
         {
-          id: 'surveillance' as ActiveTab,
-          label: language === 'mr' ? 'प्रकोप नियंत्रण कक्ष' : language === 'hi' ? 'प्रकोप नियंत्रण कक्ष' : 'Outbreak Command',
-          icon: Map,
+          id: 'dashboard',
+          label: language === 'mr' ? 'डॅशबोर्ड' : language === 'hi' ? 'डैशबोर्ड' : 'Dashboard',
+          icon: Building2,
         },
         {
-          id: 'cases' as ActiveTab,
-          label: language === 'mr' ? 'जिल्हा रुग्ण सूची' : language === 'hi' ? 'ज़िला केस सूची' : 'District Caseload',
-          icon: ClipboardList,
+          id: 'disease',
+          label: language === 'mr' ? 'रोग पाळत व नियंत्रण' : language === 'hi' ? 'रोग निगरानी' : 'Disease Monitoring',
+          icon: Activity,
         },
         {
-          id: 'alerts' as ActiveTab,
-          label: language === 'mr' ? 'सरकारी सूचना प्रसारण' : language === 'hi' ? 'सरकारी आदेश प्रसारण' : 'Broadcast Advisory',
-          icon: Bell,
+          id: 'vaccination',
+          label: language === 'mr' ? 'लसीकरण' : language === 'hi' ? 'टीकाकरण' : 'Vaccination',
+          icon: Syringe,
+        },
+        {
+          id: 'emergency',
+          label: language === 'mr' ? 'आणीबाणी १९६२' : language === 'hi' ? 'आपातकालीन सेवा' : 'Emergency Response',
+          icon: AlertTriangle,
+        },
+        {
+          id: 'ivr',
+          label: language === 'mr' ? 'IVR व्हॉइस पाळत' : language === 'hi' ? 'IVR वॉयस सर्विलांस' : 'IVR Voice Surveillance',
+          icon: Phone,
+        },
+        {
+          id: 'resources',
+          label: language === 'mr' ? 'संसाधने' : language === 'hi' ? 'संसाधन' : 'Resources',
+          icon: Truck,
+        },
+        {
+          id: 'reports',
+          label: language === 'mr' ? 'अहवाल' : language === 'hi' ? 'रिपोर्ट्स' : 'Reports',
+          icon: FileText,
+        },
+        {
+          id: 'users',
+          label: language === 'mr' ? 'वापरकर्ते' : language === 'hi' ? 'उपयोगकर्ता' : 'User Management',
+          icon: UserCheck,
+        },
+        {
+          id: 'settings',
+          label: language === 'mr' ? 'सेटिंग्ज' : language === 'hi' ? 'सेटिंग्स' : 'Settings',
+          icon: SettingsIcon,
         },
       ];
     }
@@ -99,6 +157,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
         icon: Layers,
       },
       {
+        id: 'prescriptions' as ActiveTab,
+        label: language === 'mr' ? 'डॉक्टर प्रिस्क्रिप्शन' : language === 'hi' ? 'डॉक्टर प्रिस्क्रिप्शन' : 'Doctor Prescriptions',
+        icon: Pill,
+      },
+      {
         id: 'cases' as ActiveTab,
         label: language === 'mr' ? 'माझे आरोग्य अहवाल' : language === 'hi' ? 'मेरी स्वास्थ्य रिपोर्ट' : 'My Health Reports',
         icon: ClipboardList,
@@ -113,6 +176,22 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
 
   const navItems = getNavItems();
 
+  const isItemActive = (itemId: string) => {
+    if (currentRole === 'government') {
+      return (govModule || 'dashboard') === itemId;
+    }
+    return activeTab === itemId;
+  };
+
+  const handleItemClick = (itemId: string) => {
+    if (currentRole === 'government') {
+      onSelectGovModule?.(itemId as GovCleanModule);
+      onSelectTab('surveillance');
+    } else {
+      onSelectTab(itemId as ActiveTab);
+    }
+  };
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -124,17 +203,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
               borderRadius: 'var(--radius-lg)',
               background:
                 currentRole === 'veterinarian'
-                  ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)'
+                  ? 'linear-gradient(135deg, #edf6f2 0%, #f7faf8 100%)'
                   : currentRole === 'government'
-                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)'
-                  : 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)',
-              border: `1px solid ${
-                currentRole === 'veterinarian'
-                  ? 'rgba(2, 132, 199, 0.25)'
-                  : currentRole === 'government'
-                  ? 'rgba(239, 68, 68, 0.25)'
-                  : 'var(--primary-border)'
-              }`,
+                  ? 'linear-gradient(135deg, #edf6f2 0%, #f5f8f6 100%)'
+                  : 'linear-gradient(135deg, #fbf7ef 0%, #f4eee1 100%)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -145,10 +218,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
                   borderRadius: '50%',
                   background:
                     currentRole === 'veterinarian'
-                      ? '#0284c7'
+                      ? 'var(--primary)'
                       : currentRole === 'government'
-                      ? '#ef4444'
-                      : 'var(--stable)',
+                      ? '#2d6a4f'
+                      : 'var(--accent)',
                   display: 'inline-block',
                 }}
               />
@@ -158,10 +231,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
                   fontWeight: 700,
                   color:
                     currentRole === 'veterinarian'
-                      ? '#0369a1'
+                      ? 'var(--primary)'
                       : currentRole === 'government'
-                      ? '#b91c1c'
-                      : 'var(--primary-hover)',
+                      ? '#2d6a4f'
+                      : 'var(--accent-deep)',
                   textTransform: 'uppercase',
                 }}
               >
@@ -181,11 +254,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = isItemActive(item.id);
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => handleItemClick(item.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -193,7 +266,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
                   padding: '12px 16px',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.92rem',
-                  fontWeight: 600,
+                  fontWeight: isActive ? 700 : 500,
                   color: isActive ? 'var(--primary)' : 'var(--text-muted)',
                   background: isActive ? 'var(--primary-light)' : 'transparent',
                   textAlign: 'left',
@@ -203,55 +276,56 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
                   width: '100%',
                 }}
               >
-                <Icon size={18} />
+                <Icon size={18} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* Role-Specific Primary Quick Action CTA */}
-        <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+        {/* Role-Specific Primary Quick Action CTA (Sticky at left bottom corner) */}
+        <div style={{ marginTop: 'auto', paddingTop: '16px', position: 'sticky', bottom: 0, background: '#faf8f2', zIndex: 10 }}>
           {currentRole === 'farmer' && (
             <button
               onClick={() => onSelectTab('report')}
-              className="btn-primary"
-              style={{ width: '100%', borderRadius: 'var(--radius-lg)', padding: '14px' }}
+              className="btn-saffron"
+              style={{ width: '100%', padding: '12px' }}
+              title="Report / Add Sick Livestock Animal"
             >
-              <Plus size={18} />
-              <span>{t.dashboard.quickReport}</span>
+              <Plus size={18} strokeWidth={2.6} />
+              <span>{language === 'mr' ? 'आजारी पशू नोंदवा' : language === 'hi' ? 'बीमार पशु जोड़ें' : 'Add Sick Animal'}</span>
             </button>
           )}
 
           {currentRole === 'veterinarian' && (
             <button
               onClick={() => onSelectTab('report')}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                borderRadius: 'var(--radius-lg)',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              }}
+              className="btn-earth"
+              style={{ width: '100%', padding: '12px' }}
             >
-              <Plus size={18} />
+              <Plus size={18} strokeWidth={2.6} />
               <span>{language === 'mr' ? 'नवीन तपासणी नोंदवा' : language === 'hi' ? 'नई केस रिपोर्ट' : 'Log Clinical Visit'}</span>
             </button>
           )}
 
           {currentRole === 'government' && (
             <button
-              onClick={() => onSelectTab('alerts')}
-              className="btn-primary"
+              onClick={() => {
+                onSelectGovModule?.('emergency');
+                onSelectTab('surveillance');
+              }}
+              className="btn-earth"
               style={{
                 width: '100%',
-                borderRadius: 'var(--radius-lg)',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                padding: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              <Send size={18} />
-              <span>{language === 'mr' ? 'सरकारी आदेश जारी करा' : language === 'hi' ? 'आदेश जारी करें' : 'Broadcast Order'}</span>
+              <AlertTriangle size={18} />
+              <span>{language === 'mr' ? '१९६२ आणीबाणी केंद्र' : language === 'hi' ? '१९६२ आपातकालीन हब' : '1962 Emergency Hub'}</span>
             </button>
           )}
         </div>
@@ -259,50 +333,94 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onSelectTab, 
 
       {/* Mobile Bottom Dock (role tailored) */}
       <div className="mobile-nav-dock">
-        {navItems.slice(0, 2).map((item) => {
-          const Icon = item.icon;
-          return (
+        {currentRole === 'government' ? (
+          <>
             <button
-              key={item.id}
-              className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => onSelectTab(item.id)}
+              className={`nav-item ${isItemActive('dashboard') ? 'active' : ''}`}
+              onClick={() => handleItemClick('dashboard')}
             >
-              <Icon size={20} />
-              <span>{item.label}</span>
+              <Building2 size={20} />
+              <span>{language === 'mr' ? 'डॅशबोर्ड' : 'Dashboard'}</span>
             </button>
-          );
-        })}
-
-        {/* Center Primary Action FAB */}
-        <button
-          className="nav-fab-btn"
-          onClick={() => onSelectTab(currentRole === 'government' ? 'alerts' : 'report')}
-          aria-label="Primary Action"
-          style={{
-            background:
-              currentRole === 'veterinarian'
-                ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
-                : currentRole === 'government'
-                ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)'
-                : undefined,
-          }}
-        >
-          {currentRole === 'government' ? <Send size={22} /> : <Plus size={26} strokeWidth={2.8} />}
-        </button>
-
-        {navItems.slice(2).map((item) => {
-          const Icon = item.icon;
-          return (
             <button
-              key={item.id}
-              className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => onSelectTab(item.id)}
+              className={`nav-item ${isItemActive('disease') ? 'active' : ''}`}
+              onClick={() => handleItemClick('disease')}
             >
-              <Icon size={20} />
-              <span>{item.label}</span>
+              <Activity size={20} />
+              <span>{language === 'mr' ? 'रोग पाळत' : 'Disease'}</span>
             </button>
-          );
-        })}
+
+            {/* Center Primary Action FAB */}
+            <button
+              className="nav-fab-btn"
+              onClick={() => handleItemClick('emergency')}
+              aria-label="1962 Emergency Response"
+              style={{ background: '#2D6A4F' }}
+            >
+              <AlertTriangle size={22} color="#FFFFFF" />
+            </button>
+
+            <button
+              className={`nav-item ${isItemActive('vaccination') ? 'active' : ''}`}
+              onClick={() => handleItemClick('vaccination')}
+            >
+              <Syringe size={20} />
+              <span>{language === 'mr' ? 'लसीकरण' : 'Vaccine'}</span>
+            </button>
+            <button
+              className={`nav-item ${isItemActive('reports') ? 'active' : ''}`}
+              onClick={() => handleItemClick('reports')}
+            >
+              <FileText size={20} />
+              <span>{language === 'mr' ? 'अहवाल' : 'Reports'}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            {navItems.slice(0, 2).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                  onClick={() => onSelectTab(item.id as ActiveTab)}
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+
+            {/* Center Primary Action FAB */}
+            <button
+              className="nav-fab-btn"
+              onClick={() => onSelectTab('report')}
+              aria-label="Primary Action"
+              style={{
+                background:
+                  currentRole === 'farmer'
+                    ? 'var(--accent-gradient)'
+                    : 'var(--primary-gradient)',
+              }}
+            >
+              <Plus size={26} strokeWidth={2.8} />
+            </button>
+
+            {navItems.slice(2).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                  onClick={() => onSelectTab(item.id as ActiveTab)}
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </>
+        )}
       </div>
     </>
   );

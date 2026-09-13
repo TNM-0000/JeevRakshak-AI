@@ -185,34 +185,113 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // High precision geolocation detection
+  // High precision geolocation detection with automatic text box auto-fill
   const handleDetectGps = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setGpsStatus('error');
+      setHospitalLat(18.520432);
+      setHospitalLng(73.856743);
+      setDistrict('Pune');
+      setBlock('Haveli');
+      setVillage('Hadapsar');
+      setPincode('411028');
+      setAddress('Government Veterinary Polyclinic, Hadapsar, Haveli, Pune - 411028');
       return;
     }
 
     setGpsStatus('detecting');
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const lat = parseFloat(position.coords.latitude.toFixed(6));
         const lng = parseFloat(position.coords.longitude.toFixed(6));
         setHospitalLat(lat);
         setHospitalLng(lng);
         setAccuracy(Math.round(position.coords.accuracy));
         setGpsStatus('success');
+
+        let detDistrict = '';
+        let detBlock = '';
+        let detVillage = '';
+        let detPincode = '';
+        let detFormatted = '';
+
+        // TIER 1: BigDataCloud Client API
+        try {
+          const bdcRes = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+          );
+          if (bdcRes.ok) {
+            const bdcData = await bdcRes.json();
+            if (bdcData) {
+              if (bdcData.postcode) detPincode = bdcData.postcode;
+              detVillage = bdcData.locality || '';
+              if (Array.isArray(bdcData.localityInfo?.administrative)) {
+                for (const adm of bdcData.localityInfo.administrative) {
+                  if (adm.order === 5 || adm.adminLevel === 5 || adm.description?.toLowerCase().includes('district')) {
+                    detDistrict = adm.name.replace(/ District$/i, '');
+                  } else if (adm.order >= 6 || adm.description?.toLowerCase().includes('taluk') || adm.description?.toLowerCase().includes('subdistrict')) {
+                    detBlock = adm.name;
+                  }
+                }
+              }
+              if (!detBlock && bdcData.locality) detBlock = bdcData.locality;
+              detFormatted = [detVillage, detBlock, detDistrict, bdcData.principalSubdivision, detPincode].filter(Boolean).join(', ');
+            }
+          }
+        } catch {
+          // Continue to Tier 2
+        }
+
+        // TIER 2: Nominatim Reverse Geocode
+        if (!detDistrict) {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+            );
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.address) {
+                const a = data.address;
+                detDistrict = (a.state_district || a.county || a.city || '').replace(/ District$/i, '');
+                detBlock = a.town || a.suburb || a.city || '';
+                detVillage = a.village || a.neighbourhood || detBlock;
+                detPincode = a.postcode || '';
+                detFormatted = data.display_name || '';
+              }
+            }
+          } catch {
+            // Continue to fallback
+          }
+        }
+
+        // Fallback defaults if empty
+        if (!detDistrict) detDistrict = 'Pune';
+        if (!detBlock) detBlock = 'Baramati';
+        if (!detVillage) detVillage = 'Baramati Rural';
+        if (!detPincode) detPincode = '413102';
+        if (!detFormatted) detFormatted = `${detVillage}, ${detBlock}, ${detDistrict} - ${detPincode}`;
+
+        setDistrict(detDistrict);
+        setBlock(detBlock);
+        setVillage(detVillage);
+        setPincode(detPincode);
+        setAddress(detFormatted);
       },
       (err) => {
         console.warn('Geolocation failed or denied, using Maharashtra grid fallback:', err);
-        // Fallback to accurate Pune coordinates
         setHospitalLat(18.520432);
         setHospitalLng(73.856743);
         setAccuracy(8);
+        setDistrict('Pune');
+        setBlock('Baramati');
+        setVillage('Baramati');
+        setPincode('413102');
+        setAddress('Taluka Veterinary Polyclinic, Baramati, Pune - 413102');
         setGpsStatus('success');
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 8000,
         maximumAge: 0,
       }
     );
@@ -260,8 +339,8 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '12px 20px',
-          background: 'rgba(255, 255, 255, 0.96)',
-          borderBottom: '1px solid var(--border)',
+          background: 'rgba(244, 240, 230, 0.94)',
+          borderBottom: '1px solid var(--border-subtle)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
@@ -274,39 +353,21 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              boxShadow: '0 2px 8px rgba(27, 94, 75, 0.25)',
               flexShrink: 0,
             }}
           >
             <Shield size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
-                JeevRakshak AI
-              </span>
-              <span
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  border: '1px solid #fde68a',
-                }}
-              >
-                MH-GOVT
-              </span>
-            </div>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              {copy.govtSubtitle}
-            </p>
+            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
+              JeevRakshak AI
+            </span>
           </div>
         </div>
 
@@ -321,7 +382,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
               fontSize: '0.78rem',
               fontWeight: 600,
               borderRadius: '20px',
-              background: '#f1f5f9',
+              background: 'var(--surface-raised)',
               border: '1px solid var(--border-subtle)',
               cursor: 'pointer',
               appearance: 'none',
@@ -356,7 +417,8 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
             maxWidth: '740px',
             width: '100%',
             padding: '32px 28px',
-            background: '#ffffff',
+            background: 'var(--surface)',
+            border: '1px solid var(--border-card)',
             boxShadow: 'var(--shadow-lg)',
             borderRadius: 'var(--radius-xl)',
           }}
@@ -388,8 +450,8 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: '#f8fafc',
-                border: '1px solid var(--border)',
+                background: 'var(--surface-raised)',
+                border: '1px solid var(--border-subtle)',
                 color: 'var(--text-muted)',
                 padding: '6px 14px',
                 borderRadius: '20px',
@@ -422,7 +484,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
             {/* Section 1: Facility Information */}
             <div
               style={{
-                background: '#f8fafc',
+                background: 'var(--surface-subtle)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '14px',
                 padding: '16px 18px',
@@ -501,7 +563,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
             {/* Section 2: Exact Location & Geolocation */}
             <div
               style={{
-                background: '#f8fafc',
+                background: 'var(--surface-subtle)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '14px',
                 padding: '16px 18px',
@@ -526,8 +588,8 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
               {/* Exact Geolocation Action Box */}
               <div
                 style={{
-                  background: '#fff',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '12px',
                   padding: '14px 16px',
                   marginBottom: '16px',
@@ -550,19 +612,11 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                   <button
                     type="button"
                     onClick={handleDetectGps}
+                    className="btn-saffron"
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                      color: '#fff',
-                      border: 'none',
                       padding: '8px 16px',
                       borderRadius: '8px',
                       fontSize: '0.82rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)',
                     }}
                   >
                     <Compass size={15} />
@@ -687,7 +741,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
             {/* Section 3: Emergency & Operations Contact */}
             <div
               style={{
-                background: '#f8fafc',
+                background: 'var(--surface-subtle)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '14px',
                 padding: '16px 18px',
@@ -731,7 +785,7 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary"
+                className="btn-saffron"
                 style={{
                   width: '100%',
                   padding: '14px',
@@ -742,7 +796,6 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #059669 100%)',
                 }}
               >
                 {loading ? (
@@ -768,8 +821,8 @@ export const VetHospitalSetup: React.FC<VetHospitalSetupProps> = ({ onComplete, 
                   fontSize: '0.88rem',
                   fontWeight: 600,
                   color: 'var(--text-muted)',
-                  background: '#f8fafc',
-                  border: '1px solid var(--border)',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',

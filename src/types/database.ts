@@ -9,7 +9,7 @@ export type LocationLevel = 'district' | 'block' | 'village';
 
 export type ReportSource = 'web' | 'mobile' | 'ivr';
 
-export type CaseStatus = 'suspected' | 'probable' | 'confirmed' | 'ruled_out';
+export type CaseStatus = 'suspected' | 'probable' | 'confirmed' | 'ruled_out' | 'treated' | 'resolved';
 
 export type TriageMethod = 'rule_based' | 'ai_assisted' | 'manual';
 
@@ -70,6 +70,13 @@ export interface Profile {
   hospital_district?: string;
   hospital_block?: string;
   emergency_phone?: string;
+  first_login_at?: string;
+  first_account_notif_sent?: boolean;
+  first_login_notif_sent?: boolean;
+  telegram_chat_id?: string;
+  telegram_username?: string;
+  telegram_connected?: boolean;
+  telegram_connected_at?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -98,6 +105,7 @@ export interface Herd {
 export interface Animal {
   id: string;
   herd_id: string;
+  owner_profile_id?: string;
   tag_number: string;
   name?: string;
   species: string; // e.g., Cattle, Buffalo, Goat, Sheep
@@ -388,3 +396,431 @@ export interface OutbreakWithDetails extends OutbreakEvent {
   disease?: DiseaseCatalogItem;
   location?: AdministrativeLocation;
 }
+
+// ==========================================
+// 4. VETERINARY DOCTOR MEDICAL WORKSPACE TYPES
+// ==========================================
+
+export interface DoctorCase {
+  id: string;
+  doctor_id: string;
+  case_number: string;
+  animal_id: string;
+  animal_tag: string;
+  animal_species: string;
+  farmer_name: string;
+  farmer_phone: string;
+  village: string;
+  district: string;
+  symptoms: string;
+  priority: 'routine' | 'urgent' | 'critical';
+  status: 'assigned' | 'accepted' | 'in_diagnosis' | 'treatment_ongoing' | 'treated' | 'resolved' | 'rejected' | 'closed' | 'escalated';
+  reported_at: string;
+  accepted_at?: string;
+  closed_at?: string;
+  diagnosis?: string;
+  treatment_notes?: string;
+  is_escalated?: boolean;
+  escalated_to?: string;
+  escalation_reason?: string;
+  escalated_at?: string;
+  sms_sent?: boolean;
+  sms_sent_at?: string;
+  sms_phone?: string;
+  sms_message?: string;
+}
+
+export interface DoctorDiagnosis {
+  id: string;
+  doctor_id: string;
+  case_id: string;
+  animal_tag: string;
+  disease_name: string;
+  confidence: number;
+  symptoms_analyzed: string;
+  recommended_tests: string;
+  recommended_treatment: string;
+  diagnosed_at: string;
+}
+
+export interface DoctorTreatmentRecord {
+  id: string;
+  doctor_id: string;
+  case_id: string;
+  animal_id: string;
+  animal_tag: string;
+  farmer_name: string;
+  treatment_plan: string;
+  medicines: string;
+  dosage: string;
+  instructions: string;
+  follow_up_date: string;
+  status: 'ongoing' | 'completed' | 'recovered';
+  recovery_notes?: string;
+  created_at: string;
+}
+
+export interface DoctorPrescriptionRecord {
+  id: string;
+  doctor_id: string;
+  doctor_name: string;
+  license_number: string;
+  hospital_name: string;
+  animal_tag: string;
+  animal_species: string;
+  farmer_name: string;
+  farmer_phone: string;
+  diagnosis?: string;
+  case_id?: string;
+  case_number?: string;
+  follow_up_date?: string;
+  status?: 'active' | 'completed';
+  medicines: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+  }>;
+  clinical_instructions: string;
+  created_at: string;
+}
+
+export interface DoctorVaccinationRecord {
+  id: string;
+  doctor_id: string;
+  animal_id: string;
+  animal_tag: string;
+  farmer_name: string;
+  vaccine_name: string;
+  batch_number: string;
+  date: string;
+  booster_date: string;
+  certificate_no: string;
+}
+
+export interface DoctorFieldVisitRecord {
+  id: string;
+  doctor_id: string;
+  farmer_name: string;
+  village: string;
+  visit_date: string;
+  purpose: string;
+  status: 'scheduled' | 'in_progress' | 'completed';
+  notes: string;
+  distance_km: number;
+}
+
+export interface DoctorDiseaseReportRecord {
+  id: string;
+  doctor_id: string;
+  disease_name: string;
+  species: string;
+  district: string;
+  village: string;
+  cases_observed: number;
+  mortalities: number;
+  is_outbreak_risk: boolean;
+  reported_to_daho: boolean;
+  clinical_summary: string;
+  created_at: string;
+}
+
+export interface DoctorStats {
+  assignedCases: number;
+  pendingCases: number;
+  completedCases: number;
+  emergencyCases: number;
+  animalsTreated: number;
+  vaccinationsDone: number;
+  todayAppointments: number;
+  monthlyVisits: number;
+  recoveryRate: number;
+  reportsSubmitted: number;
+}
+
+// ==========================================
+// 5. GOVERNMENT OFFICIAL PORTAL TYPES
+// ==========================================
+
+export type GovOfficialRole =
+  | 'super_admin'
+  | 'state_officer'
+  | 'district_officer'
+  | 'block_officer'
+  | 'disease_monitoring_officer'
+  | 'vaccination_officer'
+  | 'emergency_response_officer';
+
+export interface EmergencyCaseRecord {
+  id: string;
+  code: string;
+  caller_name: string;
+  caller_phone: string;
+  village: string;
+  district: string;
+  incident_type: string;
+  severity: 'critical' | 'high' | 'moderate';
+  status: 'alert_triggered' | 'team_dispatched' | 'on_site' | 'stabilized' | 'resolved';
+  dispatched_team?: string;
+  dispatched_van?: string;
+  reported_at: string;
+}
+
+export interface ResourceAllocationRecord {
+  id: string;
+  district: string;
+  resource_type: string;
+  allocated: number;
+  available: number;
+  shortage_detected: boolean;
+  last_updated: string;
+}
+
+export interface VaccinationCampaignRecord {
+  id: string;
+  campaign_code: string;
+  title: string;
+  disease: string;
+  target_count: number;
+  achieved_count: number;
+  districts: string[];
+  start_date: string;
+  end_date: string;
+  status: 'active' | 'scheduled' | 'completed';
+}
+
+// ==========================================
+// 8. INTERACTIVE VOICE RESPONSE (IVR) TYPES
+// ==========================================
+
+export type IVRLanguage = 'mr' | 'hi' | 'en' | 'gu' | 'pa' | 'ta' | 'te' | 'kn' | 'bn';
+
+export type IVRCallStatus = 'ringing' | 'in_progress' | 'completed' | 'missed' | 'busy' | 'failed' | 'transferred';
+
+export type IVRMenuOption =
+  | 'disease_reporting'
+  | 'vaccination_info'
+  | 'vet_consultation'
+  | 'emergency_sos'
+  | 'gov_announcements'
+  | 'complaints_feedback';
+
+export type IVRPriority = 'routine' | 'elevated' | 'urgent' | 'critical';
+
+export type IVRCallbackStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+
+export type IVRFeedbackCategory =
+  | 'service_delay'
+  | 'medicine_unavailability'
+  | 'vet_hospital_conduct'
+  | 'vaccination_camp'
+  | 'app_suggestion'
+  | 'other';
+
+export interface IVRCall {
+  id: string;
+  call_sid: string;
+  caller_phone: string;
+  caller_profile_id?: string | null;
+  toll_free_number: string;
+  language: string;
+  status: IVRCallStatus;
+  direction: 'inbound' | 'outbound_callback';
+  duration_seconds: number;
+  primary_intent?: IVRMenuOption | null;
+  dtmf_digits_pressed?: string;
+  district: string;
+  taluka: string;
+  village?: string;
+  started_at: string;
+  ended_at?: string;
+  created_at: string;
+}
+
+export interface IVRSession {
+  id: string;
+  call_id: string;
+  caller_phone: string;
+  current_step: string;
+  language: string;
+  selected_animal?: string;
+  selected_symptoms?: string[];
+  voice_recording_url?: string;
+  case_id?: string;
+  is_completed: boolean;
+  session_data?: Record<string, any>;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface IVRVoiceRecording {
+  id: string;
+  call_id: string;
+  caller_phone: string;
+  recording_sid?: string;
+  audio_url: string;
+  duration_seconds: number;
+  channels: number;
+  sample_rate: number;
+  encoding: string;
+  file_size_bytes?: number;
+  purpose: 'disease_description' | 'complaint' | 'callback_reason';
+  created_at: string;
+}
+
+export interface IVRTranscript {
+  id: string;
+  recording_id: string;
+  call_id: string;
+  detected_language: string;
+  raw_transcript: string;
+  english_translation?: string;
+  confidence_score: number;
+  stt_engine: string;
+  extracted_symptoms: string[];
+  extracted_urgency: IVRPriority;
+  created_at: string;
+}
+
+export interface IVRReport {
+  id: string;
+  case_id: string;
+  call_id?: string;
+  recording_id?: string;
+  transcript_id?: string;
+  farmer_phone: string;
+  farmer_profile_id?: string;
+  farmer_name?: string;
+  animal_type: string;
+  symptoms: string[];
+  suspected_disease: string;
+  risk_level: IVRPriority;
+  assigned_doctor_id?: string;
+  assigned_hospital_name?: string;
+  district: string;
+  taluka: string;
+  village: string;
+  status: 'pending_review' | 'accepted' | 'investigating' | 'resolved';
+  ai_confidence_score: number;
+  recommended_actions: string[];
+  audio_url?: string;
+  transcript?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IVRSymptom {
+  id: string;
+  dtmf_key: string;
+  name_en: string;
+  name_hi: string;
+  name_mr: string;
+  name_gu?: string;
+  severity_weight: number;
+  is_contagious_marker: boolean;
+  created_at?: string;
+}
+
+export interface IVRCallbackRequest {
+  id: string;
+  call_id?: string;
+  farmer_phone: string;
+  farmer_name: string;
+  animal_type: string;
+  district: string;
+  taluka: string;
+  village: string;
+  reason: string;
+  recording_id?: string;
+  transcript?: string;
+  priority: IVRPriority;
+  assigned_doctor_id?: string;
+  status: IVRCallbackStatus;
+  resolution_notes?: string;
+  called_back_at?: string;
+  created_at: string;
+}
+
+export interface IVREmergencyCase {
+  id: string;
+  emergency_code: string;
+  call_id?: string;
+  farmer_phone: string;
+  farmer_name?: string;
+  animal_type: string;
+  description: string;
+  district: string;
+  taluka: string;
+  village: string;
+  priority: IVRPriority;
+  dispatched_unit: string;
+  response_status: 'dispatched' | 'on_site' | 'admitted' | 'stabilized';
+  eta_minutes: number;
+  assigned_doctor_id?: string;
+  notified_daho: boolean;
+  created_at: string;
+}
+
+export interface IVRAnnouncement {
+  id: string;
+  title: string;
+  content_en: string;
+  content_hi: string;
+  content_mr: string;
+  audio_en_url?: string;
+  audio_hi_url?: string;
+  audio_mr_url?: string;
+  category: 'outbreak_alert' | 'vaccination_campaign' | 'advisory';
+  target_district: string;
+  target_taluka: string;
+  is_active: boolean;
+  priority: IVRPriority;
+  play_count: number;
+  created_by?: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+}
+
+export interface IVRFeedback {
+  id: string;
+  feedback_code: string;
+  call_id?: string;
+  caller_phone: string;
+  category: IVRFeedbackCategory;
+  audio_url?: string;
+  transcript?: string;
+  sentiment: 'negative' | 'neutral' | 'positive';
+  district: string;
+  taluka: string;
+  status: 'pending_review' | 'under_investigation' | 'resolved';
+  resolution_notes?: string;
+  created_at: string;
+}
+
+export interface IVRLanguagePreference {
+  phone: string;
+  language: string;
+  call_count: number;
+  last_call_at: string;
+  updated_at: string;
+}
+
+export interface IVRAnalytics {
+  id: string;
+  date: string;
+  district: string;
+  total_calls: number;
+  completed_calls: number;
+  missed_calls: number;
+  disease_reports_count: number;
+  emergency_sos_count: number;
+  callbacks_requested: number;
+  callbacks_resolved: number;
+  avg_call_duration_seconds: number;
+  language_breakdown: Record<string, number>;
+  intent_breakdown: Record<string, number>;
+  created_at: string;
+}
+
+

@@ -77,7 +77,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
       const currentUser = dataService.getCurrentUser();
       const newHerd = await dataService.createHerd({
         name: currentUser?.full_name ? `${currentUser.full_name}'s Herd` : 'Livestock Herd',
-        owner_profile_id: currentUser?.id || '00000000-0000-0000-0000-000000000000',
+        owner_profile_id: currentUser?.id || 'prof-local-farmer',
         location_id: '',
       });
       targetHerdId = newHerd.id;
@@ -111,10 +111,10 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="btn-primary"
-          style={{ padding: '8px 16px', fontSize: '0.85rem', borderRadius: 'var(--radius-full)' }}
+          className="btn-saffron"
+          style={{ padding: '8px 18px', fontSize: '0.85rem' }}
         >
-          <Plus size={16} />
+          <Plus size={16} strokeWidth={2.6} />
           <span>{language === 'mr' ? 'पशू नोंदणी करा' : language === 'hi' ? 'पशु पंजीकृत करें' : 'Register Animal'}</span>
         </button>
       </div>
@@ -135,7 +135,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
           style={{
             height: '10px',
             borderRadius: 'var(--radius-full)',
-            background: '#f1f5f9',
+            background: 'var(--surface-raised)',
             display: 'flex',
             overflow: 'hidden',
             marginBottom: '16px',
@@ -152,60 +152,64 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
           <div
             onClick={() => setFilter(filter === 'healthy' ? 'all' : 'healthy')}
             style={{
-              padding: '8px',
+              padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              background: filter === 'healthy' ? 'var(--stable-bg)' : '#f8fafc',
+              background: filter === 'healthy' ? 'var(--stable-bg)' : 'var(--surface)',
               border: filter === 'healthy' ? '1.5px solid var(--stable)' : '1px solid var(--border-card)',
               cursor: 'pointer',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--stable)' }}>{healthyCount}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--stable)' }}>{healthyCount}</div>
             <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.healthy}</div>
           </div>
 
           <div
             onClick={() => setFilter(filter === 'treatment' ? 'all' : 'treatment')}
             style={{
-              padding: '8px',
+              padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              background: filter === 'treatment' ? 'var(--warning-bg)' : '#f8fafc',
+              background: filter === 'treatment' ? 'var(--warning-bg)' : 'var(--surface)',
               border: filter === 'treatment' ? '1.5px solid var(--warning)' : '1px solid var(--border-card)',
               cursor: 'pointer',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--warning)' }}>{treatmentCount}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warning)' }}>{treatmentCount}</div>
             <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.underTreatment}</div>
           </div>
 
           <div
             onClick={() => setFilter(filter === 'affected' ? 'all' : 'affected')}
             style={{
-              padding: '8px',
+              padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              background: filter === 'affected' ? '#fff7ed' : '#f8fafc',
+              background: filter === 'affected' ? '#fff7ed' : 'var(--surface)',
               border: filter === 'affected' ? '1.5px solid #fb923c' : '1px solid var(--border-card)',
               cursor: 'pointer',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ea580c' }}>{affectedCount}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ea580c' }}>{affectedCount}</div>
             <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.affected}</div>
           </div>
 
           <div
             onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')}
             style={{
-              padding: '8px',
+              padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              background: filter === 'critical' ? 'var(--critical-bg)' : '#f8fafc',
+              background: filter === 'critical' ? 'var(--critical-bg)' : 'var(--surface)',
               border: filter === 'critical' ? '1.5px solid var(--critical)' : '1px solid var(--border-card)',
               cursor: 'pointer',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--critical)' }}>{criticalCount}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--critical)' }}>{criticalCount}</div>
             <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t.dashboard.critical}</div>
           </div>
         </div>
@@ -347,7 +351,7 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                   alignItems: 'center',
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
-                  background: evt.mortality_count > 0 ? 'var(--critical-bg)' : '#f8fafc',
+                  background: evt.mortality_count > 0 ? 'var(--critical-bg)' : 'var(--surface-raised)',
                   border: `1px solid ${evt.mortality_count > 0 ? 'var(--critical-border)' : 'var(--border-subtle)'}`,
                 }}
               >
@@ -410,10 +414,21 @@ export const HerdHub: React.FC<HerdHubProps> = ({ onSelectAnimal, onOpenReport }
                   {language === 'mr' ? 'प्रजाती' : language === 'hi' ? 'प्रजाति' : 'Species'}
                 </label>
                 <select value={species} onChange={(e) => setSpecies(e.target.value)} className="form-select">
-                  <option value="Cattle">{language === 'mr' ? 'गाय (Cattle)' : language === 'hi' ? 'गाय (Cattle)' : 'Cattle'}</option>
+                  <option value="Cattle">{language === 'mr' ? 'गाय / बैल (Cattle)' : language === 'hi' ? 'गाय / बैल (Cattle)' : 'Cattle (Cow / Bull)'}</option>
                   <option value="Buffalo">{language === 'mr' ? 'म्हैस (Buffalo)' : language === 'hi' ? 'भैंस (Buffalo)' : 'Buffalo'}</option>
                   <option value="Goat">{language === 'mr' ? 'शेळी (Goat)' : language === 'hi' ? 'बकरी (Goat)' : 'Goat'}</option>
                   <option value="Sheep">{language === 'mr' ? 'मेंढी (Sheep)' : language === 'hi' ? 'भेड़ (Sheep)' : 'Sheep'}</option>
+                  <option value="Camel">{language === 'mr' ? 'उंट (Camel)' : language === 'hi' ? 'ऊंट (Camel)' : 'Camel'}</option>
+                  <option value="Horse">{language === 'mr' ? 'घोडा / खच्चर (Horse / Equine)' : language === 'hi' ? 'घोड़ा / खच्चर (Horse / Equine)' : 'Horse / Equine'}</option>
+                  <option value="Pig">{language === 'mr' ? 'डुक्कर (Pig / Swine)' : language === 'hi' ? 'सूअर (Pig / Swine)' : 'Pig / Swine'}</option>
+                  <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken)'}</option>
+                  <option value="Rabbit">{language === 'mr' ? 'ससा (Rabbit)' : language === 'hi' ? 'खरगोश (Rabbit)' : 'Rabbit'}</option>
+                  <option value="Duck">{language === 'mr' ? 'बदक (Duck)' : language === 'hi' ? 'बत्तख (Duck)' : 'Duck'}</option>
+                  <option value="Quail">{language === 'mr' ? 'बटेर / लाव्हा (Quail)' : language === 'hi' ? 'बटेर (Quail)' : 'Quail'}</option>
+                  <option value="Mule">{language === 'mr' ? 'खेच्चर / खच्चर (Mule)' : language === 'hi' ? 'खच्चर (Mule)' : 'Mule'}</option>
+                  <option value="Fishery">{language === 'mr' ? 'मत्स्यपालन / मासे (Fishery / Aquaculture)' : language === 'hi' ? 'मत्स्य पालन (Fishery / Aquaculture)' : 'Fishery / Aquaculture'}</option>
+                  <option value="Yak">{language === 'mr' ? 'याक / मिथुन (Yak / Mithun)' : language === 'hi' ? 'याक / मिथुन (Yak / Mithun)' : 'Yak / Mithun'}</option>
+                  <option value="Donkey">{language === 'mr' ? 'गाढव (Donkey)' : language === 'hi' ? 'गधा (Donkey)' : 'Donkey'}</option>
                 </select>
               </div>
 

@@ -32,10 +32,21 @@ export function getLocalizedField<T extends Record<string, any>>(
  * Species translations (Database values to active language)
  */
 export const SPECIES_TRANSLATIONS: Record<string, Record<AppLanguage, string>> = {
-  Cattle: { en: 'Cattle', hi: 'गाय (Cattle)', mr: 'गाय (Cattle)' },
-  Buffalo: { en: 'Buffalo', hi: 'भैंस (Buffalo)', mr: 'म्हेस (Buffalo)' },
+  Cattle: { en: 'Cattle (Cow / Bull)', hi: 'गाय / बैल (Cattle)', mr: 'गाय / बैल (Cattle)' },
+  Buffalo: { en: 'Buffalo', hi: 'भैंस (Buffalo)', mr: 'म्हैस (Buffalo)' },
   Goat: { en: 'Goat', hi: 'बकरी (Goat)', mr: 'शेळी (Goat)' },
   Sheep: { en: 'Sheep', hi: 'भेड़ (Sheep)', mr: 'मेंढी (Sheep)' },
+  Camel: { en: 'Camel', hi: 'ऊंट (Camel)', mr: 'उंट (Camel)' },
+  Horse: { en: 'Horse / Equine', hi: 'घोड़ा / खच्चर (Horse)', mr: 'घोडा / खच्चर (Horse)' },
+  Pig: { en: 'Pig / Swine', hi: 'सूअर (Pig)', mr: 'डुक्कर (Pig)' },
+  Poultry: { en: 'Poultry (Chicken / Duck)', hi: 'मुर्गी / कुक्कुट (Poultry)', mr: 'कुक्कुट / कोंबडी (Poultry)' },
+  Yak: { en: 'Yak / Mithun', hi: 'याक / मिथुन (Yak)', mr: 'याक / मिथुन (Yak)' },
+  Donkey: { en: 'Donkey', hi: 'गधा (Donkey)', mr: 'गाढव (Donkey)' },
+  Rabbit: { en: 'Rabbit / Cuniculture', hi: 'खरगोश (Rabbit)', mr: 'ससा (Rabbit)' },
+  Duck: { en: 'Duck / Waterfowl', hi: 'बत्तख (Duck)', mr: 'बदक (Duck)' },
+  Quail: { en: 'Quail / Bater', hi: 'बटेर (Quail)', mr: 'लाव्हा / बटेर (Quail)' },
+  Mule: { en: 'Mule / Hinny', hi: 'खच्चर (Mule)', mr: 'खच्चर (Mule)' },
+  Fishery: { en: 'Fishery / Aquaculture', hi: 'मत्स्य पालन (Fishery)', mr: 'मत्स्य पालन (Fishery)' },
 };
 
 export function localizeSpecies(species: string | null | undefined, lang: AppLanguage = 'en'): string {
@@ -57,6 +68,12 @@ export const BREED_TRANSLATIONS: Record<string, Record<AppLanguage, string>> = {
   'Holstein Friesian': { en: 'Holstein Friesian', hi: 'होल्स्टीन फ्रीजियन', mr: 'होल्स्टीन फ्रिजीयन' },
   Sahiwal: { en: 'Sahiwal', hi: 'साहीवाल', mr: 'साहिवाल' },
   Osmanabadi: { en: 'Osmanabadi', hi: 'उस्मानाबादी', mr: 'उस्मानाबादी' },
+  Sirohi: { en: 'Sirohi Goat', hi: 'सिरोही बकरी', mr: 'सिरोही शेळी' },
+  Deccani: { en: 'Deccani Sheep', hi: 'दक्कनी भेड़', mr: 'दख्खनी मेंढी' },
+  Kachchhi: { en: 'Kachchhi Camel', hi: 'कच्छी ऊंट', mr: 'कच्छी उंट' },
+  Marwari: { en: 'Marwari Horse/Sheep', hi: 'मारवाड़ी', mr: 'मारवाडी' },
+  Kadaknath: { en: 'Kadaknath Poultry', hi: 'कड़कनाथ मुर्गा', mr: 'कडकनाथ कोंबडी' },
+  'Yorkshire Pig': { en: 'Large White Yorkshire', hi: 'यॉर्कशायर सूअर', mr: 'यॉर्कशायर डुक्कर' },
   Indigenous: { en: 'Indigenous Desi', hi: 'देसी नस्ल', mr: 'गावरान / देशी जात' },
 };
 

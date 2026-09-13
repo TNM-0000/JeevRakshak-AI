@@ -61,3 +61,6 @@ models/*.bin
 models/*.pt
 !models/download_vision_model.py
 !models/README.md
+
+# tunnel binaries
+cloudflared.exe
