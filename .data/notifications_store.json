@@ -93,6 +93,54 @@
       "vaccination_campaigns": true,
       "health_announcements": true,
       "updated_at": "2026-09-13T02:16:40.096Z"
+    },
+    {
+      "user_id": "1f3749ee-5093-4899-a144-88ce840a2650",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T02:34:18.788Z"
+    },
+    {
+      "user_id": "ece135ff-a5cd-464d-84b5-8b70c1be1567",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T02:37:36.231Z"
+    },
+    {
+      "user_id": "bffd5505-92d5-427f-9e00-bad0db070381",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T02:38:51.716Z"
+    },
+    {
+      "user_id": "c4a5eec3-25a9-404a-98b8-abc07424a4fb",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T02:40:01.598Z"
     }
   ],
   "history": [
