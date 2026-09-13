@@ -192,6 +192,112 @@ export const Navigation: React.FC<NavigationProps> = ({
     }
   };
 
+  // Define balanced mobile 5-slot tabs (2 left, 1 center FAB, 2 right)
+  const getMobileTabs = () => {
+    if (currentRole === 'veterinarian') {
+      return {
+        left: [
+          {
+            id: 'vet_desk',
+            label: language === 'mr' ? 'क्लिनिकल' : language === 'hi' ? 'क्लिनिकल' : 'Clinic',
+            icon: Stethoscope,
+          },
+          {
+            id: 'cases',
+            label: language === 'mr' ? 'प्रतीक्षा' : language === 'hi' ? 'प्रतीक्षा' : 'Queue',
+            icon: ClipboardList,
+          },
+        ],
+        center: {
+          id: 'report',
+          label: language === 'mr' ? 'तपासणी' : language === 'hi' ? 'तपासणी' : 'Log Visit',
+          icon: Plus,
+        },
+        right: [
+          {
+            id: 'surveillance',
+            label: language === 'mr' ? 'पाळत' : language === 'hi' ? 'निगरानी' : 'Survey',
+            icon: Activity,
+          },
+          {
+            id: 'alerts',
+            label: language === 'mr' ? 'अलर्ट' : language === 'hi' ? 'अलर्ट' : 'Alerts',
+            icon: Bell,
+          },
+        ],
+      };
+    }
+
+    if (currentRole === 'government') {
+      return {
+        left: [
+          {
+            id: 'dashboard',
+            label: language === 'mr' ? 'डॅशबोर्ड' : language === 'hi' ? 'डैशबोर्ड' : 'Dashboard',
+            icon: Building2,
+          },
+          {
+            id: 'disease',
+            label: language === 'mr' ? 'रोग पाळत' : language === 'hi' ? 'रोग निगरानी' : 'Disease',
+            icon: Activity,
+          },
+        ],
+        center: {
+          id: 'emergency',
+          label: language === 'mr' ? '१९६२' : language === 'hi' ? '१९६२' : '1962 SOS',
+          icon: AlertTriangle,
+        },
+        right: [
+          {
+            id: 'vaccination',
+            label: language === 'mr' ? 'लसीकरण' : language === 'hi' ? 'टीकाकरण' : 'Vaccine',
+            icon: Syringe,
+          },
+          {
+            id: 'reports',
+            label: language === 'mr' ? 'अहवाल' : language === 'hi' ? 'रिपोर्ट्स' : 'Reports',
+            icon: FileText,
+          },
+        ],
+      };
+    }
+
+    // Default: Farmer
+    return {
+      left: [
+        {
+          id: 'home',
+          label: language === 'mr' ? 'मुख्य' : language === 'hi' ? 'होम' : 'Home',
+          icon: Home,
+        },
+        {
+          id: 'herd',
+          label: language === 'mr' ? 'कळप' : language === 'hi' ? 'पशु' : 'Herd',
+          icon: Layers,
+        },
+      ],
+      center: {
+        id: 'report',
+        label: language === 'mr' ? 'आजारी पशू' : language === 'hi' ? 'बीमार पशु' : 'Report',
+        icon: Plus,
+      },
+      right: [
+        {
+          id: 'prescriptions',
+          label: language === 'mr' ? 'औषधे' : language === 'hi' ? 'दवाइयां' : 'Rx',
+          icon: Pill,
+        },
+        {
+          id: 'cases',
+          label: language === 'mr' ? 'केसेस' : language === 'hi' ? 'केस' : 'Cases',
+          icon: ClipboardList,
+        },
+      ],
+    };
+  };
+
+  const mobileTabs = getMobileTabs();
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -331,114 +437,71 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       </aside>
 
-      {/* Mobile Bottom Dock (role tailored) */}
-      <div className="mobile-nav-dock">
-        {currentRole === 'government' ? (
-          <>
+      {/* Mobile Bottom Navigation Dock (Balanced 5-slot grid with mathematically centered action FAB) */}
+      <div className="mobile-nav-dock" role="navigation" aria-label="Mobile Navigation">
+        {/* Left 2 items */}
+        {mobileTabs.left.map((item) => {
+          const Icon = item.icon;
+          const active = isItemActive(item.id);
+          return (
             <button
-              className={`nav-item ${isItemActive('dashboard') ? 'active' : ''}`}
-              onClick={() => handleItemClick('dashboard')}
+              key={item.id}
+              className={`nav-item ${active ? 'active' : ''}`}
+              onClick={() => handleItemClick(item.id)}
+              aria-label={item.label}
             >
-              <Building2 size={19} />
-              <span>{language === 'mr' ? 'डॅशबोर्ड' : 'Dashboard'}</span>
+              <div className="nav-icon-container">
+                <Icon size={19} strokeWidth={active ? 2.4 : 1.8} />
+              </div>
+              <span>{item.label}</span>
+              {active && <span className="nav-active-dot" />}
             </button>
-            <button
-              className={`nav-item ${isItemActive('disease') ? 'active' : ''}`}
-              onClick={() => handleItemClick('disease')}
-            >
-              <Activity size={19} />
-              <span>{language === 'mr' ? 'रोग पाळत' : 'Disease'}</span>
-            </button>
+          );
+        })}
 
-            {/* Center Primary Action FAB */}
-            <button
-              className="nav-fab-btn"
-              onClick={() => handleItemClick('emergency')}
-              aria-label="1962 Emergency Response"
-              style={{ background: '#2D6A4F' }}
-            >
+        {/* Center Primary Action FAB (Slot 3 - exactly 50% screen center) */}
+        <div className="nav-fab-wrap">
+          <button
+            className={`nav-fab-btn ${isItemActive(mobileTabs.center.id) ? 'active' : ''}`}
+            onClick={() => handleItemClick(mobileTabs.center.id)}
+            aria-label={mobileTabs.center.label}
+            style={{
+              background:
+                currentRole === 'government'
+                  ? 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)'
+                  : currentRole === 'farmer'
+                  ? 'linear-gradient(135deg, #1b5e4b 0%, #2d6a4f 100%)'
+                  : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+            }}
+          >
+            {mobileTabs.center.icon === Plus ? (
+              <Plus size={24} strokeWidth={3} />
+            ) : (
               <AlertTriangle size={20} color="#FFFFFF" />
-            </button>
+            )}
+          </button>
+          <span className="nav-fab-label">{mobileTabs.center.label}</span>
+        </div>
 
+        {/* Right 2 items */}
+        {mobileTabs.right.map((item) => {
+          const Icon = item.icon;
+          const active = isItemActive(item.id);
+          return (
             <button
-              className={`nav-item ${isItemActive('vaccination') ? 'active' : ''}`}
-              onClick={() => handleItemClick('vaccination')}
+              key={item.id}
+              className={`nav-item ${active ? 'active' : ''}`}
+              onClick={() => handleItemClick(item.id)}
+              aria-label={item.label}
             >
-              <Syringe size={19} />
-              <span>{language === 'mr' ? 'लसीकरण' : 'Vaccine'}</span>
+              <div className="nav-icon-container">
+                <Icon size={19} strokeWidth={active ? 2.4 : 1.8} />
+              </div>
+              <span>{item.label}</span>
+              {active && <span className="nav-active-dot" />}
             </button>
-            <button
-              className={`nav-item ${isItemActive('reports') ? 'active' : ''}`}
-              onClick={() => handleItemClick('reports')}
-            >
-              <FileText size={19} />
-              <span>{language === 'mr' ? 'अहवाल' : 'Reports'}</span>
-            </button>
-          </>
-        ) : (
-          <>
-            {navItems.slice(0, 2).map((item) => {
-              const Icon = item.icon;
-              const shortLabel =
-                item.id === 'home'
-                  ? (language === 'mr' ? 'होम' : language === 'hi' ? 'होम' : 'Home')
-                  : item.id === 'herd'
-                  ? (language === 'mr' ? 'कळप' : language === 'hi' ? 'पशु' : 'Herd')
-                  : item.id === 'vet_desk'
-                  ? (language === 'mr' ? 'डेस्क' : language === 'hi' ? 'डेस्क' : 'Desk')
-                  : item.label;
-
-              return (
-                <button
-                  key={item.id}
-                  className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-                  onClick={() => onSelectTab(item.id as ActiveTab)}
-                >
-                  <Icon size={19} />
-                  <span>{shortLabel}</span>
-                </button>
-              );
-            })}
-
-            {/* Center Primary Action FAB */}
-            <button
-              className="nav-fab-btn"
-              onClick={() => onSelectTab('report')}
-              aria-label="Primary Action"
-              style={{
-                background:
-                  currentRole === 'farmer'
-                    ? 'var(--accent-gradient)'
-                    : 'var(--primary-gradient)',
-              }}
-            >
-              <Plus size={24} strokeWidth={2.8} />
-            </button>
-
-            {navItems.slice(2).map((item) => {
-              const Icon = item.icon;
-              const shortLabel =
-                item.id === 'prescriptions'
-                  ? (language === 'mr' ? 'औषधे' : language === 'hi' ? 'दवाइयां' : 'Rx')
-                  : item.id === 'cases'
-                  ? (language === 'mr' ? 'केसेस' : language === 'hi' ? 'केस' : 'Cases')
-                  : item.id === 'alerts'
-                  ? (language === 'mr' ? 'अलर्ट' : language === 'hi' ? 'अलर्ट' : 'Alerts')
-                  : item.label;
-
-              return (
-                <button
-                  key={item.id}
-                  className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-                  onClick={() => onSelectTab(item.id as ActiveTab)}
-                >
-                  <Icon size={19} />
-                  <span>{shortLabel}</span>
-                </button>
-              );
-            })}
-          </>
-        )}
+          );
+        })}
       </div>
     </>
   );

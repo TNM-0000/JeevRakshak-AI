@@ -81,9 +81,38 @@
       "vaccination_campaigns": true,
       "health_announcements": true,
       "updated_at": "2026-09-13T01:36:48.786Z"
+    },
+    {
+      "user_id": "c3e04e8b-b654-4f4e-b434-bf2aa933437e",
+      "telegram_enabled": true,
+      "email_enabled": true,
+      "sms_enabled": false,
+      "vaccination_reminders": true,
+      "disease_alerts": true,
+      "regional_risk_alerts": true,
+      "vaccination_campaigns": true,
+      "health_announcements": true,
+      "updated_at": "2026-09-13T02:16:40.096Z"
     }
   ],
   "history": [
+    {
+      "user_id": "c3e04e8b-b654-4f4e-b434-bf2aa933437e",
+      "user_name": "Tanvi Mehta",
+      "user_phone": "9558102322",
+      "user_email": "mehtatanvi506@gmail.com",
+      "user_type": "farmer",
+      "notification_type": "ACCOUNT_CREATED",
+      "channel": "email",
+      "region": "Shirapur, Shirur, Pune",
+      "subject": "Welcome to JeevRakshak – Account Successfully Created",
+      "message": "Welcome to JeevRakshak – Account Successfully Created\n\nWelcome to JeevRakshak AI Livestock Health Network\n\nDear Tanvi Mehta,\n\n\nYour Farmer account has been registered successfully on JeevRakshak AI, the Maharashtra State Livestock Disease Surveillance & Management System.\n\n\nKey Features Available:\n\n• Real-time regional disease outbreak alerts for your area (District / Taluka / Village).\n\n• Automated vaccination reminder schedule with booster countdowns.\n\n• Instant AI symptom check and triage verification.\n\n• Direct connection to local veterinary polyclinics and emergency 1962 mobile units.\n\n\nFor assistance, contact your local veterinary dispensary or call Toll-Free Helpline: 1962.\n\nEmergency Helpline: 1962\nJeevRakshak AI - Govt of Maharashtra",
+      "delivery_status": "SENT",
+      "related_event_id": "account_created_c3e04e8b-b654-4f4e-b434-bf2aa933437e",
+      "created_at": "2026-09-13T02:16:40.146Z",
+      "sent_at": "2026-09-13T02:16:40.146Z",
+      "id": "notif_hist_1789265800146_g1h2"
+    },
     {
       "user_id": "demo-govt-1",
       "user_name": "Rajesh Patil, DAHO Pune",
