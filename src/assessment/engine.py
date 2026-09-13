@@ -64,7 +64,7 @@ class JeevRakshakEngine:
             animal_context.affected_count = affected_count_override
 
         # 3. Vision Model Analysis
-        visual_analysis: VisualAnalysis = predict_cattle_image(image_path)
+        visual_analysis: VisualAnalysis = predict_cattle_image(image_path, species=animal_context.species)
 
         # 4. Environmental Weather Context (Open-Meteo)
         weather_context: EnvironmentalContextData = get_weather_context(state, district)

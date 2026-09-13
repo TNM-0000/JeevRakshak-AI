@@ -24,7 +24,8 @@ SPECIES_PATTERNS = {
     "buffalo": [r"\bbuffalo\b", r"\bbuffaloes\b", r"\bbuffalos\b", r"\bheifer\b", r"\bbhais\b", r"\bbhainse\b"],
     "sheep": [r"\bsheep\b", r"\bram\b", r"\bewe\b", r"\blamb\b", r"\bbhed\b"],
     "goat": [r"\bgoat\b", r"\bgoats\b", r"\bbuk\b", r"\bbakri\b", r"\bbakra\b"],
-    "swine": [r"\bpig\b", r"\bpigs\b", r"\bswine\b", r"\bhog\b", r"\bsuvar\b"]
+    "swine": [r"\bpig\b", r"\bpigs\b", r"\bswine\b", r"\bhog\b", r"\bsuvar\b"],
+    "horse": [r"\bhorse\b", r"\bhorses\b", r"\bequine\b", r"\bpony\b", r"\bmare\b", r"\bstallion\b", r"\bghoda\b", r"\bghodi\b", r"\bखच्चर\b", r"\bघोडा\b", r"\bघोड़ा\b"]
 }
 
 # Canonical symptom synonyms vocabulary

@@ -68,14 +68,19 @@ class RiskAssessmentEngine:
         # 4. Top Disease Severity Evaluation
         top_diff = differentials[0] if differentials else None
         if top_diff:
-            if "Healthy" in top_diff.disease:
+            if "Healthy" in top_diff.disease or "Equine" in top_diff.disease:
                 if overall_risk not in ["critical", "high"]:
                     overall_risk = "low"
-                    risk_factors.append("Visual evidence and clinical observations indicate normal health baseline.")
+                    if "Equine" in top_diff.disease:
+                        risk_factors.append("Visual screening and clinical intake indicate stable equine health baseline with mild non-contagious skin irritation.")
+                    else:
+                        risk_factors.append("Visual evidence and clinical observations indicate normal health baseline.")
             elif top_diff.support_level == "high":
                 if overall_risk != "critical":
                     overall_risk = "high"
                 risk_factors.append(f"Strong evidence support for notifiable disease profile: '{top_diff.disease}'.")
+                if "Lumpy Skin Disease" in top_diff.disease:
+                    risk_factors.append("High-consequence viral infection: Rapid mechanical vector transmission potential requiring immediate veterinary escalation.")
             elif top_diff.support_level == "moderate":
                 if overall_risk == "low":
                     overall_risk = "moderate"

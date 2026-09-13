@@ -253,6 +253,30 @@ const DISEASE_PROFILES: DiseaseKnowledgeProfile[] = [
     summaryEn: 'CRITICAL: Symptoms characteristic of Blackleg (Clostridium chauvoei). Crepitating swelling on quarters and acute lameness. Immediate antibiotic therapy required.',
     summaryHi: 'गंभीर स्थिति: लंगड़ा बुखार (BQ) के लक्षण। पुट्ठे/मांसपेशियों पर गैस भरी कुरकुरेदार सूजन और तेज बुखार। तत्काल पेनिसिलिन उपचार आवश्यक।',
     summaryMr: 'गंभीर आजार: फऱ्या (एकटांग्या - BQ) रोगाची लक्षणे. मांडीवर चरचर आवाज करणारी सूज व लंगडणे. तत्काळ पेनिसिलिन औषधोपचार करा.'
+  },
+  {
+    id: 'dis-equine-mild',
+    name: 'Mild Equine Cutaneous Irritation / Stable',
+    nameHi: 'हल्की अश्व त्वचीय जलन / स्थिर स्थिति',
+    nameMr: 'सौम्य घोडा त्वचा ऍलर्जी / स्थिर स्थिती',
+    species: ['horse', 'equine', 'pony', 'mule', 'donkey'],
+    primaryKeywords: ['horse', 'equine', 'itch', 'coat', 'hair loss', 'mild rash', 'stable', 'घोडा'],
+    secondaryKeywords: ['grooming', 'insect bite'],
+    severity: 'low',
+    sampleType: 'None required for routine benign dermatosis',
+    collectionProtocol: 'Standard non-invasive observational check.',
+    quarantineRequired: false,
+    zoonotic: false,
+    sopSteps: [
+      'Groom and clean affected coat area with clean fresh water.',
+      'Apply herbal or mild antiseptic wash to affected skin fold.',
+      'Ensure fly and tick protection in equine stable.',
+      'Provide standard fresh feed and clean drinking water.',
+      'Monitor over the next 48 hours; routine farm-level management.'
+    ],
+    summaryEn: 'Mild non-contagious equine skin irritation. Vital signs nominal. No emergency veterinary dispatch required. Farm-level care advised.',
+    summaryHi: 'घोड़े की हल्की गैर-संक्रामक त्वचा स्थिति। कोई आपातकालीन पशुचिकित्सक प्रेषण आवश्यक नहीं। फार्म स्तर की देखरेख पर्याप्त है।',
+    summaryMr: 'घोड्याची सौम्य गैर-संसर्गजन्य त्वचेची स्थिती. कोणतीही आणीबाणी नाही. स्थानिक पातळीवर स्वच्छता व काळजी घ्या.'
   }
 ];
 

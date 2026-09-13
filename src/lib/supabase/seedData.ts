@@ -59,6 +59,7 @@ export const initialAnimals: Animal[] = [
   { id: 'anim-4', herd_id: 'herd-1', tag_number: 'COW-012', species: 'Cattle', breed: 'Holstein Friesian', sex: 'female', date_of_birth: '2023-01-10' },
   { id: 'anim-5', herd_id: 'herd-1', tag_number: 'COW-045', species: 'Cattle', breed: 'Sahiwal', sex: 'female', date_of_birth: '2022-08-05' },
   { id: 'anim-6', herd_id: 'herd-1', tag_number: 'GOT-009', species: 'Goat', breed: 'Osmanabadi', sex: 'female', date_of_birth: '2023-06-18' },
+  { id: 'anim-7', herd_id: 'herd-1', tag_number: 'HRS-007', species: 'Horse', breed: 'Marwari', sex: 'male', date_of_birth: '2021-05-10' },
 ];
 
 export const initialDiseases: DiseaseCatalogItem[] = [

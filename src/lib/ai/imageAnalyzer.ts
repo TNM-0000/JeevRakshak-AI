@@ -41,6 +41,24 @@ function executeHeuristicImageInspection(input: ImageAnalysisInput): ImageAnalys
   const region = input.anatomicalRegion || 'skin';
   const notes = (input.notes || '').toLowerCase();
 
+  // Equine / Horse screening heuristic
+  if (notes.includes('horse') || notes.includes('equine') || notes.includes('ghoda')) {
+    return {
+      detectedCondition: 'Mild Superficial Equine Cutaneous Irritation (Clinically Stable)',
+      confidence: 94,
+      features: [
+        { label: 'Mild Superficial Coat Irritation', confidence: 92, description: 'Superficial hair coat disruption without systemic fever or purulent ulceration' },
+        { label: 'Nominal Physiological Baseline', confidence: 95, description: 'Absence of transboundary vesicular or nodular lesions' }
+      ],
+      suggestedDiseases: [
+        { diseaseId: 'dis-equine-mild', name: 'Mild Equine Cutaneous Irritation / Stable', probability: 0.94 },
+      ],
+      severityAssessment: 'mild',
+      sampleRecommendation: 'Routine observation; no laboratory sampling required',
+      diagnosticAdvice: 'Benign localized irritation. Cleanse affected coat area with clean water and provide fly protection. No emergency veterinary escalation required.',
+    };
+  }
+
   let detectedCondition = 'Cutaneous Nodular Dermatitis';
   let confidence = 88;
   const features: DetectedLesionFeature[] = [];

@@ -104,18 +104,34 @@ class ActionEscalationEngine:
             ), escalation_decision
 
         # =========================================================================
-        # ROUTINE HEALTHY PROFILE
+        # ROUTINE HEALTHY / EQUINE MILD PROFILE
         # =========================================================================
-        if top_diff and "Healthy" in top_diff.disease and risk_assessment.overall_risk == "low":
-            immediate_actions.append("Maintain standard balanced dietary ration, fresh clean water access, and routine shed hygiene.")
-            referral.append("No emergency veterinary intervention required. Continue routine scheduled vaccinations.")
-            containment.append("Normal herd management. Keep vaccination passport (INAPH ear-tag) updated.")
-            monitoring.append("Daily visual inspection for normal feed intake, rumination, and milk production.")
-            escalation_decision = EscalationDecision(
-                required=False,
-                urgency="routine",
-                reason=["Normal clinical baseline; no acute disease evidence detected."]
-            )
+        if top_diff and ("Healthy" in top_diff.disease or "Equine" in top_diff.disease) and risk_assessment.overall_risk == "low":
+            if "Equine" in top_diff.disease:
+                immediate_actions.extend([
+                    "FARMER ALERT: Gently cleanse the irritated skin fold with clean lukewarm water or mild antiseptic wash.",
+                    "Apply fly repellent (neem oil or equine coat spray) across the stall to protect against biting insect irritation.",
+                    "Provide fresh clean water, nutritious balanced equine feed, and dry bedding in the stable.",
+                    "No emergency veterinary visit required. Continue routine farm-level monitoring."
+                ])
+                referral.append("No emergency veterinary intervention needed. Consult local veterinarian during routine dispensary hours if irritation persists beyond 5 days.")
+                containment.append("Normal paddock and stall routine. Maintain clean, dry, well-ventilated equine housing.")
+                monitoring.append("Daily visual check of coat condition, appetite, and alert demeanor over the next 48-72 hours.")
+                escalation_decision = EscalationDecision(
+                    required=False,
+                    urgency="routine",
+                    reason=["Mild equine skin irritation; stable physiological baseline; no emergency veterinary dispatch required."]
+                )
+            else:
+                immediate_actions.append("Maintain standard balanced dietary ration, fresh clean water access, and routine shed hygiene.")
+                referral.append("No emergency veterinary intervention required. Continue routine scheduled vaccinations.")
+                containment.append("Normal herd management. Keep vaccination passport (INAPH ear-tag) updated.")
+                monitoring.append("Daily visual inspection for normal feed intake, rumination, and milk production.")
+                escalation_decision = EscalationDecision(
+                    required=False,
+                    urgency="routine",
+                    reason=["Normal clinical baseline; no acute disease evidence detected."]
+                )
             return RecommendedActions(
                 immediate_actions=immediate_actions,
                 veterinary_referral=referral,
@@ -143,6 +159,8 @@ class ActionEscalationEngine:
             immediate_actions.append("Handle all aborted fetuses and placental tissues exclusively with impermeable rubber gloves and protective mask.")
 
         # Veterinary Referral
+        if profile and profile.disease_id == "lumpy_skin_disease":
+            referral.append("EMERGENCY VETERINARY DISPATCH: Case flagged for immediate physical inspection by Field Veterinary Assistant Surgeon (VAS).")
         referral.append("Present case details to the nearest Gram Panchayat Veterinary Dispensary (Pashu Chikitsalaya).")
         referral.append("Request a field visit from the local Veterinary Assistant Surgeon (VAS) or Mobile Veterinary Unit (MVU).")
 

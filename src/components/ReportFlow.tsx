@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { dataService } from '@/lib/supabase/dataService';
+import { dataService, localStore } from '@/lib/supabase/dataService';
 import {
   Animal,
   ReportSource,
   HealthReportWithDetails,
   DiseaseCatalogItem,
+  DoctorCase,
 } from '@/types/database';
 import { getLocalizedField } from '@/lib/i18n/dbLocalization';
 import {
@@ -426,28 +427,31 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
   const ensureTargetAnimalId = async (): Promise<string | null> => {
     let targetAnimalId = selectedAnimalId;
-    if (!targetAnimalId && manualTag.trim()) {
+    if (!targetAnimalId || targetAnimalId === '__manual__') {
+      const tagToUse = manualTag.trim() || (manualSpecies === 'Horse' ? 'HRS-007' : 'COW-023');
       const user = dataService.getCurrentUser();
       const herds = await dataService.getHerds();
       let targetHerdId = herds[0]?.id;
       if (!targetHerdId) {
         const newHerd = await dataService.createHerd({
-          name: currentUser?.full_name ? `${currentUser.full_name}'s Herd` : 'Livestock Herd',
-          owner_profile_id: currentUser?.id || 'prof-local-farmer',
+          name: user?.full_name ? `${user.full_name}'s Herd` : 'Livestock Herd',
+          owner_profile_id: user?.id || 'prof-local-farmer',
           location_id: '',
         });
         targetHerdId = newHerd.id;
       }
       const createdAnimal = await dataService.createAnimal({
         herd_id: targetHerdId,
-        tag_number: manualTag.trim().toUpperCase(),
+        tag_number: tagToUse.toUpperCase(),
         species: manualSpecies,
-        breed: manualBreed || 'Indigenous',
+        breed: manualBreed || (manualSpecies === 'Horse' ? 'Marwari Horse' : 'Gir Cow'),
         sex: 'female',
         date_of_birth: null,
       });
       targetAnimalId = createdAnimal.id;
       setSelectedAnimalId(createdAnimal.id);
+      const updatedAnimals = await dataService.getAnimals();
+      setAnimals(updatedAnimals);
     }
     return targetAnimalId || null;
   };
@@ -480,6 +484,8 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       : (symptomsString || ((selectedImage || capturedPhotoUrl) ? 'Photographic clinical screening provided. No abnormal symptoms observed.' : 'Routine veterinary checkup. No acute clinical symptoms reported.'));
     const activeAnimal = animals.find((a) => a.id === targetAnimalId);
     const currentUser = dataService.getCurrentUser();
+    const activeSpecies = (activeAnimal?.species || manualSpecies || 'cattle').toLowerCase();
+    const isEquine = ['horse', 'equine', 'pony', 'mule', 'donkey'].includes(activeSpecies);
 
     const finalNotes = [
       notes.trim() ? notes.trim() : null,
@@ -512,7 +518,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       const assessment = await assessLivestockCase(
         {
           text: clinicalNarrative,
-          species: activeAnimal?.species || 'cattle',
+          species: activeSpecies,
           state: currentUser?.state || 'Maharashtra',
           district: currentUser?.district || 'Pune',
           affected_count: 1,
@@ -538,6 +544,64 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
       });
 
       setGeneratedReport(report);
+
+      // 3. Demo Case Routing:
+      // Case 1 (Cow / LSD): High Risk -> Dispatch immediately to field vet queue & notifications
+      // Case 2 (Horse): Mild -> No emergency dispatch, alerts to farmer
+      const topDisease = assessment.possible_conditions?.[0]?.disease || '';
+      const isHighRisk = assessment.risk_assessment?.overall_risk === 'high' || assessment.risk_assessment?.overall_risk === 'critical';
+      const isLsdOrHighRisk = isHighRisk || topDisease.toLowerCase().includes('lumpy');
+
+      if (!isEquine && isLsdOrHighRisk) {
+        setSosDispatched(true);
+        try {
+          const animalTag = activeAnimal?.tag_number || manualTag.trim().toUpperCase() || 'COW-023';
+          // Send urgent notification to vet
+          localStore.notifications.unshift({
+            id: `notif-sos-${Date.now()}`,
+            recipient_profile_id: 'demo-vet-1',
+            health_report_id: `rep-${report.id}`,
+            outbreak_event_id: null,
+            title: `🚨 EMERGENCY CASE DISPATCH: Lumpy Skin Disease (${animalTag})`,
+            title_en: `🚨 EMERGENCY CASE DISPATCH: Lumpy Skin Disease (${animalTag})`,
+            title_hi: `🚨 आपातकालीन केस प्रेषण: लम्पी त्वचा रोग (${animalTag})`,
+            title_mr: `🚨 तातडीचे केस प्रेषण: लम्पी चर्मरोग (${animalTag})`,
+            message: `URGENT: High-risk Lumpy Skin Disease reported in ${currentUser?.district || 'Pune'}. Animal: ${animalTag} (${activeAnimal?.species || 'Cattle'}). Field inspection dispatched immediately.`,
+            notification_type: 'escalation',
+            is_read: false,
+            created_at: new Date().toISOString(),
+            read_at: null,
+          });
+
+          // Insert into doctor's assigned cases store
+          const docStore = dataService._getDoctorStore('demo-vet-1');
+          const newDocCase: DoctorCase = {
+            id: `case-sos-${Date.now()}`,
+            doctor_id: 'demo-vet-1',
+            case_number: `SOS-${Date.now().toString().slice(-4)}`,
+            animal_id: targetAnimalId,
+            animal_tag: animalTag,
+            animal_species: `${activeAnimal?.species || 'Cattle'} (${activeAnimal?.breed || 'Gir Cow'})`,
+            farmer_name: currentUser?.full_name || 'Suresh Rambhau Shinde',
+            farmer_phone: currentUser?.phone || '9823012345',
+            village: currentUser?.village || 'Shirapur',
+            district: currentUser?.district || 'Pune',
+            symptoms: symptomsString || 'Cutaneous nodules, high fever, Lumpy Skin Disease signs',
+            priority: 'critical',
+            status: 'assigned',
+            reported_at: new Date().toISOString(),
+          };
+          docStore.cases.unshift(newDocCase);
+          dataService._saveDoctorStore('demo-vet-1', docStore);
+          localStore.save();
+        } catch (e) {
+          console.warn('[ReportFlow] Auto vet dispatch notice:', e);
+        }
+      } else {
+        // Horse / Mild Equine case: purely farmer guidance, no SOS
+        setSosDispatched(false);
+      }
+
       setStep(4);
     } catch (err: any) {
       console.warn('[ReportFlow] AI assessment notice:', err);
@@ -740,35 +804,54 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
           </p>
 
           <div className="form-group">
-            {animals.length > 0 ? (
-              <select
-                value={selectedAnimalId}
-                onChange={(e) => setSelectedAnimalId(e.target.value)}
-                className="form-select"
-                required
-              >
-                {animals.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.tag_number} ({a.species} - {a.breed}, {a.sex})
+            {animals.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <label className="form-label" style={{ fontSize: '0.84rem', marginBottom: '6px', fontWeight: 700 }}>
+                  {language === 'mr' ? 'नोंदणीकृत पशू निवडा (पशू व प्रजाती)' : language === 'hi' ? 'पंजीकृत पशु चुनें (पशु एवं प्रजाति)' : 'Select Animal from Herd (Cow, Horse, etc.)'}
+                </label>
+                <select
+                  value={selectedAnimalId}
+                  onChange={(e) => setSelectedAnimalId(e.target.value)}
+                  className="form-select"
+                  required
+                  style={{ fontWeight: 600, fontSize: '0.94rem', padding: '12px 14px' }}
+                >
+                  {animals.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.tag_number} ({a.species} — {a.breed}, {a.sex})
+                    </option>
+                  ))}
+                  <option value="__manual__">
+                    + {language === 'mr' ? 'नवीन पशू / इतर प्रजाती नोंदवा...' : language === 'hi' ? 'नया पशु / अन्य प्रजाति दर्ज करें...' : 'Register New Animal / Select Different Species...'}
                   </option>
-                ))}
-              </select>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                </select>
+              </div>
+            )}
+
+            {(animals.length === 0 || selectedAnimalId === '__manual__') && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  padding: '18px',
+                  background: '#f8fafc',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1.5px dashed #94a3b8',
+                  marginTop: '10px',
+                }}
+              >
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--primary-deep)' }}>
+                  {language === 'mr' ? 'पशू ओळख व प्रजाती नोंदवा' : language === 'hi' ? 'पशु पहचान एवं प्रजाति दर्ज करें' : 'Livestock Identification & Species Selection'}
+                </div>
+
                 <div>
                   <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '4px' }}>
-                    {language === 'mr' ? 'पशू टॅग क्रमांक (Ear Tag Number)' : language === 'hi' ? 'पशु टैग संख्या' : 'Ear Tag Number *'}
+                    {language === 'mr' ? 'पशू टॅग क्रमांक (Ear Tag Number)' : language === 'hi' ? 'पशु टैग संख्या' : 'Ear Tag Number'}
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder={
-                      language === 'mr'
-                        ? 'पशू टॅग क्रमांक टाका (उदा. MH-12-PUN-0101)'
-                        : language === 'hi'
-                        ? 'पशु टैग नंबर दर्ज करें (उदा. MH-12-PUN-0101)'
-                        : 'Enter animal tag number (e.g. MH-12-PUN-0101)'
-                    }
+                    placeholder={manualSpecies === 'Horse' ? 'HRS-007' : 'COW-023'}
                     value={manualTag}
                     onChange={(e) => setManualTag(e.target.value)}
                     className="form-input"
@@ -778,28 +861,22 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                 <div className="responsive-grid-2" style={{ gap: '10px' }}>
                   <div>
                     <label className="form-label" style={{ fontSize: '0.8rem', marginBottom: '4px' }}>
-                      {language === 'mr' ? 'प्रजाती (Species)' : language === 'hi' ? 'प्रजाति' : 'Species *'}
+                      {language === 'mr' ? 'प्रजाती (Species) *' : language === 'hi' ? 'प्रजाति *' : 'Species *'}
                     </label>
                     <select
                       value={manualSpecies}
                       onChange={(e) => setManualSpecies(e.target.value)}
                       className="form-select"
+                      style={{ fontWeight: 600 }}
                     >
-                      <option value="Cattle">{language === 'mr' ? 'गाय / बैल (Cattle)' : language === 'hi' ? 'गाय / बैल (Cattle)' : 'Cattle (Cow / Bull)'}</option>
+                      <option value="Cattle">{language === 'mr' ? 'गाय / बैल (Cattle / Cow)' : language === 'hi' ? 'गाय / बैल (Cattle / Cow)' : 'Cattle (Cow / Bull)'}</option>
+                      <option value="Horse">{language === 'mr' ? 'घोडा / खच्चर (Horse / Equine)' : language === 'hi' ? 'घोड़ा / खच्चर (Horse / Equine)' : 'Horse / Equine'}</option>
                       <option value="Buffalo">{language === 'mr' ? 'म्हैस (Buffalo)' : language === 'hi' ? 'भैंस (Buffalo)' : 'Buffalo'}</option>
                       <option value="Goat">{language === 'mr' ? 'शेळी (Goat)' : language === 'hi' ? 'बकरी (Goat)' : 'Goat'}</option>
                       <option value="Sheep">{language === 'mr' ? 'मेंढी (Sheep)' : language === 'hi' ? 'भेड़ (Sheep)' : 'Sheep'}</option>
                       <option value="Camel">{language === 'mr' ? 'उंट (Camel)' : language === 'hi' ? 'ऊंट (Camel)' : 'Camel'}</option>
-                      <option value="Horse">{language === 'mr' ? 'घोडा / खच्चर (Horse / Equine)' : language === 'hi' ? 'घोड़ा / खच्चर (Horse / Equine)' : 'Horse / Equine'}</option>
                       <option value="Pig">{language === 'mr' ? 'डुक्कर (Pig / Swine)' : language === 'hi' ? 'सूअर (Pig / Swine)' : 'Pig / Swine'}</option>
                       <option value="Poultry">{language === 'mr' ? 'कुक्कुट / कोंबडी (Poultry)' : language === 'hi' ? 'मुर्गी / कुक्कुट (Poultry)' : 'Poultry (Chicken)'}</option>
-                      <option value="Rabbit">{language === 'mr' ? 'ससा (Rabbit)' : language === 'hi' ? 'खरगोश (Rabbit)' : 'Rabbit'}</option>
-                      <option value="Duck">{language === 'mr' ? 'बदक (Duck)' : language === 'hi' ? 'बत्तख (Duck)' : 'Duck'}</option>
-                      <option value="Quail">{language === 'mr' ? 'बटेर / लाव्हा (Quail)' : language === 'hi' ? 'बटेर (Quail)' : 'Quail'}</option>
-                      <option value="Mule">{language === 'mr' ? 'खेच्चर / खच्चर (Mule)' : language === 'hi' ? 'खच्चर (Mule)' : 'Mule'}</option>
-                      <option value="Fishery">{language === 'mr' ? 'मत्स्यपालन / मासे (Fishery / Aquaculture)' : language === 'hi' ? 'मत्स्य पालन (Fishery / Aquaculture)' : 'Fishery / Aquaculture'}</option>
-                      <option value="Yak">{language === 'mr' ? 'याक / मिथुन (Yak / Mithun)' : language === 'hi' ? 'याक / मिथुन (Yak / Mithun)' : 'Yak / Mithun'}</option>
-                      <option value="Donkey">{language === 'mr' ? 'गाढव (Donkey)' : language === 'hi' ? 'गधा (Donkey)' : 'Donkey'}</option>
                     </select>
                   </div>
 
@@ -809,7 +886,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Gir, Murrah"
+                      placeholder={manualSpecies === 'Horse' ? 'Marwari Horse' : 'Gir Cow'}
                       value={manualBreed}
                       onChange={(e) => setManualBreed(e.target.value)}
                       className="form-input"
@@ -819,10 +896,10 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
 
                 <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                   {language === 'mr'
-                    ? 'अद्याप कोणतेही पशू नोंदणीकृत नाहीत. हा पशू अहवालासह आपोआप तुमच्या कळपात नोंदवला जाईल.'
+                    ? 'हा पशू अहवालासह आपोआप तुमच्या कळपात नोंदवला जाईल.'
                     : language === 'hi'
-                    ? 'अभी तक कोई पशु पंजीकृत नहीं है। यह पशु रिपोर्ट के साथ स्वचालित रूप से आपके झुंड में पंजीकृत हो जाएगा।'
-                    : 'No livestock registered yet. This animal will be registered to your herd automatically with this report.'}
+                    ? 'यह पशु रिपोर्ट के साथ स्वचालित रूप से आपके झुंड में पंजीकृत हो जाएगा।'
+                    : 'This animal will be added to your herd automatically with this clinical report.'}
                 </p>
               </div>
             )}
@@ -1631,28 +1708,86 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
             }
           `}</style>
 
-          {/* SOS Dispatch Confirmation Toast Banner (when triggered) */}
+          {/* SOS Dispatch Confirmation Toast Banner (for High Risk Lumpy Skin Disease) */}
           {sosDispatched && (
             <div
               style={{
-                background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                border: '1.5px solid #10b981',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                border: '2px solid #ef4444',
                 borderRadius: 'var(--radius-lg)',
-                padding: '14px 20px',
+                padding: '16px 20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)',
-                animation: 'beaconGlow 3s infinite',
+                boxShadow: '0 8px 24px rgba(239, 68, 68, 0.25)',
+                marginBottom: '16px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '42px',
+                    height: '42px',
                     borderRadius: '50%',
-                    background: '#10b981',
+                    background: '#dc2626',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 0 14px rgba(220, 38, 38, 0.5)',
+                  }}
+                >
+                  <AlertTriangle size={24} strokeWidth={2.6} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: '0.98rem', color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{language === 'mr' ? '🚨 तातडीचे प्रकरण: पशुवैद्यांना तात्काळ प्रेषित!' : language === 'hi' ? '🚨 आपातकालीन मामला: तुरंत पशु चिकित्सक को प्रेषित!' : '🚨 URGENT CASE SENT TO FIELD VETERINARIAN IMMEDIATELY!'}</span>
+                    <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '12px', background: '#dc2626', color: '#fff', fontWeight: 800 }}>PRIORITY: CRITICAL</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: '#b91c1c', marginTop: '2px', lineHeight: 1.4 }}>
+                    {language === 'mr'
+                      ? 'लम्पी चर्मरोगाचा (LSD) उच्च धोका आढळल्याने हे प्रकरण आपोआप तालुका पशुवैद्यकीय अधिकारी (VAS) यांच्या तातडीच्या तपासणीसाठी पाठवण्यात आले आहे.'
+                      : language === 'hi'
+                      ? 'लम्पी त्वचा रोग (LSD) का उच्च जोखिम पाए जाने पर यह मामला स्वचालित रूप से ब्लॉक पशु चिकित्सा अधिकारी (VAS) को तत्काल प्रेषित कर दिया गया है।'
+                      : 'High-Risk Lumpy Skin Disease detected. Case auto-dispatched to the Block Veterinary Officer (VAS) & Field Surveillance Unit for immediate inspection.'}
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#7f1d1d', marginTop: '4px', fontWeight: 700 }}>
+                    ✓ {language === 'mr' ? 'क्षेत्रीय पशुवैद्यकीय रांगेमध्ये उच्च प्राधान्याने नोंदवले गेले • स्थिती: प्रेषित' : 'Queued in Field Vet Emergency System • Status: Dispatched for Immediate Examination'}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSosDispatched(false)}
+                style={{ fontSize: '0.78rem', fontWeight: 700, color: '#991b1b', background: 'transparent', padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Farmer Advisory Banner (for Horse / Clinically Stable Cases) */}
+          {!sosDispatched && (
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                border: '1.5px solid #22c55e',
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 4px 16px rgba(34, 197, 94, 0.15)',
+                marginBottom: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: '#16a34a',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -1660,31 +1795,22 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
                     flexShrink: 0,
                   }}
                 >
-                  <Check size={20} strokeWidth={3} />
+                  <CheckCircle2 size={22} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#065f46' }}>
-                    {language === 'mr'
-                      ? 'जीवसंरक्षक एसओएस केस प्राधान्य अलर्ट प्रेषित!'
-                      : language === 'hi'
-                      ? 'जीवरक्षक एसओएस आपातकालीन केस अलर्ट प्रेषित!'
-                      : 'Emergency Case Escalation Alert Transmitted!'}
+                  <div style={{ fontWeight: 900, fontSize: '0.98rem', color: '#14532d', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{language === 'mr' ? '✅ शेतकरी आरोग्य सल्ला: सामान्य / सौम्य स्थिती' : language === 'hi' ? '✅ किसान स्वास्थ्य सलाह: सामान्य / सौम्य स्थिति' : '✅ FARMER HEALTH ADVISORY: MILD CONDITION (CLINICALLY STABLE)'}</span>
+                    <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '12px', background: '#16a34a', color: '#fff', fontWeight: 800 }}>NO EMERGENCY VET DISPATCH</span>
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: '#047857' }}>
+                  <div style={{ fontSize: '0.82rem', color: '#166534', marginTop: '2px', lineHeight: 1.4 }}>
                     {language === 'mr'
-                      ? 'तालुका पशुवैद्यकीय अधिकारी व प्रादेशिक रोग नियंत्रण केंद्रास अति-तातडीचे प्रकरण म्हणून अलर्ट नोंदवला गेला आहे.'
+                      ? 'कोणताही गंभीर आजार नाही. जनावराची स्थिती स्थिर आहे. कोणत्याही तातडीच्या पशुवैद्यकीय भेटीची गरज नाही. शेतकरी पातळीवरील काळजी व स्वच्छता खाली दिली आहे.'
                       : language === 'hi'
-                      ? 'ब्लॉक पशु चिकित्सा अधिकारी एवं क्षेत्रीय रोग नियंत्रण केंद्र को उच्च-प्राथमिकता मामले के रूप में अलर्ट दर्ज किया गया है।'
-                      : 'Case logged with high-priority escalation flag to District Animal Husbandry Office & Regional Surveillance Queue.'}
+                      ? 'कोई गंभीर रोग नहीं है। पशु की स्थिति सामान्य है। आपातकालीन पशु चिकित्सक प्रेषण की आवश्यकता नहीं है। फार्म-स्तरीय प्राथमिक देखभाल नीचे दी गई है।'
+                      : 'No acute transboundary condition detected. Animal vital indicators remain stable. No emergency veterinary dispatch required. Farm-level care and hygiene guidelines provided below.'}
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => setSosDispatched(false)}
-                style={{ fontSize: '0.78rem', fontWeight: 700, color: '#065f46', background: 'transparent', padding: '4px 8px' }}
-              >
-                ✕
-              </button>
             </div>
           )}
 
@@ -1722,7 +1848,7 @@ export const ReportFlow: React.FC<ReportFlowProps> = ({ onReportComplete, onCanc
               ? `MH-REP-${generatedReport.id.slice(0, 8).toUpperCase()}`
               : 'MH-AI-0101';
 
-            const activeAnimal = animals.find((a) => a.id === selectedAnimalId);
+            const activeAnimal = animals.find((a) => a.id === selectedAnimalId) || animals.find((a) => a.id === generatedReport?.animal_id);
 
             // Dynamic SOP checklist aggregation
             const allSopItems: Array<{ id: string; category: string; text: string }> = [];

@@ -23,7 +23,7 @@ class InputSummary(BaseModel):
 
 class AnimalContext(BaseModel):
     """Demographic and epidemiological context of affected animal(s)."""
-    species: Literal["cattle", "buffalo", "sheep", "goat", "swine", "other", "unknown"] = Field(
+    species: Literal["cattle", "buffalo", "sheep", "goat", "swine", "horse", "equine", "other", "unknown"] = Field(
         "cattle", description="Host animal species"
     )
     affected_count: Optional[int] = Field(

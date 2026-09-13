@@ -1925,19 +1925,38 @@ export const dataService = {
         }
       }
 
-      // Seed demo animals ONLY for demo farmer if empty
-      if (isDemoFarmer && rawAnimals.length === 0) {
-        rawAnimals = [
-          { id: 'anim-1', herd_id: 'herd-1', tag_number: 'COW-023', species: 'Cattle', breed: 'Gir', sex: 'female', date_of_birth: '2022-04-12', owner_profile_id: 'prof-local-farmer' },
-          { id: 'anim-2', herd_id: 'herd-1', tag_number: 'BUF-108', species: 'Buffalo', breed: 'Murrah', sex: 'female', date_of_birth: '2021-08-20', owner_profile_id: 'prof-local-farmer' },
-          { id: 'anim-3', herd_id: 'herd-1', tag_number: 'GOAT-042', species: 'Goat', breed: 'Osmanabadi', sex: 'female', date_of_birth: '2023-01-15', owner_profile_id: 'prof-local-farmer' },
-        ];
-        rawAnimals.forEach((demoAnim) => {
-          if (!localStore.animals.some((a) => a.id === demoAnim.id)) {
-            localStore.animals.push(demoAnim);
+      // Seed demo animals ONLY for demo farmer if empty or missing horse
+      if (isDemoFarmer) {
+        if (rawAnimals.length === 0) {
+          rawAnimals = [
+            { id: 'anim-1', herd_id: 'herd-1', tag_number: 'COW-023', species: 'Cattle', breed: 'Gir Cow', sex: 'female', date_of_birth: '2022-04-12', owner_profile_id: 'prof-local-farmer' },
+            { id: 'anim-2', herd_id: 'herd-1', tag_number: 'BUF-108', species: 'Buffalo', breed: 'Murrah Buffalo', sex: 'female', date_of_birth: '2021-08-20', owner_profile_id: 'prof-local-farmer' },
+            { id: 'anim-3', herd_id: 'herd-1', tag_number: 'HRS-007', species: 'Horse', breed: 'Marwari Horse', sex: 'male', date_of_birth: '2021-05-10', owner_profile_id: 'prof-local-farmer' },
+            { id: 'anim-4', herd_id: 'herd-1', tag_number: 'GOAT-042', species: 'Goat', breed: 'Osmanabadi', sex: 'female', date_of_birth: '2023-01-15', owner_profile_id: 'prof-local-farmer' },
+          ];
+          rawAnimals.forEach((demoAnim) => {
+            if (!localStore.animals.some((a) => a.id === demoAnim.id)) {
+              localStore.animals.push(demoAnim);
+            }
+          });
+          localStore.save();
+        } else if (!rawAnimals.some((a) => (a.species || '').toLowerCase() === 'horse')) {
+          const horseAnim: Animal = {
+            id: 'anim-7',
+            herd_id: rawAnimals[0]?.herd_id || 'herd-1',
+            tag_number: 'HRS-007',
+            species: 'Horse',
+            breed: 'Marwari Horse',
+            sex: 'male',
+            date_of_birth: '2021-05-10',
+            owner_profile_id: 'prof-local-farmer',
+          };
+          rawAnimals.push(horseAnim);
+          if (!localStore.animals.some((a) => a.id === horseAnim.id)) {
+            localStore.animals.push(horseAnim);
+            localStore.save();
           }
-        });
-        localStore.save();
+        }
       }
       // Note: For real non-demo users, if rawAnimals is empty, it STAYS EMPTY! Zero hardcoded data!
     } else {
